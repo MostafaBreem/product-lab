@@ -35,7 +35,7 @@ export function PaymentCard(p: PaymentCardProps) {
       {p.pay || p.links?.length ? (
         <View style={{ gap: th.t('payment-card/actions/gap') }}>
           {p.pay ? <Button label={p.pay.label} onPress={p.pay.onPress} tone={p.pay.critical ? 'critical' : 'default'} /> : null}
-          <View style={p.linksRow ? { flexDirection: 'row', justifyContent: 'space-between' } : undefined}>
+          <View style={p.linksRow ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 8 } : undefined}>
             {p.links?.map((l) => (
               <View key={l.label}>
                 <Button variant="link" label={l.label} onPress={l.onPress} tone={l.critical ? 'critical' : 'default'} full={false} />

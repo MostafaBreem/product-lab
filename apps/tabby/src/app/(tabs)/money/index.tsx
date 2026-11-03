@@ -25,7 +25,7 @@ export default function MoneyTab() {
     return (
       <Screen>
         {header}
-        <Notice title={s.money.loadError} body={st.summaryError === 'network' ? undefined : s.common.somethingWrong}>
+        <Notice icon={st.summaryError === 'network' ? 'wifi-slash' : undefined} title={st.summaryError === 'network' ? s.common.offlineTitle : s.money.loadError} body={st.summaryError === 'network' ? s.common.offlineToast : s.common.somethingWrong}>
           <Button variant="link" label={s.common.tryAgain} onPress={() => st.refresh()} />
         </Notice>
       </Screen>

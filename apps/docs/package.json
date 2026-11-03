@@ -1,0 +1,17 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "gen": "tsx scripts/gen-docs.ts",
+    "storybook": "npm run gen && storybook dev -p 6006",
+    "build": "npm run gen && storybook build -o dist"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "^10.6.5",
+    "@storybook/react-native-web-vite": "^10.6.5",
+    "remark-gfm": "^4.0.1",
+    "storybook": "^10.6.5",
+    "vite": "^7.3.7"
+  }
+}

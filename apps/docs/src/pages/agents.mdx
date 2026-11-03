@@ -1,0 +1,23 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="For AI agents" />
+
+# For AI agents
+
+An agent can build screens from this library without reading the source. Give it these files:
+
+| File | What it holds |
+|---|---|
+| [llms.txt](./llms.txt) | Index: what the library is, the rules to follow, links to the files below |
+| [components.json](./components.json) | Every component: import line, props, variants, states, when / when not to use, content, behaviour, accessibility, Arabic notes, tokens, example |
+| [tokens.json](./tokens.json) | Every semantic and component token: values for light / dark × English / Arabic, what it is for, which components use it |
+
+## Rules an agent must follow
+
+1. Build from `@lab/app-kit` components. Missing piece: compose existing ones, then propose a new component.
+2. Colours, spacing, radius and text styles come from tokens. Never a raw hex or number.
+3. Every string in English and Arabic. Amounts with `fmt.money`, dates with `fmt.dayDate`.
+4. One Primary button per view; the Pay label repeats the amount.
+5. Icons beside text that wraps sit on the first line.
+
+These files regenerate on every push to `main`, so they match the published components.

@@ -1,0 +1,5 @@
+dist/
+src/generated/
+public/llms.txt
+public/tokens.json
+public/components.json

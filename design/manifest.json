@@ -1,0 +1,81 @@
+{
+ "exported": "2026-11-03T23:31:20",
+ "files": {
+  "tokens/tokens.json": {
+   "source": "system/tokens/tokens.json",
+   "sha1": "061082dc5b"
+  },
+  "rules/components.md": {
+   "source": "components/rules/INDEX.md",
+   "sha1": "bab0cd5f5f"
+  },
+  "rules/foundation-roles.md": {
+   "source": "system/roles.md",
+   "sha1": "3fc665e3d1"
+  },
+  "usage/bottom-sheet.md": {
+   "source": "components/usage/bottom-sheet.md",
+   "sha1": "1e6f258968"
+  },
+  "usage/button.md": {
+   "source": "components/usage/button.md",
+   "sha1": "2a10c13a7c"
+  },
+  "usage/chip.md": {
+   "source": "components/usage/chip.md",
+   "sha1": "43028adf0d"
+  },
+  "usage/header.md": {
+   "source": "components/usage/header.md",
+   "sha1": "7331d07abb"
+  },
+  "usage/key-value-pair.md": {
+   "source": "components/usage/key-value-pair.md",
+   "sha1": "9da198e326"
+  },
+  "usage/list-group.md": {
+   "source": "components/usage/list-group.md",
+   "sha1": "6e89ca5ac8"
+  },
+  "usage/list-row.md": {
+   "source": "components/usage/list-row.md",
+   "sha1": "51198f07d2"
+  },
+  "usage/navigation-bar.md": {
+   "source": "components/usage/navigation-bar.md",
+   "sha1": "452a08cadc"
+  },
+  "usage/notice.md": {
+   "source": "components/usage/notice.md",
+   "sha1": "a437ce6def"
+  },
+  "usage/payment-card.md": {
+   "source": "components/usage/payment-card.md",
+   "sha1": "1e2f906cb7"
+  },
+  "usage/section-header.md": {
+   "source": "components/usage/section-header.md",
+   "sha1": "bb5d616ef2"
+  },
+  "usage/segmented-control.md": {
+   "source": "components/usage/segmented-control.md",
+   "sha1": "83d9035cdc"
+  },
+  "usage/switch.md": {
+   "source": "components/usage/switch.md",
+   "sha1": "c25321f670"
+  },
+  "usage/tab-bar.md": {
+   "source": "components/usage/tab-bar.md",
+   "sha1": "b17d9473f0"
+  },
+  "usage/tag.md": {
+   "source": "components/usage/tag.md",
+   "sha1": "a6a10ab6a9"
+  },
+  "usage/toast.md": {
+   "source": "components/usage/toast.md",
+   "sha1": "39e9bb6b0c"
+  }
+ }
+}

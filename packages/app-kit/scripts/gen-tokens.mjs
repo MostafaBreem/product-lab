@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const src = JSON.parse(readFileSync(join(root, 'tokens/tokens.json'), 'utf8'));
+const src = JSON.parse(readFileSync(join(root, '../../design/tokens/tokens.json'), 'utf8'));
 
 const flat = {}; // dotted path -> { value, type, modes }
 function walk(node, path, type) {

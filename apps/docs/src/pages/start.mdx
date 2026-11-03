@@ -1,0 +1,37 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Start here" />
+
+# app-kit
+
+The design system behind the **Mobbin product lab** apps: design tokens, 16 React Native components, English + Arabic (right to left), light + dark. Built for a **Tabby case study**: an unofficial redesign of the Money tab, paying and payment reminders. Not affiliated with Tabby; sample data only.
+
+## What's here
+
+- **Foundations**: every token with its value, what it is for, and which components use it.
+- **Components**: one page each with live examples, when to use and when not, content rules, behaviour, accessibility, Arabic notes, props, code and tokens.
+- **Rules**: the component rules and foundation roles the lab works by.
+- **For AI agents**: plain files an agent can read to build from the library.
+
+Use the toolbar at the top to switch **English / العربية** and **Light / Dark** on any example.
+
+## Use it in code
+
+```tsx
+import { ThemeProvider, ToastHost, Button, fmt } from '@lab/app-kit';
+
+<ThemeProvider scheme="light" lang="en">
+  <ToastHost>
+    <Button label={`Pay ${fmt.money(31250, 'en')}`} onPress={pay} />
+  </ToastHost>
+</ThemeProvider>
+```
+
+Every colour, space, radius and text style comes from a token: `useTheme().t('color/text/content/default')`, `<Txt role="body/md">`. Never hard-code a value.
+
+## Where it comes from
+
+Tokens and usage rules are written in the lab docs and copied into the repo's `design/` folder. The app code and this site are generated from those files on every push to `main`; a token file that drifts from the code fails the build. Figma variables are synced from the same tokens file by hand.
+
+- Case study app (sample data): [open the Tabby case study](https://mostafabreem.github.io/product-lab/app/)
+- Repository: [github.com/MostafaBreem/product-lab](https://github.com/MostafaBreem/product-lab)

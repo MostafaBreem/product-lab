@@ -1,0 +1,12 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { ListGroup, ListRow } from '@lab/app-kit';
+import { useL } from '../ui/lang';
+
+export default { title: 'Components/ListGroup/Examples' } satisfies Meta;
+export const Card: StoryObj = { render: () => { const L = useL(); return (
+  <ListGroup>
+    <ListRow title={L('In-store Card', 'بطاقة المتجر')} leading={{ kind: 'icon', icon: 'credit-card' }} chevron onPress={() => {}} />
+    <ListRow title={L('Pay later purchases', 'مشترياتك بالدفع لاحقًا')} subtitle={L('3 open plans', '3 خطط دفع مفتوحة')} leading={{ kind: 'icon', icon: 'coins' }} chevron onPress={() => {}} />
+    <ListRow title={L('Help with payments', 'مساعدة في الدفع')} leading={{ kind: 'icon', icon: 'question' }} chevron onPress={() => {}} />
+  </ListGroup>); } };

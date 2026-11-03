@@ -22,4 +22,7 @@ export { ToastHost, useToast } from './components/Toast';
 export { Bar } from './components/Skeleton';
 export { PaymentCard, type PaymentCardProps } from './components/PaymentCard';
 export { Screen } from './components/Screen';
+export { Switch } from './components/Switch';
+export { TabBar, type TabItem } from './components/TabBar';
 export { Gallery } from './gallery';
+export { components as componentMeta, type ComponentMeta } from './meta';

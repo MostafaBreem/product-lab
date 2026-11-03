@@ -1,7 +1,6 @@
-name: Component gallery (GitHub Pages)
-# Publishes ONLY the brand-free component gallery (apps/gallery), never a case app:
-#   https://mostafabreem.github.io/product-lab/
-# Case apps use real product names and payment screens, so they stay off public hosting.
+name: Docs site + case study (GitHub Pages)
+# https://mostafabreem.github.io/product-lab/      Storybook docs: foundations, components, rules, agent files
+# https://mostafabreem.github.io/product-lab/app/  Tabby case study (web build, fixed "unofficial case study" banner)
 on:
   push:
     branches: [main, case/tabby]
@@ -23,15 +22,28 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Tokens up to date with design/tokens.json
+        run: npm run tokens && git diff --exit-code packages/app-kit/src/tokens/generated.ts
+      - name: Contrast (token pairs, AA)
+        run: node packages/app-kit/scripts/contrast.mjs
       - run: npm test
-      - run: npx expo export --platform web
-        working-directory: apps/gallery
-      - name: Guard - no case brand names in the public bundle
-        run: "! grep -r -l -E 'Tabby|تابي|Namshi|Noon' apps/gallery/dist"
-      - run: cp apps/gallery/dist/index.html apps/gallery/dist/404.html && touch apps/gallery/dist/.nojekyll
+      - name: Docs site (Storybook + llms.txt, tokens.json, components.json)
+        run: npm run build
+        working-directory: apps/docs
+        env:
+          SB_BASE: /product-lab/
+      - name: Case study app (web)
+        run: npx expo export --platform web
+        working-directory: apps/tabby
+        env:
+          EXPO_PUBLIC_CASE_STUDY: '1'
+      - name: Assemble site
+        run: |
+          mkdir site && cp -r apps/docs/dist/. site/ && cp -r apps/tabby/dist site/app
+          cp apps/tabby/dist/index.html site/404.html && touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/gallery/dist
+          path: site
   deploy:
     # The github-pages environment only accepts the default branch (main); case branches build and test only.
     if: github.ref == 'refs/heads/main'

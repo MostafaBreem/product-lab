@@ -3,14 +3,17 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { fontAssets, ThemeProvider, ToastHost } from '@lab/app-kit';
+import { fontAssets, ThemeProvider, ToastHost, Txt, useTheme } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
 import { FlowsProvider } from '../ui/flows';
 import { listenForReminderTaps, scheduleReminders } from '../ui/reminders';
 
+const FONTS = fontAssets();
+
 export default function Root() {
-  const [loaded] = useFonts(fontAssets);
+  const [loaded] = useFonts(FONTS);
   if (!loaded) return <View style={{ flex: 1 }} />;
   return (
     <SafeAreaProvider>
@@ -32,6 +35,7 @@ function Themed() {
       <ToastHost>
         <FlowsProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          {process.env.EXPO_PUBLIC_CASE_STUDY === '1' ? <CaseStudyBanner /> : null}
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
@@ -40,5 +44,18 @@ function Themed() {
         </FlowsProvider>
       </ToastHost>
     </ThemeProvider>
+  );
+}
+
+/** Public web build only (decisions/project.md 2026-11-04): fixed notice on every screen. */
+function CaseStudyBanner() {
+  const th = useTheme();
+  const insets = useSafeAreaInsets();
+  return (
+    <View accessibilityRole="banner" style={{ paddingTop: insets.top + 6, paddingBottom: 6, paddingHorizontal: 16, backgroundColor: th.t('color/surface/inverse/default') as string }}>
+      <Txt role="caption" color="color/text/content/inverse/default" align="center">
+        {th.isRTL ? 'دراسة حالة غير رسمية · ما لها علاقة بتابي · بيانات تجريبية' : 'Unofficial case study · not affiliated with Tabby · sample data'}
+      </Txt>
+    </View>
   );
 }

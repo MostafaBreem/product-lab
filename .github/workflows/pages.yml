@@ -1,7 +1,7 @@
-name: Web preview (GitHub Pages)
-# Builds the Tabby app for the web and publishes it with the component gallery:
-#   https://mostafabreem.github.io/product-lab/money    (app)
-#   https://mostafabreem.github.io/product-lab/gallery  (components)
+name: Component gallery (GitHub Pages)
+# Publishes ONLY the brand-free component gallery (apps/gallery), never a case app:
+#   https://mostafabreem.github.io/product-lab/
+# Case apps use real product names and payment screens, so they stay off public hosting.
 on:
   push:
     branches: [main, case/tabby]
@@ -25,11 +25,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npx expo export --platform web
-        working-directory: apps/tabby
-      - run: cp apps/tabby/dist/index.html apps/tabby/dist/404.html && touch apps/tabby/dist/.nojekyll
+        working-directory: apps/gallery
+      - name: Guard - no case brand names in the public bundle
+        run: "! grep -r -l -E 'Tabby|تابي|Namshi|Noon' apps/gallery/dist"
+      - run: cp apps/gallery/dist/index.html apps/gallery/dist/404.html && touch apps/gallery/dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/tabby/dist
+          path: apps/gallery/dist
   deploy:
     needs: build
     runs-on: ubuntu-latest

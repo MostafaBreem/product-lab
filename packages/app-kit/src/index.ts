@@ -22,3 +22,4 @@ export { ToastHost, useToast } from './components/Toast';
 export { Bar } from './components/Skeleton';
 export { PaymentCard, type PaymentCardProps } from './components/PaymentCard';
 export { Screen } from './components/Screen';
+export { Gallery } from './gallery';

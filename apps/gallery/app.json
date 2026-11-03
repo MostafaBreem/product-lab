@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "app-kit gallery",
+    "slug": "app-kit-gallery",
+    "scheme": "appkitgallery",
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "baseUrl": "/product-lab"
+    },
+    "web": {
+      "output": "single",
+      "bundler": "metro"
+    }
+  }
+}

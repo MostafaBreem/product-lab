@@ -3,14 +3,13 @@
 Mobbin product lab apps: one shared `app-kit` + one thin Expo app per case. Mock data, iOS only, EN + AR.
 
 - `packages/app-kit` — design tokens (generated from the lab's `tokens.json`), Bawazek Sans fonts, DS components (Button, Tag, Chip, Key-value pair, Segmented control, Header, Section header, List row, List group, Payment card, Navigation bar, Bottom sheet, Notice, Toast), formats (riyal, dates, Arabic day counts), mock transport, analytics logger.
+- `apps/gallery` — public component gallery (brand-free).
 - `apps/tabby` — Tabby case (Money tab, pay flow v5, reminders). Spec: lab docs `cases/tabby/build-spec.md`.
 
 ## Preview online
 
-- App: https://mostafabreem.github.io/product-lab/money
-- Component gallery (EN / AR, light / dark): https://mostafabreem.github.io/product-lab/gallery
-
-Built and published by `.github/workflows/pages.yml` on every push to `main` or `case/tabby`.
+- Component gallery (EN / AR, light / dark, brand-free sample data): https://mostafabreem.github.io/product-lab/
+- Published by `.github/workflows/pages.yml` on every push to `main` or `case/tabby`. Only `apps/gallery` is published; case apps (real product names, payment screens) are never hosted publicly. Inside the Tabby app the same gallery is at `/gallery`.
 
 ## Run
 

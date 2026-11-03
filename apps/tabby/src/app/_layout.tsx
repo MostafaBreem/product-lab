@@ -35,6 +35,7 @@ function Themed() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="gallery" />
           </Stack>
         </FlowsProvider>
       </ToastHost>

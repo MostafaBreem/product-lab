@@ -27,8 +27,8 @@ export function Button({ label, onPress, variant = 'primary', tone = 'default', 
         backgroundColor: th.t(crit ? (pressed ? 'button/primary/critical/fill/active' : 'button/primary/critical/fill/default') : pressed ? 'button/primary/fill/active' : 'button/primary/fill/default') as string,
       })}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('button/container/gap') }}>
-        {loading ? <ActivityIndicator color={th.t('button/primary/icon/default') as string} /> : null}
-        <Txt role="label/lg" color="button/primary/text/default" numberOfLines={1}>{label}</Txt>
+        {loading ? <ActivityIndicator color={th.t(crit ? 'button/primary/critical/icon/default' : 'button/primary/icon/default') as string} /> : null}
+        <Txt role="label/lg" color={crit ? 'button/primary/critical/text/default' : 'button/primary/text/default'} numberOfLines={1}>{label}</Txt>
       </View>
     </Pressable>
   );

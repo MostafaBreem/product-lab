@@ -1,0 +1,41 @@
+name: Web preview (GitHub Pages)
+# Builds the Tabby app for the web and publishes it with the component gallery:
+#   https://mostafabreem.github.io/product-lab/money    (app)
+#   https://mostafabreem.github.io/product-lab/gallery  (components)
+on:
+  push:
+    branches: [main, case/tabby]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx expo export --platform web
+        working-directory: apps/tabby
+      - run: cp apps/tabby/dist/index.html apps/tabby/dist/404.html && touch apps/tabby/dist/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/tabby/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

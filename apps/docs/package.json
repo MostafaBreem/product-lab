@@ -8,6 +8,7 @@
     "build": "npm run gen && storybook build -o dist"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^10.6.5",
     "@storybook/addon-docs": "^10.6.5",
     "@storybook/react-native-web-vite": "^10.6.5",
     "remark-gfm": "^4.0.1",

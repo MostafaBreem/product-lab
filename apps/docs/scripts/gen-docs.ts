@@ -53,20 +53,37 @@ const groups: { title: string; file: string; prefix: string[]; intro: string }[]
   { title: 'Size', file: 'Size', prefix: ['size/'], intro: 'Control heights, icon sizes, minimum touch target 44.' },
   { title: 'Elevation', file: 'Elevation', prefix: ['shadow/'], intro: 'Shadows. Cards use sm.' },
 ];
+const data: Record<string, unknown> = {};
 for (const g of groups) {
   const rows = raw.filter((t) => t.path.startsWith('semantic/') && g.prefix.some((p) => key(t.path).startsWith(p)));
   const isColour = g.file === 'Colour';
-  let md = `import { Meta } from '@storybook/addon-docs/blocks';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n`;
+  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Swatches, TypeSpecimen, Scale } from '../../blocks';\nimport data from '../data.json';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n`;
+  if (isColour) {
+    data.colour = rows.filter((t) => typeof R.light_en[key(t.path)] === 'string').map((t) => ({ k: key(t.path), light: R.light_en[key(t.path)], dark: R.dark_en[key(t.path)], desc: t.description, usedBy: [...(usedBy.get(key(t.path)) ?? [])].sort() }));
+    md += `Each card: light on the left, dark on the right.\n\n<Swatches tokens={data.colour} />\n\n## Full table\n\n`;
+  }
+  if (g.file === 'Type') {
+    const rolesList = ['display/lg', 'display/md', 'heading/lg', 'heading/md', 'heading/sm', 'body/lg', 'body/md', 'body/sm', 'label/lg', 'label/md', 'label/sm', 'caption'];
+    data.type = rolesList.map((r) => ({ role: r, size: R.light_en[`font-size/${r}`], lh: R.light_en[`type/${r}/line-height`], weight: R.light_en[`type/${r}/weight`] }));
+    md += `English on the left, Arabic on the right, real font (Bawazek Sans).\n\n<TypeSpecimen roles={data.type} />\n\n## Full table\n\n`;
+  }
+  if (['Spacing', 'Radius', 'Size'].includes(g.file)) {
+    const kind = g.file === 'Spacing' ? 'space' : g.file === 'Radius' ? 'radius' : 'size';
+    const items = rows.filter((t) => typeof R.light_en[key(t.path)] === 'number' && (kind !== 'space' || /^space\/(padding|gap-y)\//.test(key(t.path)))).map((t) => ({ k: key(t.path), v: R.light_en[key(t.path)] }));
+    data[kind] = items;
+    md += `<Scale kind="${kind}" items={data.${kind}} />\n\n## Full table\n\n`;
+  }
   md += isColour ? '| Token | Light | Dark | Use | Used by |\n|---|---|---|---|---|\n' : '| Token | EN | AR | Use | Used by |\n|---|---|---|---|---|\n';
   for (const t of rows) {
     const k = key(t.path);
-    const a = isColour ? R.light_en[k] : R.light_en[k];
+    const a = R.light_en[k];
     const b = isColour ? R.dark_en[k] : R.light_ar[k];
     const ub = [...(usedBy.get(k) ?? [])].sort().join(', ') || '—';
     md += `| \`${k}\` | ${sw(a)}${esc(fmtVal(a))} | ${sw(b)}${esc(fmtVal(b))} | ${esc(t.description ?? '')} | ${ub} |\n`;
   }
   writeFileSync(join(GEN, 'foundations', `${g.file}.mdx`), md);
 }
+writeFileSync(join(GEN, 'data.json'), JSON.stringify(data));
 
 // ---------- usage cards ----------
 function usage(slug: string): Record<string, string> {
@@ -74,12 +91,12 @@ function usage(slug: string): Record<string, string> {
   const out: Record<string, string> = {};
   if (!existsSync(f)) return out;
   for (const line of readFileSync(f, 'utf8').split('\n')) {
-    const m = line.match(/^- ([A-Za-z0-9 ]+?)(?: \([^)]*\))?: (.+)$/);
+    const m = line.match(/^- ([A-Za-z0-9 '’]+?)(?: \([^)]*\))?: (.+)$/);
     if (m) out[m[1].trim()] = (out[m[1].trim()] ? out[m[1].trim()] + ' ' : '') + m[2].trim();
   }
   return out;
 }
-const SECTIONS: [string, string][] = [['Use when', 'When to use'], ["Don't use", "Don't use"], ['Variant pick', 'Which variant'], ['Selection', 'Selection'], ['Content rules', 'Content'], ['Behaviour', 'Behaviour'], ['A11y', 'Accessibility'], ['RTL', 'Arabic and RTL']];
+const SECTIONS: [string, string][] = [['Variant pick', 'Which variant'], ['Selection', 'Selection'], ['Content rules', 'Content'], ['Behaviour', 'Behaviour'], ['A11y', 'Accessibility'], ['RTL', 'Arabic and RTL']];
 const storyFiles = readdirSync(join(__dirname, '..', 'src', 'stories')).map((f) => f.replace('.stories.tsx', ''));
 
 const agentComponents: unknown[] = [];
@@ -89,7 +106,9 @@ for (const c of components) {
   const story = storyFiles.includes(c.name) ? c.name : null;
   let md = `import { Meta, Canvas, Source } from '@storybook/addon-docs/blocks';\n`;
   if (story) md += `import * as S from '../../stories/${story}.stories';\n`;
-  md += `\n<Meta title="Components/${c.name}/Docs" />\n\n# ${c.name}\n\n${esc(u['Purpose'] ?? c.summary)}\n\n`;
+  md += `import { Status, DoDont } from '../../blocks';\n`;
+  md += `\n<Meta title="Components/${c.name}/Docs" />\n\n# ${c.name}\n\n<Status status="Stable" code="https://github.com/MostafaBreem/product-lab/blob/main/packages/app-kit/src/components/${c.name}.tsx" />\n\n${esc(u['Purpose'] ?? c.summary)}\n\n`;
+  md += `<DoDont doText={${JSON.stringify(u['Use when'] ?? '')}} dontText={${JSON.stringify(u["Don't use"] ?? '')}} />\n\n`;
   if (story) {
     const names = [...readFileSync(join(__dirname, '..', 'src', 'stories', `${story}.stories.tsx`), 'utf8').matchAll(/export const (\w+)/g)].map((m) => m[1]);
     md += `## Examples\n\nUse the toolbar to switch English / العربية and Light / Dark.\n\n` + names.map((n) => `### ${n.replace(/([a-z])([A-Z])/g, '$1 $2')}\n\n<Canvas of={S.${n}} />\n`).join('\n') + '\n';

@@ -7,7 +7,7 @@ const stub = fileURLToPath(new URL('./stubs/assets-registry.js', import.meta.url
 const config: StorybookConfig = {
   framework: { name: '@storybook/react-native-web-vite', options: {} },
   stories: ['../src/generated/**/*.mdx', '../src/pages/**/*.mdx', '../src/stories/**/*.stories.tsx'],
-  addons: [{ name: '@storybook/addon-docs', options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } } }],
+  addons: ['@storybook/addon-a11y', { name: '@storybook/addon-docs', options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } } }],
   staticDirs: [{ from: '../../../packages/app-kit/assets/fonts', to: '/fonts' }, { from: '../public', to: '/' }],
   core: { disableTelemetry: true },
   // GitHub Pages serves the site under /product-lab/

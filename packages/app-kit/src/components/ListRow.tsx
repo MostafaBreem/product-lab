@@ -32,7 +32,7 @@ export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/te
         {value ? <Txt role="label/lg" color="list-row/value/text/default" tabular>{value}</Txt> : null}
         {quietValue ? <Txt role="body/sm" color="list-row/value/text/quiet" tabular>{quietValue}</Txt> : null}
         {selection?.kind === 'switch' ? (
-          <RNSwitch value={selection.value} onValueChange={selection.onChange} trackColor={{ true: th.t('switch/track/fill/on') as string, false: th.t('switch/track/fill/off') as string }} thumbColor={th.t('switch/knob/fill') as string} ios_backgroundColor={th.t('switch/track/fill/off') as string} />
+          <RNSwitch value={selection.value} onValueChange={selection.onChange} trackColor={{ true: th.t('switch/track/fill/on') as string, false: th.t('switch/track/fill/off') as string }} thumbColor={th.t('switch/knob/fill') as string} {...({ activeThumbColor: th.t('switch/knob/fill') } as object)} ios_backgroundColor={th.t('switch/track/fill/off') as string} />
         ) : selection ? (
           <Icon size={th.t('list-row/selection/size')} weight={selection.selected ? 'fill' : 'regular'}
             name={selection.kind === 'radio' ? (selection.selected ? 'radio-button' : 'circle') : selection.selected ? 'check-square' : 'square'}

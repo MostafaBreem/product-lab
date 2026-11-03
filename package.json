@@ -1,0 +1,17 @@
+{
+  "name": "mobbin-product-lab",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "tokens": "node packages/app-kit/scripts/gen-tokens.mjs",
+    "tabby": "npm --workspace tabby run start",
+    "test": "npm --workspace @lab/app-kit test && npm --workspace tabby test"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0"
+  }
+}

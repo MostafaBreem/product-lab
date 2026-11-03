@@ -1,0 +1,96 @@
+// Money tab (build-spec-money.md): Due · Overdue · Caught up; loading skeleton, offline notice, load error, range switch.
+import { router } from 'expo-router';
+import React, { useEffect } from 'react';
+import { RefreshControl, View } from 'react-native';
+import { analytics, Bar, Button, Chip, fmt, Header, ListGroup, ListRow, Notice, PaymentCard, Screen, SectionHeader, SegmentedControl, Txt, useTheme } from '@lab/app-kit';
+import { useStore } from '../../../state';
+import { useFlows } from '../../../ui/flows';
+import { dd, m, who } from '../../../ui/helpers';
+import type { Range } from '../../../domain/types';
+
+export default function MoneyTab() {
+  const st = useStore();
+  const { s, lang, summary: x, settings } = st;
+  const th = useTheme();
+  const flows = useFlows();
+  const today = settings.today;
+  const stub = (from: string) => router.push({ pathname: '/money/stub', params: { from } });
+
+  useEffect(() => { if (x) analytics.track('money_tab_viewed', { cardState: x.card.state, range: st.range, fromCache: settings.net === 'offline' }); }, [x?.card.state, st.version]);
+
+  const header = <Header title={s.money.title} onLongPressTitle={() => router.push('/debug')} trailing={<Chip label={s.money.earnCashback} icon="coins" onPress={() => stub('earn_cashback')} />} />;
+
+  if (st.loading && !x) return <Screen bottomInset={0}>{header}<Skeleton /></Screen>;
+  if (!x) {
+    return (
+      <Screen>
+        {header}
+        <Notice title={s.money.loadError} body={st.summaryError === 'network' ? undefined : s.common.somethingWrong}>
+          <Button variant="link" label={s.common.tryAgain} onPress={() => st.refresh()} />
+        </Notice>
+      </Screen>
+    );
+  }
+  const c = x.card;
+  const offline = settings.net === 'offline';
+  const card = c.state === 'overdue' ? (
+    <PaymentCard state="overdue" criticalFill tag={fmt.overdueTag(c.daysLate!, lang)} label={s.overdue.amountOverdue} amount={m(c.amount, lang)} dueLine={s.money.wasDue(dd(c.dueDate, lang))} dueCritical
+      pay={{ label: s.money.payNow(m(c.amount, lang)), critical: true, onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'overdue', amount: c.amount }); flows.openPay({ kind: 'overdue', items: c.items, source: 'money_card' }); } }}
+      links={[{ label: s.money.whatNext, critical: true, onPress: () => { analytics.track('what_happens_next_tapped', { daysLate: c.daysLate }); router.push('/money/overdue'); } }]} />
+  ) : c.state === 'due' ? (
+    <PaymentCard state="due" label={s.money.nextPayment} amount={m(c.amount, lang)} dueLine={fmt.dueLine(c.dueDate, today, lang)}
+      pay={{ label: s.money.pay(m(c.amount, lang)), onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'due', amount: c.amount }); flows.openPay({ kind: 'onTime', items: c.items, source: 'money_card' }); } }}
+      linksRow links={[{ label: s.money.payDifferent, onPress: () => stub('pay_different_amount') }, ...(c.extendable ? [{ label: s.money.extendPayment, onPress: () => flows.openExtend(c.items, 'money_card') }] : [])]}
+      summary={[{ k: s.money.due30, v: m(x.due30, lang) }, { k: s.money.totalToPay, v: m(x.totalToPay, lang) }]} />
+  ) : (
+    <PaymentCard state="caughtUp" label={s.money.nextPayment} title={s.money.caughtUp} dueLine={s.money.onDate(m(c.amount, lang), dd(c.dueDate, lang))}
+      links={[{ label: s.money.payEarly, onPress: () => stub('pay_early') }]} />
+  );
+  const empty = st.range === '7d' ? s.money.empty7 : st.range === '30d' ? s.money.empty30 : s.money.emptyAll;
+  return (
+    <Screen refreshControl={<RefreshControl refreshing={false} onRefresh={() => st.refresh()} />}>
+      {header}
+      {offline ? <Notice icon="wifi-slash" title={s.common.offlineTitle} body={s.common.offlineBody(fmt.lastUpdate(x.asOf.day, x.asOf.time, today, lang))} /> : null}
+      {card}
+      <View>
+        <SectionHeader title={s.money.upcoming} action={s.money.history} onAction={() => stub('history')} />
+        <View style={{ gap: 12 }}>
+          <SegmentedControl<Range> value={st.range} onChange={(r) => st.setRange(r)} options={[{ value: '7d', label: s.money.r7 }, { value: '30d', label: s.money.r30 }, { value: 'all', label: s.money.rAll }]} />
+          <ListGroup>
+            {st.rowsLoading ? [0, 1].map((i) => <ListRow key={i} title=" " leading={{ kind: 'skeleton' }} />)
+              : st.rowsError ? [<View key="e" style={{ padding: 16 }}><Txt role="body/md" color="color/text/content/secondary/default">{s.money.listError}</Txt><Button variant="link" label={s.common.tryAgain} onPress={() => st.setRange(st.range)} /></View>]
+              : x.rows.length === 0 ? [<View key="e" style={{ padding: 16 }}><Txt role="body/md" color="color/text/content/secondary/default">{empty}</Txt></View>]
+              : x.rows.map((r) => {
+                const late = fmt.diffDays(r.dueDate, today) < 0;
+                return (
+                  <ListRow key={r.instalmentId} title={r.merchant.name[lang]} leading={{ kind: 'logo', text: r.merchant.logoText, color: r.merchant.logoColor }}
+                    subtitle={late ? s.money.rowSubLate(dd(r.dueDate, lang)) : s.money.rowSub(dd(r.dueDate, lang), r.number, r.of)} subtitleColor={late ? 'color/text/content/critical/default' : undefined}
+                    value={m(r.amount, lang)} chevron onPress={() => { analytics.track('due_row_tapped', { purchaseId: r.purchaseId }); router.push(`/money/purchase/${r.purchaseId}`); }} />
+                );
+              })}
+          </ListGroup>
+        </View>
+      </View>
+      <View>
+        <SectionHeader title={s.money.yourProducts} />
+        <ListGroup>
+          <ListRow title={s.money.inStore} subtitle={s.money.inStoreSub} leading={{ kind: 'icon', icon: 'credit-card' }} chevron onPress={() => stub('in_store_card')} />
+          <ListRow title={s.money.payLater} subtitle={s.money.openPlans(x.openPlans)} leading={{ kind: 'icon', icon: 'coins' }} chevron onPress={() => stub('pay_later_purchases')} />
+          <ListRow title={s.money.help} leading={{ kind: 'icon', icon: 'question' }} chevron onPress={() => stub('help')} />
+        </ListGroup>
+      </View>
+    </Screen>
+  );
+}
+
+function Skeleton() {
+  const th = useTheme();
+  return (
+    <>
+      <View style={{ backgroundColor: th.t('payment-card/fill/default') as string, borderRadius: 20, padding: 20, gap: 12 }}>
+        <Bar w="30%" /><Bar w="55%" h={36} r={8} /><Bar w="45%" /><Bar w="100%" h={48} r={12} /><Bar w="40%" />
+      </View>
+      <ListGroup>{[0, 1].map((i) => <ListRow key={i} title=" " leading={{ kind: 'skeleton' }} />)}</ListGroup>
+    </>
+  );
+}

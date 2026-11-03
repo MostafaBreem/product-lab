@@ -1,0 +1,34 @@
+import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme';
+import { Icon } from './Icon';
+import { Txt } from './Txt';
+
+type ToastMsg = { tone: 'success' | 'neutral'; text: string };
+const Ctx = createContext<(m: ToastMsg) => void>(() => {});
+export const useToast = () => useContext(Ctx);
+
+/** One toast at a time, 16 above the bottom bar, auto-hides after 3 s. */
+export function ToastHost({ children, bottomOffset = 83 }: { children: React.ReactNode; bottomOffset?: number }) {
+  const th = useTheme();
+  const insets = useSafeAreaInsets();
+  const [msg, setMsg] = useState<ToastMsg | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const show = useCallback((m: ToastMsg) => {
+    if (timer.current) clearTimeout(timer.current);
+    setMsg(m);
+    timer.current = setTimeout(() => setMsg(null), 3000);
+  }, []);
+  return (
+    <Ctx.Provider value={show}>
+      {children}
+      {msg ? (
+        <View pointerEvents="none" accessibilityLiveRegion="polite" style={{ position: 'absolute', left: 16, right: 16, bottom: Math.max(insets.bottom, 0) + bottomOffset + 16, flexDirection: 'row', alignItems: 'center', gap: th.t('toast/container/gap'), paddingHorizontal: th.t('toast/container/padding-x'), paddingVertical: th.t('toast/container/padding-y'), borderRadius: th.t('toast/container/radius'), backgroundColor: th.t('toast/container/fill') as string, direction: th.isRTL ? 'rtl' : 'ltr' }}>
+          <Icon name={msg.tone === 'success' ? 'check-circle' : 'bell-slash'} size={20} color="toast/icon/default" />
+          <Txt role="body/md" color="toast/text/default" wrap style={{ flex: 1 }}>{msg.text}</Txt>
+        </View>
+      ) : null}
+    </Ctx.Provider>
+  );
+}

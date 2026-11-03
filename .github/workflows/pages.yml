@@ -33,6 +33,8 @@ jobs:
         with:
           path: apps/gallery/dist
   deploy:
+    # The github-pages environment only accepts the default branch (main); case branches build and test only.
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

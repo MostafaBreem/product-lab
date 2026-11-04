@@ -92,7 +92,8 @@ function usage(slug: string): Record<string, string> {
   if (!existsSync(f)) return out;
   for (const line of readFileSync(f, 'utf8').split('\n')) {
     const m = line.match(/^- ([A-Za-z0-9 '’]+?)(?: \([^)]*\))?: (.+)$/);
-    if (m) out[m[1].trim()] = (out[m[1].trim()] ? out[m[1].trim()] + ' ' : '') + m[2].trim();
+    // Drop lab provenance notes like "(user 2026-11-04)" or "(added 2026-11-04, …)" from public text.
+    if (m) out[m[1].trim()] = (out[m[1].trim()] ? out[m[1].trim()] + ' ' : '') + m[2].trim().replace(/\s*\((?:user|added|stated|reconsidered)[^)]*\)/g, '');
   }
   return out;
 }

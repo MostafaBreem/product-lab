@@ -7,6 +7,7 @@ Read when: screen work draws this component. Build or change: spec leaf instead.
 - Purpose: One label and its value. Direction Stacked (default) = label above value; Side by side = label left, value right on one line (totals, fee lines).
 - Emphasis: Strong (default) = value 16 medium; Regular = value 14 regular. Detail lists: Regular rows, one Strong row for the value that leads.
 - Use when: Summary insets and detail lists; two or more side by side in equal FILL columns.
+- Don't use: rows that open something — instead List row; a choice the user changes (switch, radio) — instead List row Selection; a lone heading with no value — instead Section header. (added 2026-11-04, design-critic round 1)
 - Content rules: Key one line, value one line; amounts LTR-isolated in AR.
 - Behaviour: none.
 - A11y: key 5.84:1 on surface/secondary, value 15.54:1.

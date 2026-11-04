@@ -6,6 +6,7 @@ Read when: screen work draws this component. Build or change: spec leaf instead.
 
 - Purpose: Bottom app navigation, 4 tabs, one selected (Active).
 - Use when: every top-level tab screen; pinned to the screen bottom, 393 wide, 83 tall incl. home bar.
+- Don't use: switching views inside one screen — instead Segmented control; navigation inside a Bottom sheet — instead Navigation bar (back / close); more than 4 top-level sections — instead a List row in Profile that opens a screen (derived). (added 2026-11-04, design-critic round 1)
 - Content rules: labels one word where possible (truncate at one line). Icon N + Icon N selected = same glyph (Regular + Fill).
 - Behaviour: Active = current tab; no pressed state.
 - A11y: grey icon 4.49:1, brand icon 4.49:1, labels 6.4:1 on surface.

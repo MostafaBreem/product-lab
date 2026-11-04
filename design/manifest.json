@@ -1,5 +1,5 @@
 {
- "exported": "2026-11-03T23:31:20",
+ "exported": "2026-11-04T00:01:02",
  "files": {
   "tokens/tokens.json": {
    "source": "system/tokens/tokens.json",
@@ -19,27 +19,27 @@
   },
   "usage/button.md": {
    "source": "components/usage/button.md",
-   "sha1": "2a10c13a7c"
+   "sha1": "6536ef6879"
   },
   "usage/chip.md": {
    "source": "components/usage/chip.md",
-   "sha1": "43028adf0d"
+   "sha1": "813a5639c1"
   },
   "usage/header.md": {
    "source": "components/usage/header.md",
-   "sha1": "7331d07abb"
+   "sha1": "3ce5bd81f5"
   },
   "usage/key-value-pair.md": {
    "source": "components/usage/key-value-pair.md",
-   "sha1": "9da198e326"
+   "sha1": "63690e12c9"
   },
   "usage/list-group.md": {
    "source": "components/usage/list-group.md",
-   "sha1": "6e89ca5ac8"
+   "sha1": "7ba2141b71"
   },
   "usage/list-row.md": {
    "source": "components/usage/list-row.md",
-   "sha1": "51198f07d2"
+   "sha1": "0c210a1ec3"
   },
   "usage/navigation-bar.md": {
    "source": "components/usage/navigation-bar.md",
@@ -51,15 +51,15 @@
   },
   "usage/payment-card.md": {
    "source": "components/usage/payment-card.md",
-   "sha1": "1e2f906cb7"
+   "sha1": "63caae8722"
   },
   "usage/section-header.md": {
    "source": "components/usage/section-header.md",
-   "sha1": "bb5d616ef2"
+   "sha1": "5652f39a6d"
   },
   "usage/segmented-control.md": {
    "source": "components/usage/segmented-control.md",
-   "sha1": "83d9035cdc"
+   "sha1": "a20a567f3b"
   },
   "usage/switch.md": {
    "source": "components/usage/switch.md",
@@ -67,11 +67,11 @@
   },
   "usage/tab-bar.md": {
    "source": "components/usage/tab-bar.md",
-   "sha1": "b17d9473f0"
+   "sha1": "e511199261"
   },
   "usage/tag.md": {
    "source": "components/usage/tag.md",
-   "sha1": "a6a10ab6a9"
+   "sha1": "ec21478725"
   },
   "usage/toast.md": {
    "source": "components/usage/toast.md",

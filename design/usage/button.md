@@ -6,7 +6,7 @@ Read when: screen work draws this component. Build or change: spec leaf instead.
 
 - Purpose: one tap action. Primary = filled main action; Link = text-only secondary action.
 - Use when: the one main action on a screen (Primary, FILL width on phone); secondary actions in a row or under the main one (Link); overdue or destructive actions (Tone Critical).
-- Don't use: navigation rows — instead List row; filters or toggles — instead Chip / Segmented control; tabs — instead Tab bar.
+- Don't use: navigation rows — instead List row; filters or toggles — instead Segmented control (Chip = action only, user 2026-11-04); tabs — instead Tab bar.
 - Variant pick: Variant Primary or Link × Tone Default or Critical. State Pressed only to show the pressed look in specs; State Loading for in-progress screens (Primary only). One Primary per view.
 - Content rules: label says exactly what the tap does, with the amount when it pays ("Pay ⃁ 312.50"). One line, never wraps. Max about 30 characters on a 361 Primary: 46 characters overflow by 32 (Usage 6).
 - Behaviour: tap. Pressed = darker fill (Primary) or darker text (Link). State Loading (Primary only): spinner + label ("Paying…"), no press; set it while the action runs. No Disabled yet.

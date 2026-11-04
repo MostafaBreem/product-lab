@@ -6,6 +6,7 @@ Read when: screen work draws this component. Build or change: spec leaf instead.
 
 - Purpose: Tappable row: leading logo / icon, title, subtitle, value, chevron.
 - Use when: Due payments, products, settings lists; inside List group.
+- Don't use: the main action of a screen — instead Button; read-only facts in a details card — instead Key-value pair Side by side; a status label with no tap and no row — instead Tag. (added 2026-11-04, design-critic round 1)
 - Content rules: Title max 2 lines, subtitle 1 line, value never truncates. Logo = drop the merchant image fill on the Logo frame.
 - Behaviour: whole row taps; Pressed = surface/active (base 96).
 - A11y: min 56 tall; chevron 4.49:1 (pressed 3.97 light, 3.65 dark).

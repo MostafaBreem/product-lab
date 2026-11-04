@@ -115,7 +115,7 @@ export const components: ComponentMeta[] = [
   {
     name: 'TabBar', slug: 'tab-bar', tokens: 'tab-bar', summary: 'Bottom navigation between the app\'s top-level sections.',
     props: [
-      { name: 'items', type: '{ key; label; icon }[]', description: '3–5 tabs.' },
+      { name: 'items', type: '{ key; label; icon }[]', description: '4 tabs (Figma Tab bar (4)).' },
       { name: 'selected', type: 'string', description: 'Selected key.' },
       { name: 'onSelect', type: '(key: string) => void', description: 'Tab handler.' },
     ],

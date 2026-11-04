@@ -4,6 +4,7 @@ export * from './fonts';
 export * as fmt from './format';
 export * from './analytics';
 export * from './mock';
+export { lab } from './inspect';
 export { Txt } from './components/Txt';
 export { Icon, type IconName } from './components/Icon';
 export { Button } from './components/Button';

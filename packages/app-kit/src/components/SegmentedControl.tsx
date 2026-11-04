@@ -1,12 +1,13 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Txt } from './Txt';
 
 export function SegmentedControl<T extends string>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
   const th = useTheme();
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', height: th.t('segmented-control/container/height'), padding: th.t('segmented-control/track/padding'), borderRadius: th.t('segmented-control/track/radius'), backgroundColor: th.t('segmented-control/track/fill/default') as string }}>
+    <View {...lab('SegmentedControl', options.map((o) => o.label).join(' · '), `selected: ${options.find((o) => o.value === value)?.label ?? ''}`)} accessibilityRole="tablist" style={{ flexDirection: 'row', height: th.t('segmented-control/container/height'), padding: th.t('segmented-control/track/padding'), borderRadius: th.t('segmented-control/track/radius'), backgroundColor: th.t('segmented-control/track/fill/default') as string }}>
       {options.map((o) => {
         const sel = o.value === value;
         return (

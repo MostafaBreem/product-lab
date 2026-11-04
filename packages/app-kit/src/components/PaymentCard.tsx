@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Button } from './Button';
 import { KeyValue } from './KeyValue';
 import { shadow } from './ListGroup';
@@ -23,7 +24,7 @@ export function PaymentCard(p: PaymentCardProps) {
   const th = useTheme();
   const crit = p.criticalFill;
   return (
-    <View style={{ backgroundColor: th.t(crit ? 'payment-card/fill/critical' : 'payment-card/fill/default') as string, borderRadius: th.t('payment-card/container/radius'), padding: th.t('payment-card/container/padding'), gap: th.t('payment-card/container/gap'), boxShadow: shadow(th.t('shadow/sm')) }}>
+    <View {...lab('PaymentCard', p.label, p.state)} style={{ backgroundColor: th.t(crit ? 'payment-card/fill/critical' : 'payment-card/fill/default') as string, borderRadius: th.t('payment-card/container/radius'), padding: th.t('payment-card/container/padding'), gap: th.t('payment-card/container/gap'), boxShadow: shadow(th.t('shadow/sm')) }}>
       {p.tag ? <Tag tone="critical" label={p.tag} /> : null}
       <View style={{ gap: th.t('payment-card/header/gap') }}>
         <Txt role="body/sm" color="payment-card/label/text/default">{p.label}</Txt>

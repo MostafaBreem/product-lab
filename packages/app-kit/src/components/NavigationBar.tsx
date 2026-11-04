@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Icon } from './Icon';
 import { Txt } from './Txt';
 
@@ -9,7 +10,7 @@ export function NavigationBar({ title, leading, onLeading, transparent, label }:
   const th = useTheme();
   const side = th.t('navigation-bar/side/size');
   return (
-    <View style={{ height: th.t('navigation-bar/container/height'), flexDirection: 'row', alignItems: 'center', paddingHorizontal: th.t('navigation-bar/container/padding-x') - (th.t('size/touch/min') - th.t('size/icon/md')) / 2, backgroundColor: transparent ? 'transparent' : (th.t('navigation-bar/container/fill') as string) }}>
+    <View {...lab('NavigationBar', title)} style={{ height: th.t('navigation-bar/container/height'), flexDirection: 'row', alignItems: 'center', paddingHorizontal: th.t('navigation-bar/container/padding-x') - (th.t('size/touch/min') - th.t('size/icon/md')) / 2, backgroundColor: transparent ? 'transparent' : (th.t('navigation-bar/container/fill') as string) }}>
       <View style={{ width: side, height: side, justifyContent: 'center', alignItems: 'center' }}>
         {leading ? (
           <Pressable onPress={onLeading} accessibilityRole="button" accessibilityLabel={label ?? (leading === 'back' ? 'Back' : 'Close')} hitSlop={th.t('space/padding/3xs')} style={{ width: side, height: side, justifyContent: 'center', alignItems: 'center' }}>

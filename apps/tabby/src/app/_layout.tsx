@@ -1,13 +1,14 @@
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { fontAssets, FrameInsets, FramePage, inFrame, ThemeProvider, ToastHost, Txt, useFramePage, useTheme } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
 import { FlowsProvider } from '../ui/flows';
+import { Inspector } from '../ui/Inspector';
 import { listenForReminderTaps, scheduleReminders } from '../ui/reminders';
 
 const FONTS = fontAssets();
@@ -32,6 +33,9 @@ function Themed() {
   const st = useStore();
   const { scheme, lang, setSchemePref, setLang } = st;
   useEffect(() => listenForReminderTaps(st.refresh), []);
+  // Debug "Copy screen link": remember the last screen that is not the debug modal (web).
+  const pathname = usePathname();
+  useEffect(() => { if (Platform.OS === 'web' && pathname !== '/debug') st.setLastHref(window.location.href); }, [pathname]);
   // Reschedule after payment, extension, prefs, permission or clock changes (build-spec-reminders.md).
   useEffect(() => { scheduleReminders(st).catch(() => {}); }, [st.flags.osPermission, st.version, lang]);
   return (
@@ -46,6 +50,7 @@ function Themed() {
             <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
             <Stack.Screen name="gallery" />
           </Stack>
+          <Inspector />
         </FlowsProvider>
       </ToastHost>
       </FrameInsets>

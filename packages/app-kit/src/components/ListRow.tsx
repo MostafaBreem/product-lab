@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import type { TokenKey } from '../tokens';
 import { Icon, type IconName } from './Icon';
 import { Switch } from './Switch';
@@ -45,9 +46,11 @@ export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/te
       {divider ? <View style={{ height: th.t('list-row/divider/width'), backgroundColor: th.t('list-row/divider/border/default') as string, marginStart: padX }} /> : null}
     </View>
   );
+  const labState = selection ? (selection.kind === 'switch' ? `switch ${selection.value ? 'on' : 'off'}` : `${selection.kind} ${selection.selected ? 'on' : 'off'}`) : chevron ? 'chevron' : onPress ? undefined : 'not tappable';
+  const tag = lab('ListRow', title, labState);
   const accState = selection && selection.kind !== 'switch' ? { selected: selection.selected, checked: selection.selected } : undefined;
-  if (!onPress) return <View testID={testID}>{body(false)}</View>;
-  return <Pressable testID={testID} onPress={onPress} accessibilityRole={selection?.kind === 'radio' ? 'radio' : selection?.kind === 'check' ? 'checkbox' : 'button'} accessibilityState={accState}>{({ pressed }) => body(pressed)}</Pressable>;
+  if (!onPress) return <View {...tag} testID={testID}>{body(false)}</View>;
+  return <Pressable {...tag} testID={testID} onPress={onPress} accessibilityRole={selection?.kind === 'radio' ? 'radio' : selection?.kind === 'check' ? 'checkbox' : 'button'} accessibilityState={accState}>{({ pressed }) => body(pressed)}</Pressable>;
 }
 
 function LeadingView({ leading }: { leading: Leading }) {

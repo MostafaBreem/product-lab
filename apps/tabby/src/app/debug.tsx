@@ -9,15 +9,31 @@ import type { PayResult } from '../domain/server';
 import type { Scenario } from '../domain/types';
 import { useStore } from '../state';
 import { scheduleReminders } from '../ui/reminders';
+import { useScreenLink } from '../ui/Inspector';
+import * as Clipboard from 'expo-clipboard';
+import { Platform } from 'react-native';
+import { useToast } from '@lab/app-kit';
 
 export default function Debug() {
   const th = useTheme();
   const st = useStore();
   const { settings: x, setSettings, lang, setLang, scheme, setSchemePref } = st;
   const [, tick] = useState(0);
+  const link = useScreenLink();
+  const inspectTo = (v: boolean) => { st.setInspect(v); if (v) router.back(); };
+  const toast = useToast();
   useEffect(() => analytics.subscribe(() => tick((n) => n + 1)), []);
   return (
     <Screen top={<NavigationBar title="Debug" leading="close" onLeading={() => router.back()} />} safeTop={false}>
+      {Platform.OS === 'web' ? (
+        <View>
+          <SectionHeader title="Point at something" />
+          <ListGroup>
+            <ListRow title="Inspect" subtitle="Tap a part of the app to copy its name" selection={{ kind: 'switch', value: st.inspect, onChange: inspectTo }} onPress={() => inspectTo(!st.inspect)} />
+            <ListRow title="Copy screen link" subtitle="Screen + scenario, language, theme" leading={{ kind: 'icon', icon: 'copy' }} onPress={async () => { await Clipboard.setStringAsync(link(st.lastHref ?? window.location.href)); toast({ tone: 'neutral', text: 'Copied' }); }} />
+          </ListGroup>
+        </View>
+      ) : null}
       <Group title="Scenario"><SegmentedControl<Scenario> value={x.scenario} onChange={(v) => setSettings({ scenario: v })} options={[{ value: 'due', label: 'Due' }, { value: 'overdue', label: 'Overdue' }, { value: 'one-overdue', label: '1 late' }, { value: 'caught-up', label: 'Caught up' }]} /></Group>
       <Group title="Network"><SegmentedControl value={x.net} onChange={(v) => setSettings({ net: v })} options={[{ value: 'online', label: 'Online' }, { value: 'offline', label: 'Offline' }]} /></Group>
       <Group title="Pay result"><SegmentedControl<PayResult> value={x.payResult} onChange={(v) => setSettings({ payResult: v })} options={[{ value: 'success', label: 'Success' }, { value: 'declined', label: 'Declined' }, { value: 'unknown', label: 'Unknown' }, { value: 'unknown-resolves', label: '→ 10 s' }]} /></Group>

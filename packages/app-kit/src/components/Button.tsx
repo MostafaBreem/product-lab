@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Txt } from './Txt';
 
 type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'link'; tone?: 'default' | 'critical'; loading?: boolean; disabled?: boolean; full?: boolean; testID?: string };
@@ -11,7 +12,7 @@ export function Button({ label, onPress, variant = 'primary', tone = 'default', 
   const crit = tone === 'critical';
   if (variant === 'link') {
     return (
-      <Pressable testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: th.t('space/padding-x/xs'), right: th.t('space/padding-x/xs') }}
+      <Pressable {...lab('Button', label, crit ? 'link · critical' : 'link')} testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: th.t('space/padding-x/xs'), right: th.t('space/padding-x/xs') }}
         style={{ minHeight: th.t('size/touch/min'), justifyContent: 'center', alignSelf: full ? 'stretch' : 'flex-start' }}>
         {({ pressed }) => (
           <Txt role="label/lg" color={crit ? (pressed ? 'button/link/critical/text/active' : 'button/link/critical/text/default') : pressed ? 'button/link/text/active' : 'button/link/text/default'}>{label}</Txt>
@@ -20,7 +21,7 @@ export function Button({ label, onPress, variant = 'primary', tone = 'default', 
     );
   }
   return (
-    <Pressable testID={testID} accessibilityRole="button" accessibilityState={{ busy: !!loading, disabled: !!disabled }} disabled={loading || disabled} onPress={onPress}
+    <Pressable {...lab('Button', label, ['primary', crit && 'critical', disabled && 'disabled', loading && 'loading'].filter(Boolean).join(' · '))} testID={testID} accessibilityRole="button" accessibilityState={{ busy: !!loading, disabled: !!disabled }} disabled={loading || disabled} onPress={onPress}
       style={({ pressed }) => ({
         height: th.t('button/container/height'), borderRadius: th.t('button/container/radius'), paddingHorizontal: th.t('button/primary/padding-x'),
         alignSelf: full ? 'stretch' : 'flex-start', alignItems: 'center', justifyContent: 'center',

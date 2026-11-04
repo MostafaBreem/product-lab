@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Icon, type IconName } from './Icon';
 import { Txt } from './Txt';
 
@@ -12,7 +13,7 @@ export function TabBar({ items, selected, onSelect }: { items: TabItem[]; select
   const th = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', direction: th.isRTL ? 'rtl' : 'ltr', backgroundColor: th.t('tab-bar/fill/default') as string, borderTopWidth: th.t('tab-bar/container/border-width'), borderTopColor: th.t('tab-bar/border/default') as string, paddingBottom: insets.bottom }}>
+    <View {...lab('TabBar')} accessibilityRole="tablist" style={{ flexDirection: 'row', direction: th.isRTL ? 'rtl' : 'ltr', backgroundColor: th.t('tab-bar/fill/default') as string, borderTopWidth: th.t('tab-bar/container/border-width'), borderTopColor: th.t('tab-bar/border/default') as string, paddingBottom: insets.bottom }}>
       {items.map((it) => {
         const sel = it.key === selected;
         return (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTheme } from '../theme';
+import { lab } from '../inspect';
 import { Icon, type IconName } from './Icon';
 import { Txt } from './Txt';
 
@@ -16,7 +17,7 @@ export function Notice({ tone = 'neutral', icon, showIcon = true, title, body, c
   const crit = tone === 'critical';
   const iconSize = th.t('notice/icon/size') as number;
   return (
-    <View role={crit ? 'alert' : 'status'} accessibilityLiveRegion={crit ? 'assertive' : 'polite'}
+    <View {...lab('Notice', title, tone)} role={crit ? 'alert' : 'status'} accessibilityLiveRegion={crit ? 'assertive' : 'polite'}
       style={{ flexDirection: 'row', alignItems: 'flex-start', gap: th.t('notice/container/gap'), paddingHorizontal: th.t('notice/container/padding-x'), paddingVertical: th.t('notice/container/padding-y'), borderRadius: th.t('notice/container/radius'), backgroundColor: th.t(crit ? 'notice/critical/fill' : 'notice/default/fill') as string }}>
       {showIcon ? (
         /* Icon box = icon size wide, title first-line tall (label/lg), so the icon sits on line 1 when the title wraps. */

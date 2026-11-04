@@ -17,6 +17,7 @@ type Store = {
   flags: Flags; setFlags: (p: Partial<Flags>) => void;
   summary?: Summary; summaryError?: string; loading: boolean; range: Range; setRange: (r: Range) => void; rowsLoading: boolean; rowsError?: boolean;
   refresh: () => Promise<void>; version: number;
+  inspect: boolean; setInspect: (v: boolean) => void; lastHref?: string; setLastHref: (h: string) => void;
 };
 const Ctx = createContext<Store | null>(null);
 
@@ -33,6 +34,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [rowsLoading, setRowsLoading] = useState(false);
   const [rowsError, setRowsError] = useState(false);
   const [version, setVersion] = useState(0);
+  const [inspect, setInspect] = useState(false);
+  const [lastHref, setLastHref] = useState<string>();
   const rangeRef = useRef(range);
 
   useEffect(() => { AsyncStorage.getItem('flags').then((v) => v && setFlagsState({ ...defaultFlags, ...JSON.parse(v) })).catch(() => {}); }, []);
@@ -91,8 +94,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { analytics.setCommon({ scenario: settings.scenario, locale: lang }); }, [settings.scenario]);
 
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, s: strings[lang] as Strings, scheme, setSchemePref, settings, setSettings, flags, setFlags, summary, summaryError, loading, range, setRange, rowsLoading, rowsError, refresh, version }),
-    [lang, scheme, settings, flags, summary, summaryError, loading, range, rowsLoading, rowsError, version]);
+  const value = useMemo<Store>(() => ({ lang, setLang, s: strings[lang] as Strings, scheme, setSchemePref, settings, setSettings, flags, setFlags, summary, summaryError, loading, range, setRange, rowsLoading, rowsError, refresh, version, inspect, setInspect, lastHref, setLastHref }),
+    [lang, scheme, settings, flags, summary, summaryError, loading, range, rowsLoading, rowsError, version, inspect, lastHref]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export function useStore() { const v = useContext(Ctx); if (!v) throw new Error('no store'); return v; }

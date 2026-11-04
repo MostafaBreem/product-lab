@@ -3,13 +3,14 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { AppState, Linking, View } from 'react-native';
-import { analytics, BottomSheet, Button, fmt, ListGroup, ListRow, NavigationBar, Notice, Screen, SectionHeader, Txt, useToast } from '@lab/app-kit';
+import { analytics, BottomSheet, Button, fmt, ListGroup, ListRow, NavigationBar, Notice, Screen, SectionHeader, Txt, useTheme, useToast } from '@lab/app-kit';
 import { api } from '../../../domain/server';
 import type { NotificationPrefs } from '../../../domain/types';
 import { useStore } from '../../../state';
 import { SalaryPicker } from '../../../ui/flows';
 
 export default function NotificationsScreen() {
+  const th = useTheme();
   const st = useStore();
   const { s, lang, flags } = st;
   const toast = useToast();
@@ -55,7 +56,7 @@ export default function NotificationsScreen() {
           <ListRow title={s.rem.salaryRem} subtitle={s.rem.salaryRemSub} selection={{ kind: 'switch', value: !off && prefs.salaryDay.on, onChange: (v) => (off ? openSettings('salary') : save({ ...prefs, salaryDay: { ...prefs.salaryDay, on: v } }, 'salaryDay.on', v)) }} />
           {!off && prefs.salaryDay.on ? <ListRow title={s.rem.salaryDay} value={dayLabel} chevron onPress={() => setPicker(true)} /> : null}
         </ListGroup>
-        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.rem.lockedNote}</Txt>
+        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.rem.lockedNote}</Txt>
       </View>
       <View>
         <SectionHeader title={s.rem.deals} />
@@ -64,7 +65,7 @@ export default function NotificationsScreen() {
             <ListRow key={k} title={s.rem[k]} selection={{ kind: 'switch', value: k === 'push' ? !off && prefs.deals.push : prefs.deals[k], onChange: (v) => (k === 'push' && off ? openSettings('deals_push') : save({ ...prefs, deals: { ...prefs.deals, [k]: v } }, `deals.${k}`, v)) }} />
           ))}
         </ListGroup>
-        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.rem.dealsNote}</Txt>
+        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.rem.dealsNote}</Txt>
       </View>
       <BottomSheet visible={picker} title={s.rem.salaryDay} onClose={() => setPicker(false)}>
         <SalaryPicker value={prefs.salaryDay.day} onSave={(d) => { setPicker(false); save({ ...prefs, salaryDay: { on: true, day: d } }, 'salaryDay.day', d); }} />

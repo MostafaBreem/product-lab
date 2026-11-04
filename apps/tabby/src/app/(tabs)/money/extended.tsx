@@ -27,14 +27,14 @@ export default function Extended() {
           <View>
             <SectionHeader title={s.paid.stillOverdue} />
             <ListGroup>{r.stillOverdue.map((x) => <ListRow key={x.instalmentId} title={x.merchant.name[lang]} subtitle={s.money.wasDue(dd(x.dueDate, lang))} subtitleColor="color/text/content/critical/default" value={m(x.amount, lang)} leading={{ kind: 'logo', text: x.merchant.logoText, color: x.merchant.logoColor }} />)}</ListGroup>
-            <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.paid.stillPaused}</Txt>
+            <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.paid.stillPaused}</Txt>
           </View>
         </>
       ) : (
         <View>
           <SectionHeader title={s.extend.extended} />
           <ListGroup>{r.extended.map((e) => <ListRow key={e.instalmentId} title={e.item.merchant.name[lang]} subtitle={s.extend.fee(m(e.fee, lang))} value={m(e.item.amount, lang)} leading={{ kind: 'logo', text: e.item.merchant.logoText, color: e.item.merchant.logoColor }} />)}</ListGroup>
-          <View style={{ marginTop: 12, backgroundColor: th.t('color/surface/default') as string, borderRadius: 20, padding: 16 }}>
+          <View style={{ marginTop: th.t('space/gap-y/sm'), backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md') }}>
             <KeyValue layout="row" strong k={s.extend.totalExtFee} v={m(r.totalFee, lang)} />
           </View>
         </View>

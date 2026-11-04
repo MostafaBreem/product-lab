@@ -7,6 +7,9 @@ import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
 import { dd, m } from '../../../ui/helpers';
 
+// raw-ok: skeleton width of the overdue tag (90); widths have no token.
+const TAG_W = 90;
+
 export default function Overdue() {
   const st = useStore();
   const { s, lang, summary: x, settings } = st;
@@ -14,7 +17,7 @@ export default function Overdue() {
   const flows = useFlows();
   const nav = <NavigationBar title={s.overdue.title} leading="back" onLeading={() => router.back()} />;
   useEffect(() => { if (x?.card.state === 'overdue') analytics.track('overdue_viewed', { daysLate: x.card.daysLate, amount: x.card.amount, count: x.card.items.length }); }, []);
-  if (!x) return <Screen top={nav}><View style={{ backgroundColor: th.t('payment-card/fill/default') as string, borderRadius: 20, padding: 20, gap: 12 }}><Bar w={90} h={24} /><Bar w="30%" /><Bar w="55%" h={36} r={8} /><Bar w="45%" /><Bar w="80%" /><Bar w="100%" h={48} r={12} /><Bar w="50%" /></View></Screen>;
+  if (!x) return <Screen top={nav}><View style={{ backgroundColor: th.t('payment-card/fill/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/lg'), gap: th.t('space/gap-y/sm') }}><Bar w={TAG_W} h={th.t('size/height/3xs')} /><Bar w="30%" /><Bar w="55%" h={th.t('size/height/xs')} r={th.t('radius/sm')} /><Bar w="45%" /><Bar w="80%" /><Bar w="100%" h={th.t('size/height/md')} r={th.t('radius/md')} /><Bar w="50%" /></View></Screen>;
   const c = x.card;
   if (c.state !== 'overdue') return <Gone />;
   return (
@@ -35,13 +38,13 @@ export default function Overdue() {
       </View>
       <View>
         <SectionHeader title={s.money.whatNext} />
-        <View style={{ backgroundColor: th.t('color/surface/default') as string, borderRadius: 20, padding: 16, gap: 16 }}>
+        <View style={{ backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md'), gap: th.t('space/gap-y/md') }}>
           {s.overdue.steps.map((step) => (
-            <View key={step.title} style={{ flexDirection: 'row', gap: 12 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: th.t('color/surface/secondary/default') as string, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={step.title} style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
+              <View style={{ width: th.t('size/height/sm'), height: th.t('size/height/sm'), borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string, alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name={step.icon as IconName} />
               </View>
-              <View style={{ flex: 1, gap: 2 }}>
+              <View style={{ flex: 1, gap: th.t('space/gap-y/4xs') }}>
                 <Txt role="label/lg">{step.title}</Txt>
                 <Txt role="body/sm" color="color/text/content/secondary/default" wrap>{step.body}</Txt>
               </View>

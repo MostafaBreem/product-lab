@@ -28,7 +28,7 @@ export default function PurchaseDetail() {
   useEffect(() => { load(); }, [load, st.version]);
   const today = settings.today;
   const nav = <NavigationBar title={p?.merchant.name[lang] ?? ''} leading="back" onLeading={() => router.back()} />;
-  const card = { backgroundColor: th.t('color/surface/default') as string, borderRadius: 20, padding: 16, gap: 12 };
+  const card = { backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md'), gap: th.t('space/gap-y/sm') };
 
   if (err && !p) {
     return (
@@ -42,7 +42,7 @@ export default function PurchaseDetail() {
   if (!p) {
     return (
       <Screen top={nav}>
-        <View style={[card, { padding: 20 }]}><Bar w="30%" /><Bar w="55%" h={36} r={8} /><Bar w="45%" /><Bar w="100%" h={48} r={12} /></View>
+        <View style={[card, { padding: th.t('space/padding/lg') }]}><Bar w="30%" /><Bar w="55%" h={th.t('size/height/xs')} r={th.t('radius/sm')} /><Bar w="45%" /><Bar w="100%" h={th.t('size/height/md')} r={th.t('radius/md')} /></View>
         <View><SectionHeader title={s.pd.payments} /><ListGroup>{[0, 1, 2, 3].map((i) => <ListRow key={i} title=" " leading={{ kind: 'skeleton' }} />)}</ListGroup></View>
         <View><SectionHeader title={s.pd.details} /><View style={card}>{['45%', '72%', '72%', '88%', '96%'].map((w, i) => <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Bar w="30%" /><Bar w={w === '45%' ? '45%' : 72} /></View>)}</View></View>
         <ListGroup><ListRow title={s.pd.talk} leading={{ kind: 'icon', icon: 'chat' }} chevron /></ListGroup>

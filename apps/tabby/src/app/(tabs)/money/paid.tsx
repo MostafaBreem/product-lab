@@ -2,13 +2,14 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
-import { Button, fmt, ListGroup, ListRow, Screen, SectionHeader, Txt } from '@lab/app-kit';
+import { Button, fmt, ListGroup, ListRow, Screen, SectionHeader, Txt, useTheme } from '@lab/app-kit';
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
 import { Hero } from '../../../ui/Hero';
 import { dd, m } from '../../../ui/helpers';
 
 export default function Paid() {
+  const th = useTheme();
   const { s, lang, settings } = useStore();
   const { lastPaid: r, openPay } = useFlows();
   if (!r) return null;
@@ -31,14 +32,14 @@ export default function Paid() {
         <View>
           <SectionHeader title={s.paid.stillOverdue} />
           <ListGroup>{still.map((x) => <ListRow key={x.instalmentId} title={x.merchant.name[lang]} subtitle={s.money.wasDue(dd(x.dueDate, lang))} subtitleColor="color/text/content/critical/default" value={m(x.amount, lang)} leading={{ kind: 'logo', text: x.merchant.logoText, color: x.merchant.logoColor }} />)}</ListGroup>
-          <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.paid.stillPaused}</Txt>
+          <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.paid.stillPaused}</Txt>
         </View>
       ) : (
         <>
           <View>
             <SectionHeader title={s.paid.paidToday} />
             <ListGroup>{r.items.map((x) => <ListRow key={x.instalmentId} title={x.merchant.name[lang]} subtitle={s.overdue.payment(x.number, x.of)} value={m(x.amount, lang)} chevron leading={{ kind: 'logo', text: x.merchant.logoText, color: x.merchant.logoColor }} onPress={() => router.push(`/money/purchase/${x.purchaseId}`)} />)}</ListGroup>
-            {wasLate ? <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.paid.simah}</Txt> : null}
+            {wasLate ? <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.paid.simah}</Txt> : null}
           </View>
           {r.next ? (
             <View>

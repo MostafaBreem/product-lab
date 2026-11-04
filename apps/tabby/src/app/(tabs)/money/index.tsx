@@ -54,12 +54,12 @@ export default function MoneyTab() {
       {card}
       <View>
         <SectionHeader title={s.money.upcoming} action={s.money.history} onAction={() => stub('history')} />
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: th.t('space/gap-y/sm') }}>
           <SegmentedControl<Range> value={st.range} onChange={(r) => st.setRange(r)} options={[{ value: '7d', label: s.money.r7 }, { value: '30d', label: s.money.r30 }, { value: 'all', label: s.money.rAll }]} />
           <ListGroup>
             {st.rowsLoading ? [0, 1].map((i) => <ListRow key={i} title=" " leading={{ kind: 'skeleton' }} />)
-              : st.rowsError ? [<View key="e" style={{ padding: 16 }}><Txt role="body/md" color="color/text/content/secondary/default">{s.money.listError}</Txt><Button variant="link" label={s.common.tryAgain} onPress={() => st.setRange(st.range)} /></View>]
-              : x.rows.length === 0 ? [<View key="e" style={{ padding: 16 }}><Txt role="body/md" color="color/text/content/secondary/default">{empty}</Txt></View>]
+              : st.rowsError ? [<View key="e" style={{ padding: th.t('space/padding/md') }}><Txt role="body/md" color="color/text/content/secondary/default">{s.money.listError}</Txt><Button variant="link" label={s.common.tryAgain} onPress={() => st.setRange(st.range)} /></View>]
+              : x.rows.length === 0 ? [<View key="e" style={{ padding: th.t('space/padding/md') }}><Txt role="body/md" color="color/text/content/secondary/default">{empty}</Txt></View>]
               : x.rows.map((r) => {
                 const late = fmt.diffDays(r.dueDate, today) < 0;
                 return (
@@ -87,8 +87,8 @@ function Skeleton() {
   const th = useTheme();
   return (
     <>
-      <View style={{ backgroundColor: th.t('payment-card/fill/default') as string, borderRadius: 20, padding: 20, gap: 12 }}>
-        <Bar w="30%" /><Bar w="55%" h={36} r={8} /><Bar w="45%" /><Bar w="100%" h={48} r={12} /><Bar w="40%" />
+      <View style={{ backgroundColor: th.t('payment-card/fill/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/lg'), gap: th.t('space/gap-y/sm') }}>
+        <Bar w="30%" /><Bar w="55%" h={th.t('size/height/xs')} r={th.t('radius/sm')} /><Bar w="45%" /><Bar w="100%" h={th.t('size/height/md')} r={th.t('radius/md')} /><Bar w="40%" />
       </View>
       <ListGroup>{[0, 1].map((i) => <ListRow key={i} title=" " leading={{ kind: 'skeleton' }} />)}</ListGroup>
     </>

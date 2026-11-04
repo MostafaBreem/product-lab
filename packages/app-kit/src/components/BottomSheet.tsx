@@ -23,7 +23,7 @@ export function BottomSheet({ visible, onClose, title, leading = 'close', onLead
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => { if (dismissable) onClose(); }}>
       <View style={{ flex: 1, justifyContent: 'flex-end', direction: th.isRTL ? 'rtl' : 'ltr' }}>
         <Pressable accessibilityLabel="Close" onPress={() => { if (dismissable) onClose(); }} style={{ position: 'absolute', inset: 0, backgroundColor: th.t('bottom-sheet/scrim/fill') as string, opacity: th.t('bottom-sheet/scrim/opacity') }} />
-        <Animated.View style={{ transform: [{ translateY: y }], maxHeight: height - insets.top - 24, backgroundColor: th.t('bottom-sheet/container/fill') as string, borderTopLeftRadius: th.t('bottom-sheet/container/radius'), borderTopRightRadius: th.t('bottom-sheet/container/radius'), paddingTop: 8, paddingBottom: insets.bottom + th.t('bottom-sheet/content/padding') }}>
+        <Animated.View style={{ transform: [{ translateY: y }], maxHeight: height - insets.top - th.t('space/padding-top/xl'), backgroundColor: th.t('bottom-sheet/container/fill') as string, borderTopLeftRadius: th.t('bottom-sheet/container/radius'), borderTopRightRadius: th.t('bottom-sheet/container/radius'), paddingTop: th.t('space/padding-top/xs'), paddingBottom: insets.bottom + th.t('bottom-sheet/content/padding') }}>
           <NavigationBar title={title} transparent leading={!dismissable || leading === 'none' ? undefined : leading} onLeading={onLeading ?? onClose} />
           <ScrollView bounces={false} contentContainerStyle={{ padding: th.t('bottom-sheet/content/padding'), gap: th.t('bottom-sheet/content/gap') }}>
             {children}

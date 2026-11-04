@@ -15,8 +15,8 @@ export const icons = {
 export type IconName = keyof typeof icons;
 const DIRECTIONAL: IconName[] = ['caret-right', 'caret-left'];
 
-export function Icon({ name, size = 24, color = 'color/icon/content/default', weight = 'regular' }: { name: IconName; size?: number; color?: TokenKey; weight?: 'regular' | 'fill' | 'bold' }) {
+export function Icon({ name, size, color = 'color/icon/content/default', weight = 'regular' }: { name: IconName; size?: number; color?: TokenKey; weight?: 'regular' | 'fill' | 'bold' }) {
   const th = useTheme();
   const C = icons[name];
-  return <C size={size} color={th.t(color) as string} weight={weight} mirrored={th.isRTL && DIRECTIONAL.includes(name)} />;
+  return <C size={size ?? th.t('size/icon/md')} color={th.t(color) as string} weight={weight} mirrored={th.isRTL && DIRECTIONAL.includes(name)} />;
 }

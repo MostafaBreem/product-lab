@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { analytics, Button, fmt, ListGroup, ListRow, NavigationBar, Screen, SectionHeader, SegmentedControl, Txt } from '@lab/app-kit';
+import { analytics, Button, fmt, ListGroup, ListRow, NavigationBar, Screen, SectionHeader, SegmentedControl, Txt, useTheme } from '@lab/app-kit';
 import { TODAY } from '../domain/fixtures';
 import type { PayResult } from '../domain/server';
 import type { Scenario } from '../domain/types';
@@ -11,6 +11,7 @@ import { useStore } from '../state';
 import { scheduleReminders } from '../ui/reminders';
 
 export default function Debug() {
+  const th = useTheme();
   const st = useStore();
   const { settings: x, setSettings, lang, setLang, scheme, setSchemePref } = st;
   const [, tick] = useState(0);
@@ -26,7 +27,7 @@ export default function Debug() {
         <SegmentedControl value={scheme} onChange={(v) => setSchemePref(v)} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} />
       </Group>
       <Group title={`Mock clock · ${fmt.dayDate(x.today, 'en')}`}>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
+        <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
           <Button full={false} label="+1 day" onPress={() => setSettings({ today: fmt.addDays(x.today, 1) })} />
           <Button full={false} variant="link" label="Reset" onPress={() => setSettings({ today: TODAY })} />
         </View>
@@ -55,5 +56,6 @@ export default function Debug() {
 }
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
-  return <View style={{ gap: 8 }}><Txt role="label/md" color="color/text/content/secondary/default">{title}</Txt>{children}</View>;
+  const th = useTheme();
+  return <View style={{ gap: th.t('space/gap-y/xs') }}><Txt role="label/md" color="color/text/content/secondary/default">{title}</Txt>{children}</View>;
 }

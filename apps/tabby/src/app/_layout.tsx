@@ -52,7 +52,7 @@ function CaseStudyBanner() {
   const th = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View accessibilityRole="banner" style={{ paddingTop: insets.top + 6, paddingBottom: 6, paddingHorizontal: 16, backgroundColor: th.t('color/surface/inverse/default') as string }}>
+    <View accessibilityRole="banner" style={{ paddingTop: insets.top + th.t('space/padding-y/2xs'), paddingBottom: th.t('space/padding-y/2xs'), paddingHorizontal: th.t('space/margin/md'), backgroundColor: th.t('color/surface/inverse/default') as string }}>
       <Txt role="caption" color="color/text/content/inverse/default" align="center">
         {th.isRTL ? 'دراسة حالة غير رسمية · ما لها علاقة بتابي · بيانات تجريبية' : 'Unofficial case study · not affiliated with Tabby · sample data'}
       </Txt>

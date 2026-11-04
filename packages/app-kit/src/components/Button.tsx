@@ -11,7 +11,7 @@ export function Button({ label, onPress, variant = 'primary', tone = 'default', 
   const crit = tone === 'critical';
   if (variant === 'link') {
     return (
-      <Pressable testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: 8, right: 8 }}
+      <Pressable testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: th.t('space/padding-x/xs'), right: th.t('space/padding-x/xs') }}
         style={{ minHeight: th.t('size/touch/min'), justifyContent: 'center', alignSelf: full ? 'stretch' : 'flex-start' }}>
         {({ pressed }) => (
           <Txt role="label/lg" color={crit ? (pressed ? 'button/link/critical/text/active' : 'button/link/critical/text/default') : pressed ? 'button/link/text/active' : 'button/link/text/default'}>{label}</Txt>

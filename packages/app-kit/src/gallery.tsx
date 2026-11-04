@@ -50,8 +50,9 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
   const roles: TypeRole[] = ['display/lg', 'display/md', 'heading/lg', 'heading/md', 'heading/sm', 'body/lg', 'body/md', 'body/sm', 'label/lg', 'label/md', 'label/sm', 'caption'];
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: th.t('color/bg/default') as string }}>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 32, maxWidth: 430, width: '100%', alignSelf: 'center', direction: th.isRTL ? 'rtl' : 'ltr' }}>
-        <View style={{ gap: 8 }}>
+      {/* raw-ok: gallery page width 430 and section gap 32 have no token (gap scale stops at 24). */}
+      <ScrollView contentContainerStyle={{ padding: th.t('space/padding/md'), gap: 32, maxWidth: 430, width: '100%', alignSelf: 'center', direction: th.isRTL ? 'rtl' : 'ltr' }}>
+        <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Txt role="display/md">{ar(lang, 'Components', 'المكوّنات')}</Txt>
           <Txt role="body/sm" color="color/text/content/secondary/default" wrap>app-kit · brand theme from tokens.json · Bawazek Sans · sample data</Txt>
           <SegmentedControl value={lang} onChange={setLang} options={[{ value: 'en', label: 'English' }, { value: 'ar', label: 'العربية' }]} />
@@ -70,7 +71,7 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
         </Section>
 
         <Section title="Tag · Chip">
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: th.t('space/gap-x/xs') }}>
             <Tag tone="critical" label={fmt.overdueTag(3, lang)} />
             <Tag label="Default" /><Tag tone="success" label="Success" /><Tag tone="warning" label="Warning" /><Tag tone="info" label="Info" />
           </View>
@@ -117,10 +118,10 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
         </Section>
 
         <Section title="Key-value pair">
-          <View style={{ flexDirection: 'row', gap: 12, backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: 12, padding: 12 }}>
+          <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm'), backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: th.t('radius/md'), padding: th.t('space/padding/sm') }}>
             <KeyValue k={ar(lang, 'Due in 30 days', 'موعدها بعد 30 يوم')} v={m(31250)} /><KeyValue k={ar(lang, 'Total to pay', 'الإجمالي المستحق')} v={m(135000)} />
           </View>
-          <View style={{ gap: 12, backgroundColor: th.t('color/surface/default') as string, borderRadius: 20, padding: 16 }}>
+          <View style={{ gap: th.t('space/gap-y/sm'), backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md') }}>
             <KeyValue layout="row" k={ar(lang, 'Order total', 'إجمالي الطلب')} v={m(50000)} />
             <KeyValue layout="row" strong k={ar(lang, 'Left to pay', 'المتبقي')} v={m(37500)} />
           </View>
@@ -130,7 +131,7 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
           <Notice tone="critical" title={ar(lang, "Payment didn't go through", 'ما تمّ الدفع')} body={ar(lang, 'Your bank declined it. No money was taken.', 'بنكك رفضها، وما انخصم منك شي.')} />
           <Notice icon="wifi-slash" title={ar(lang, "You're offline", 'ما فيه إنترنت')} body={ar(lang, 'Showing your last update, today 8:15 AM. Connect to pay or extend.', 'هذا آخر تحديث، اليوم 8:15 ص. اتصل بالإنترنت عشان تدفع أو تأجّل.')} />
           <Notice icon="bell-slash" title={ar(lang, 'Notifications are off', 'الإشعارات مقفلة')}><Button variant="link" label={ar(lang, 'Open iPhone Settings', 'افتح إعدادات الآيفون')} /></Notice>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
             <Button full={false} variant="link" label="Toast · Success" onPress={() => toast({ tone: 'success', text: ar(lang, 'Reminders on', 'التذكيرات شغّالة') })} />
             <Button full={false} variant="link" label="Toast · Neutral" onPress={() => toast({ tone: 'neutral', text: ar(lang, 'Reminders are off. You can change this in Profile › Notifications.', 'التذكيرات مقفلة. تقدر تغيّر هذا من حسابك › الإشعارات.') })} />
           </View>
@@ -139,13 +140,13 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
         <Section title="Bottom sheet">
           <Button variant="link" label={ar(lang, 'Open sheet', 'افتح الورقة')} onPress={() => setSheet(true)} />
           <BottomSheet visible={sheet} title={ar(lang, 'Pay next payment', 'ادفع الدفعة الجاية')} onClose={() => setSheet(false)}>
-            <View style={{ gap: 4 }}><Txt role="body/sm" color="color/text/content/secondary/default">{ar(lang, 'Amount', 'المبلغ')}</Txt><Txt role="display/lg" tabular>{m(31250)}</Txt></View>
+            <View style={{ gap: th.t('space/gap-y/3xs') }}><Txt role="body/sm" color="color/text/content/secondary/default">{ar(lang, 'Amount', 'المبلغ')}</Txt><Txt role="display/lg" tabular>{m(31250)}</Txt></View>
             <Button label={ar(lang, `Pay ${m(31250)}`, `ادفع ${m(31250)}`)} onPress={() => setSheet(false)} />
           </BottomSheet>
         </Section>
 
         <Section title="Skeleton">
-          <View style={{ gap: 8 }}><Bar w="30%" /><Bar w="55%" h={36} r={8} /><Bar w="100%" h={48} r={12} /></View>
+          <View style={{ gap: th.t('space/gap-y/xs') }}><Bar w="30%" /><Bar w="55%" h={th.t('size/height/xs')} r={th.t('radius/sm')} /><Bar w="100%" h={th.t('size/height/md')} r={th.t('radius/md')} /></View>
         </Section>
 
         <Section title="Type roles">
@@ -157,7 +158,8 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return <View style={{ gap: 12 }}><Txt role="heading/md">{title}</Txt>{children}</View>;
+  const th = useTheme();
+  return <View style={{ gap: th.t('space/gap-y/sm') }}><Txt role="heading/md">{title}</Txt>{children}</View>;
 }
 function Note({ children }: { children: React.ReactNode }) {
   return <Txt role="caption" color="color/text/content/tertiary/default">{children}</Txt>;

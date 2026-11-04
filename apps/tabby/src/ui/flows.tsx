@@ -22,6 +22,7 @@ export const useFlows = () => { const v = useContext(FlowCtx); if (!v) throw new
 type PayState = 'sheet' | 'methods' | 'processing' | 'failed' | 'unknown';
 
 export function FlowsProvider({ children }: { children: React.ReactNode }) {
+  const th = useTheme();
   const st = useStore();
   const { s, lang, settings } = st;
   const toast = useToast();
@@ -138,7 +139,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
           </>
         ) : pay ? (
           <>
-            <View style={{ gap: 4 }}>
+            <View style={{ gap: th.t('space/gap-y/3xs') }}>
               <Txt role="body/sm" color="color/text/content/secondary/default">{s.pay.amount}</Txt>
               <Txt role="display/lg" tabular>{m(total, lang)}</Txt>
               <Txt role="body/md" color="color/text/content/secondary/default" wrap>{sub}</Txt>
@@ -171,10 +172,14 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// raw-ok: Apple HIG fixes the Apple Pay button to black; not a design token. Placeholder until PKPaymentButton (S21).
+const APPLE_PAY_BLACK = { rest: '#000', pressed: '#333' };
+
 /** Placeholder for Apple's PKPaymentButton (black, system text; real button out of scope, S21). */
 function ApplePayButton({ label, onPress }: { label: string; onPress: () => void }) {
+  const th = useTheme();
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ height: 48, borderRadius: 12, backgroundColor: pressed ? '#333' : '#000', alignItems: 'center', justifyContent: 'center' })}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ height: th.t('size/height/md'), borderRadius: th.t('radius/md'), backgroundColor: pressed ? APPLE_PAY_BLACK.pressed : APPLE_PAY_BLACK.rest, alignItems: 'center', justifyContent: 'center' })}>
       <Txt role="label/lg" color="color/text/on-fill/brand/default" align="center">{label}</Txt>
     </Pressable>
   );
@@ -233,7 +238,7 @@ function ExtendSheet({ req, onClose, onDone }: { req: { items: Item[]; source: s
         {optsErr ? (
           <Notice title={s.extend.loadErr}><Button variant="link" label={s.common.tryAgain} onPress={() => load(items.map((x) => x.instalmentId))} /></Notice>
         ) : !opts ? (
-          <View style={{ gap: 12 }}>{[0, 1, 2].map((i) => <View key={i} style={{ height: 44, borderRadius: 8, backgroundColor: th.t('color/fill/default') as string }} />)}</View>
+          <View style={{ gap: th.t('space/gap-y/sm') }}>{[0, 1, 2].map((i) => <View key={i} style={{ height: th.t('size/touch/min'), borderRadius: th.t('radius/sm'), backgroundColor: th.t('color/fill/default') as string }} />)}</View>
         ) : (
           <ListGroup plain>
             {opts.map((o, i) => (
@@ -282,11 +287,11 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
         <SalaryPicker value={day} onSave={(d) => { setDay(d); setPicker(false); }} />
       ) : (
         <>
-          <View style={{ backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: 12, padding: 12, flexDirection: 'row', gap: 12 }}>
-            <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: th.t('color/fill/brand/default') as string, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: th.t('radius/md'), padding: th.t('space/padding/sm'), flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
+            <View style={{ width: th.t('size/height/2xs'), height: th.t('size/height/2xs'), borderRadius: th.t('radius/sm'), backgroundColor: th.t('color/fill/brand/default') as string, alignItems: 'center', justifyContent: 'center' }}>
               <Txt role="label/lg" color="color/text/on-fill/brand/default" align="center">t</Txt>
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={{ flex: 1, gap: th.t('space/gap-y/4xs') }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Txt role="label/md">{s.rem.sampleTitle}</Txt>
                 <Txt role="caption" color="color/text/content/secondary/default">{s.rem.now}</Txt>
@@ -294,7 +299,7 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
               <Txt role="body/sm" color="color/text/content/secondary/default" wrap>{s.rem.sampleBody(m(sample?.amount ?? 31250, lang), who(sample?.items ?? [], lang, s))}</Txt>
             </View>
           </View>
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: th.t('space/gap-y/xs') }}>
             <Txt role="heading/md">{s.rem.why}</Txt>
             <Txt role="body/md" color="color/text/content/secondary/default" wrap>{s.rem.whyBody}</Txt>
           </View>
@@ -303,7 +308,7 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
             {salaryOn ? (
               <>
                 <ListRow plainPadding title={s.rem.salaryDay} value={day === null ? undefined : day === 'last' ? s.rem.lastDay : fmt.ordinalDay(day, lang)} chevron onPress={() => setPicker(true)} />
-                <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: 8 }}>{s.rem.salaryNote}</Txt>
+                <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.rem.salaryNote}</Txt>
               </>
             ) : null}
           </View>
@@ -326,9 +331,9 @@ export function SalaryPicker({ value, onSave }: { value: number | 'last' | null;
     <>
       <Txt role="body/md" color="color/text/content/secondary/default" wrap>{s.rem.pickerBody}</Txt>
       {/* Stand-in for the iOS wheel (system element in Figma): a scroll list of days. */}
-      <ScrollView style={{ maxHeight: 220, borderRadius: 12, backgroundColor: th.t('color/surface/secondary/default') as string }}>
+      <ScrollView style={{ maxHeight: th.t('size/touch/min') * 5, borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string }}>
         {opts.map((o) => (
-          <Pressable key={String(o)} onPress={() => setV(o)} style={{ height: 44, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: v === o ? (th.t('color/surface/brand/default') as string) : 'transparent' }}>
+          <Pressable key={String(o)} onPress={() => setV(o)} style={{ height: th.t('size/touch/min'), justifyContent: 'center', paddingHorizontal: th.t('space/padding-x/md'), backgroundColor: v === o ? (th.t('color/surface/brand/default') as string) : 'transparent' }}>
             <Txt role={v === o ? 'label/lg' : 'body/md'} align="center">{o === 'last' ? s.rem.lastDay : fmt.ordinalDay(o, lang)}</Txt>
           </Pressable>
         ))}

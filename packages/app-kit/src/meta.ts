@@ -157,9 +157,10 @@ export const components: ComponentMeta[] = [
     name: 'Notice', slug: 'notice', tokens: 'notice', summary: 'Inline status: icon, title, optional body and link. Critical for errors, Neutral for plain status.',
     props: [
       { name: 'tone', type: "'critical' | 'neutral'", default: "'neutral'", description: 'Critical = something failed.' },
-      { name: 'icon', type: 'IconName', description: 'Neutral swaps (info, wifi-slash, bell-slash).' },
+      { name: 'icon', type: 'IconName', default: "tone: warning-circle · info", description: 'Neutral swaps (info, wifi-slash, bell-slash). Sits on the title\'s first line.' },
+      { name: 'showIcon', type: 'boolean', default: 'true', description: 'Figma "Show icon". Off = text only.' },
       { name: 'title · body', type: 'string', description: 'What happened · what it means, what to do.' },
-      { name: 'children', type: 'ReactNode', description: 'Optional Link button under the text.' },
+      { name: 'children', type: 'ReactNode', description: 'Figma "Show link": one Button variant="link" under the text, tone follows the notice. Screen readers: Critical = alert, Neutral = status.' },
     ],
     variants: ['Critical', 'Neutral'], example: `<Notice tone="critical" title="Payment didn't go through" body="Your bank declined it. No money was taken." />`, related: ['Toast', 'BottomSheet'],
   },

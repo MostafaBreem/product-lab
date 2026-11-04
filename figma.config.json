@@ -1,0 +1,7 @@
+{
+  "codeConnect": {
+    "include": ["packages/app-kit/src/components/**/*.figma.ts"],
+    "label": "React Native",
+    "language": "tsx"
+  }
+}

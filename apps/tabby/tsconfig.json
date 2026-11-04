@@ -16,5 +16,8 @@
     "**/*.tsx",
     "../../packages/app-kit/src/**/*.ts",
     "../../packages/app-kit/src/**/*.tsx"
+  ],
+  "exclude": [
+    "../../packages/app-kit/src/**/*.figma.ts"
   ]
 }

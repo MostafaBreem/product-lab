@@ -62,3 +62,25 @@ export function extendOptions(ps: Purchase[], instalmentIds: string[]) {
   const base = items.reduce((m, x) => (x.dueDate < m ? x.dueDate : m), items[0]?.dueDate ?? '');
   return [7, 14, 21].map((n) => ({ until: fmt.addDays(base, n), fees: items.map((x) => ({ purchaseId: x.purchaseId, instalmentId: x.instalmentId, fee: ps.find((p) => p.id === x.purchaseId)!.extendFee })) }));
 }
+
+/** Make payment (flows/make-payment.md): overdue part always paid (own group, per purchase); upcoming part one row per purchase. */
+export type PickRow = { purchaseId: string; merchant: Item['merchant']; items: Item[]; amount: number };
+export function pickList(rows: Item[], today: string): { overdue: PickRow[]; upcoming: PickRow[] } {
+  const group = (xs: Item[]) => {
+    const out: PickRow[] = [];
+    for (const x of xs) {
+      let g = out.find((r) => r.purchaseId === x.purchaseId);
+      if (!g) { g = { purchaseId: x.purchaseId, merchant: x.merchant, items: [], amount: 0 }; out.push(g); }
+      g.items.push(x); g.amount += x.amount;
+    }
+    return out;
+  };
+  const late = (x: Item) => fmt.diffDays(x.dueDate, today) < 0;
+  return { overdue: group(rows.filter(late)), upcoming: group(rows.filter((x) => !late(x))) };
+}
+/** Items to pay: every overdue item + items of ticked upcoming purchases. */
+export function pickItems(list: { overdue: PickRow[]; upcoming: PickRow[] }, ticked: string[]): Item[] {
+  return [...list.overdue.flatMap((r) => r.items), ...list.upcoming.filter((r) => ticked.includes(r.purchaseId)).flatMap((r) => r.items)];
+}
+/** Purchases with nothing left after paying these items (unpaid list is earliest-first, so the last one paid = number === of). */
+export const paidOff = (items: Item[]) => [...new Set(items.filter((x) => x.number === x.of).map((x) => x.purchaseId))];

@@ -10,7 +10,7 @@ import type { Item, PaymentMethod } from '../domain/types';
 import { useStore } from '../state';
 import { dd, m, newKey, who } from './helpers';
 
-export type PayKind = 'onTime' | 'overdue' | 'one';
+export type PayKind = 'onTime' | 'overdue' | 'one' | 'pick';
 export type PayReq = { kind: PayKind; items: Item[]; source: string };
 export type PayOutcome = { kind: PayKind; items: Item[]; amount: number; next?: { amount: number; dueDate: string; items: Item[] }; stillOverdue: Item[] };
 export type ExtendOutcome = { extended: { instalmentId: string; until: string; fee: number; item: Item }[]; totalFee: number; stillOverdue: Item[] };
@@ -110,8 +110,9 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
   const total = pay ? pay.items.reduce((a, x) => a + x.amount, 0) : 0;
   const late = pay ? pay.items.some((x) => fmt.diffDays(x.dueDate, settings.today) < 0) : false;
   const oldestDue = pay?.items.reduce((acc, x) => (x.dueDate < acc ? x.dueDate : acc), pay.items[0].dueDate) ?? '';
-  const title = payState === 'methods' ? s.pay.payWith : late ? s.pay.titleOverdue : s.pay.titleNext;
-  const sub = !pay ? '' : pay.kind === 'one'
+  const purchases = pay ? [...new Set(pay.items.map((x) => x.purchaseId))] : [];
+  const title = payState === 'methods' ? s.pay.payWith : pay?.kind === 'pick' ? s.pay.titlePick(purchases.length, pay.items[0].merchant.name[lang]) : late ? s.pay.titleOverdue : s.pay.titleNext;
+  const sub = !pay ? '' : pay.kind === 'pick' ? s.pay.subPick(who(pay.items, lang, s), pay.items.length) : pay.kind === 'one'
     ? s.pay.subOne(who(pay.items, lang, s), pay.items[0].number, pay.items[0].of, dd(oldestDue, lang), late)
     : late ? s.pay.subLate(who(pay.items, lang, s), dd(oldestDue, lang)) : s.pay.sub(who(pay.items, lang, s), dd(oldestDue, lang));
   const methodTitle = (x: PaymentMethod) => (x.type === 'applePay' ? s.pay.applePay : s.pay.card(x.brand!, x.last4!));

@@ -40,7 +40,7 @@ export default function MoneyTab() {
   ) : c.state === 'due' ? (
     <PaymentCard state="due" label={s.money.nextPayment} amount={m(c.amount, lang)} dueLine={fmt.dueLine(c.dueDate, today, lang)}
       pay={{ label: s.money.pay(m(c.amount, lang)), onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'due', amount: c.amount }); flows.openPay({ kind: 'onTime', items: c.items, source: 'money_card' }); } }}
-      linksRow links={[{ label: s.money.payDifferent, onPress: () => stub('pay_different_amount') }, ...(c.extendable ? [{ label: s.money.extendPayment, onPress: () => flows.openExtend(c.items, 'money_card') }] : [])]}
+      linksRow links={[{ label: s.money.payDifferent, onPress: () => { analytics.track('pay_different_amount_tapped', { cardState: c.state }); router.push('/money/make-payment'); } }, ...(c.extendable ? [{ label: s.money.extendPayment, onPress: () => flows.openExtend(c.items, 'money_card') }] : [])]}
       summary={[{ k: s.money.due30, v: m(x.due30, lang) }, { k: s.money.totalToPay, v: m(x.totalToPay, lang) }]} />
   ) : (
     <PaymentCard state="caughtUp" label={s.money.nextPayment} title={s.money.caughtUp} dueLine={s.money.onDate(m(c.amount, lang), dd(c.dueDate, lang))}

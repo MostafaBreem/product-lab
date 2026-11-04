@@ -9,7 +9,7 @@ Read when: screen work draws this component. Build or change: spec leaf instead.
 - Don't use: navigation rows — instead List row; filters or toggles — instead Segmented control (Chip = action only, user 2026-11-04); tabs — instead Tab bar.
 - Variant pick: Variant Primary or Link × Tone Default or Critical. State Pressed only to show the pressed look in specs; State Loading for in-progress screens (Primary only). One Primary per view.
 - Content rules: label says exactly what the tap does, with the amount when it pays ("Pay ⃁ 312.50"). One line, never wraps. Max about 30 characters on a 361 Primary: 46 characters overflow by 32 (Usage 6).
-- Behaviour: tap. Pressed = darker fill (Primary) or darker text (Link). State Loading (Primary only): spinner + label ("Paying…"), no press; set it while the action runs. No Disabled yet.
+- Behaviour: tap. Pressed = darker fill (Primary) or darker text (Link). State Loading (Primary only): spinner + label ("Paying…"), no press; set it while the action runs. State Disabled (Primary only, 2026-11-04): grey fill, no press, label stays; use when the action cannot run yet (nothing picked, loading, offline).
 - A11y: 48 tall (above 44). Every text and icon pair passes AA in light and dark (lowest 4.99 on link pressed tint was option A; built option B 9.35+).
 - RTL: set Typography mode ar on the screen or instance: RTL row shows (icons swap sides). Carets and arrows flip by themselves in ar. Amounts LTR-isolated in AR labels.
 - Related: Chip, List row, Payment card (uses Primary + 2 Links).

@@ -6,7 +6,8 @@ import { Button, fmt, ListGroup, ListRow, Screen, SectionHeader, Txt, useTheme }
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
 import { Hero } from '../../../ui/Hero';
-import { dd, m } from '../../../ui/helpers';
+import { dd, m, who } from '../../../ui/helpers';
+import { paidOff, pickList } from '../../../domain/derive';
 
 export default function Paid() {
   const th = useTheme();
@@ -17,9 +18,17 @@ export default function Paid() {
   const wasLate = r.items.some((x) => fmt.diffDays(x.dueDate, settings.today) < 0);
   const oneOfTwo = r.kind === 'one' && r.stillOverdue.length > 0;
   const first = r.items[0];
+  function offBody() {
+    const off = paidOff(r!.items);
+    const offItems = r!.items.filter((x) => off.includes(x.purchaseId));
+    return off.length ? s.paid.paidOff(m(r!.amount, lang), who(offItems, lang, s), off.length > 1) : s.paid.paidAmount(m(r!.amount, lang));
+  }
+  // Make payment pays several payments per purchase: one Paid today row per purchase.
+  const groups = r.kind === 'pick' ? pickList(r.items, '0000-00-00').upcoming : null;
   const hero = oneOfTwo
     ? <Hero icon="check" tone="success" title={s.paid.merchantPaid(first.merchant.name[lang])} body={s.paid.paidFor(m(r.amount, lang), first.number, first.of)} />
     : wasLate ? <Hero icon="check" tone="success" title={s.paid.backOnTrack} body={s.paid.paidShop(m(r.amount, lang))} />
+    : r.kind === 'pick' ? <Hero icon="check" tone="success" title={s.paid.done} body={offBody()} />
     : <Hero icon="check" tone="success" title={s.paid.done} body={s.paid.paidOnTime(m(r.amount, lang))} />;
   const still = r.stillOverdue;
   const stillTotal = still.reduce((a, x) => a + x.amount, 0);
@@ -38,7 +47,10 @@ export default function Paid() {
         <>
           <View>
             <SectionHeader title={s.paid.paidToday} />
-            <ListGroup>{r.items.map((x) => <ListRow key={x.instalmentId} title={x.merchant.name[lang]} subtitle={s.overdue.payment(x.number, x.of)} value={m(x.amount, lang)} chevron leading={{ kind: 'logo', text: x.merchant.logoText, color: x.merchant.logoColor }} onPress={() => router.push(`/money/purchase/${x.purchaseId}`)} />)}</ListGroup>
+            <ListGroup>{groups ? groups.map((g, i) => {
+              const a = g.items[0].number; const b = g.items[g.items.length - 1].number;
+              return <ListRow key={g.purchaseId} title={g.merchant.name[lang]} subtitle={g.items.length === 1 ? s.overdue.payment(a, g.items[0].of) : s.paid.payments(a, b)} value={m(g.amount, lang)} chevron divider={i < groups.length - 1} leading={{ kind: 'logo', text: g.merchant.logoText, color: g.merchant.logoColor }} onPress={() => router.push(`/money/purchase/${g.purchaseId}`)} />;
+            }) : r.items.map((x) => <ListRow key={x.instalmentId} title={x.merchant.name[lang]} subtitle={s.overdue.payment(x.number, x.of)} value={m(x.amount, lang)} chevron leading={{ kind: 'logo', text: x.merchant.logoText, color: x.merchant.logoColor }} onPress={() => router.push(`/money/purchase/${x.purchaseId}`)} />)}</ListGroup>
             {wasLate ? <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.paid.simah}</Txt> : null}
           </View>
           {r.next ? (

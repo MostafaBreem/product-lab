@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildMethods, buildPurchases, TODAY } from './fixtures';
-import { summary, rowsFor, extendOptions, nextGroup } from './derive';
+import { summary, rowsFor, extendOptions, nextGroup, pickList, pickItems, paidOff } from './derive';
 import { plan } from './reminders';
 import type { Scenario } from './types';
 
@@ -62,4 +62,23 @@ test('reminders: one per date, salary day, short months', () => {
   const feb = plan(items, { deals: { push: false, sms: false, whatsapp: false, email: false }, salaryDay: { on: true, day: 31 } }, '2027-02-01');
   assert.ok(feb.every((p) => p.kind !== 'salary' || p.fireDay !== '2027-02-31'));
   assert.ok(feb.some((p) => p.kind === 'salary' && p.fireDay === '2027-02-28') || true);
+});
+
+test('make payment: windows, overdue split, totals (make-payment mock v2)', () => {
+  const due = buildPurchases('due');
+  const l30 = pickList(rowsFor(due, '30d', TODAY), TODAY);
+  assert.equal(l30.overdue.length, 0);
+  assert.deepEqual(l30.upcoming.map((r) => [r.merchant.name.en, r.amount]), [['Noon', 12500], ['Namshi', 18750]]);
+  const all = pickList(rowsFor(due, 'all', TODAY), TODAY);
+  assert.deepEqual(all.upcoming.map((r) => [r.merchant.name.en, r.amount, r.items.length]), [['Noon', 37500, 3], ['Namshi', 37500, 2], ['Jarir', 60000, 2]]);
+  const items = pickItems(all, [all.upcoming[0].purchaseId, all.upcoming[2].purchaseId]);
+  assert.equal(items.reduce((s, x) => s + x.amount, 0), 97500);
+  assert.equal(paidOff(items).length, 2);
+  assert.equal(paidOff(pickItems(l30, l30.upcoming.map((r) => r.purchaseId))).length, 0);
+  const od = pickList(rowsFor(buildPurchases('overdue'), '30d', TODAY), TODAY);
+  assert.deepEqual(od.overdue.map((r) => r.amount), [12500, 18750]);
+  assert.deepEqual(od.upcoming.map((r) => r.amount), [12500, 18750]);
+  assert.equal(pickItems(od, []).reduce((s, x) => s + x.amount, 0), 31250);
+  assert.equal(pickItems(od, od.upcoming.map((r) => r.purchaseId)).reduce((s, x) => s + x.amount, 0), 62500);
+  assert.equal(pickList(rowsFor(buildPurchases('caught-up'), '7d', TODAY), TODAY).upcoming.length, 0);
 });

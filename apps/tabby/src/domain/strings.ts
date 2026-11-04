@@ -1,5 +1,7 @@
 // Product copy EN + AR. Sources: copy-key-strings.md, copy-ar-pay-flow*.md, copy-ar-reminders.md, copy-build-gaps.md,
 // flow maps (EN). Amounts / dates come pre-formatted (already LTR-isolated in AR).
+/** AR count of payments: 2 = dual, 3-10 = plural, 11+ = singular (rule 4 spoken form). */
+const arCount = (k: number) => (k === 2 ? 'دفعتين' : k <= 10 ? `${k} دفعات` : `${k} دفعة`);
 export const strings = {
   en: {
     tabs: { discover: 'Discover', shop: 'Shop', money: 'Money', profile: 'Profile' },
@@ -9,11 +11,14 @@ export const strings = {
       upcoming: 'Upcoming', history: 'History', r7: '7 days', r30: '30 days', rAll: 'All', rowSub: (date: string, n: number, of: number) => `${date} · ${n} of ${of}`,
       rowSubLate: (date: string) => `Was due ${date}`,
       empty7: 'Nothing due in the next 7 days', empty30: 'Nothing due in the next 30 days', emptyAll: 'You have no payments left',
+      mpTitle: 'Make payment', mpOverdue: 'Overdue', mpOverdueHelp: 'Overdue payments are always included.', mpMany: (k: number, d: string) => `${k} payments · next ${d}`,
+      mpOverdueMany: (k: number, d: string) => `${k} payments · was due ${d}`, mpLateRow: (d: string, n: number, of: number) => `Was due ${d} · ${n} of ${of}`, mpLeft: (k: number) => (k === 1 ? '1 payment left' : `${k} payments left`),
+      mpOverdueA11y: (name: string) => `${name}, overdue payment. Always included in the total.`, mpPay: 'Pay', mpEmpty7: 'Nothing due in the next 7 days.', mpEmpty30: 'Nothing due in the next 30 days.', mpEmptyAll: 'You have no payments left.',
       yourProducts: 'Your products', inStore: 'In-store Card', inStoreSub: 'Shop in person, split in 4', payLater: 'Pay later purchases', openPlans: (n: number) => `${n} open plans`, help: 'Help with payments',
       whatNext: 'What happens next', caughtUp: "You're all caught up", onDate: (a: string, d: string) => `${a} on ${d}`, payEarly: 'Pay early', wasDue: (d: string) => `Was due ${d}`,
       loadError: "We couldn't load your payments", listError: "We couldn't load this list.",
     },
-    common: { tryAgain: 'Try again', done: 'Done', close: 'Close', change: 'Change', somethingWrong: 'Something went wrong. Try again in a moment.', offlineTitle: "You're offline", offlineBody: (when: string) => `Showing your last update, ${when}. Connect to pay or extend.`, offlineToast: "You're offline. Connect to pay or extend.", copied: 'Copied', and: (a: string, b: string) => `${a} and ${b}` },
+    common: { tryAgain: 'Try again', done: 'Done', close: 'Close', change: 'Change', somethingWrong: 'Something went wrong. Try again in a moment.', offlineTitle: "You're offline", offlineBody: (when: string) => `Showing your last update, ${when}. Connect to pay or extend.`, offlineToast: "You're offline. Connect to pay or extend.", offlineBodyPay: (when: string) => `Showing your last update, ${when}. Connect to pay.`, copied: 'Copied', and: (a: string, b: string) => `${a} and ${b}` },
     overdue: {
       title: 'Overdue payment', amountOverdue: 'Amount overdue', failedCard: (l4: string) => `We couldn't take it from your card ending ${l4}.`,
       extendDue: 'Extend the due date', extendHelper: 'Choose the purchases. Fee shown before you confirm.', extendHelperOne: 'Once per purchase. Fee shown before you confirm.',
@@ -27,6 +32,7 @@ export const strings = {
     },
     pay: {
       titleOverdue: 'Pay overdue payment', titleNext: 'Pay next payment', amount: 'Amount', payWith: 'Pay with',
+      titlePick: (n: number, name: string) => (n === 1 ? `Pay ${name}` : `Pay ${n} purchases`), subPick: (who: string, k: number) => `${who} · ${k === 1 ? '1 payment' : `${k} payments`}`,
       sub: (who: string, d: string) => `${who} · due ${d}`, subLate: (who: string, d: string) => `${who} · was due ${d}`, subOne: (who: string, n: number, of: number, d: string, late: boolean) => `${who} · payment ${n} of ${of} · ${late ? 'was due' : 'due'} ${d}`,
       applePay: 'Apple Pay', applePaySub: 'Pick your card in Apple Pay', payApple: 'Pay with Apple Pay', card: (b: string, l4: string) => `${b} ${l4}`, credit: 'Credit card', debit: '',
       failedOn: (d: string) => `Didn't go through on ${d}`, addCard: 'Add a card', pickHelp: 'Tap a method to use it for this payment.', paying: 'Paying…',
@@ -36,6 +42,7 @@ export const strings = {
     paid: {
       backOnTrack: "You're back on track", paidShop: (a: string) => `You paid ${a}. You can shop with Tabby again.`, paidToday: 'Paid today',
       simah: 'SIMAH, the Saudi credit bureau, shows these as paid within a week.', nextPayment: 'Next payment', done: 'Payment done', paidOnTime: (a: string) => `You paid ${a} on time.`,
+      paidAmount: (a: string) => `You paid ${a}.`, paidOff: (a: string, who: string, many: boolean) => `You paid ${a}. ${who} ${many ? 'are' : 'is'} paid off.`, payments: (a: number, b: number) => (a === b ? `Payment ${a} of ${b}` : b - a === 1 ? `Payments ${a} and ${b}` : `Payments ${a} to ${b}`),
       merchantPaid: (m: string) => `${m} is paid`, paidFor: (a: string, n: number, of: number) => `You paid ${a} for payment ${n} of ${of}.`,
       stillOverdue: 'Still overdue', stillPaused: 'New purchases stay paused until this is paid.',
     },
@@ -77,11 +84,14 @@ export const strings = {
       upcoming: 'الدفعات الجاية', history: 'سجل الدفعات', r7: '7 أيام', r30: '30 يوم', rAll: 'الكل', rowSub: (date: string, n: number, of: number) => `${date} · ${n} من ${of}`,
       rowSubLate: (date: string) => `كان موعدها ${date}`,
       empty7: 'ما عليك دفعات خلال الـ 7 أيام الجاية', empty30: 'ما عليك دفعات خلال الـ 30 يوم الجاية', emptyAll: 'ما بقي عليك دفعات',
+      mpTitle: 'سداد الدفعات', mpOverdue: 'الدفعات المتأخرة', mpOverdueHelp: 'الدفعات المتأخرة محسوبة دايم في الإجمالي.', mpMany: (k: number, d: string) => `${arCount(k)} · أقربها ${d}`,
+      mpOverdueMany: (k: number, d: string) => `${arCount(k)} · كان موعدها ${d}`, mpLateRow: (d: string, n: number, of: number) => `كان موعدها ${d.replace(/^\S+\s/, '')} · ${n} من ${of}`, mpLeft: (k: number) => (k === 1 ? 'باقي دفعة وحدة' : `باقي ${arCount(k)}`),
+      mpOverdueA11y: (name: string) => `${name}، دفعة متأخرة. محسوبة دايم في الإجمالي.`, mpPay: 'ادفع', mpEmpty7: 'ما عليك دفعات خلال الـ 7 أيام الجاية.', mpEmpty30: 'ما عليك دفعات خلال الـ 30 يوم الجاية.', mpEmptyAll: 'ما بقي عليك دفعات.',
       yourProducts: 'منتجاتك', inStore: 'بطاقة المتجر', inStoreSub: 'تسوّق من المتاجر وقسّمها على 4 دفعات', payLater: 'مشترياتك بالدفع لاحقًا', openPlans: (n: number) => `${n} خطط دفع مفتوحة`, help: 'مساعدة في الدفع',
       whatNext: 'وش يصير بعدين', caughtUp: 'ما عليك دفعات مستحقة', onDate: (a: string, d: string) => `${a} يوم ${d}`, payEarly: 'ادفع بدري', wasDue: (d: string) => `كان موعدها ${d}`,
       loadError: 'ما قدرنا نحمّل دفعاتك', listError: 'ما قدرنا نحمّل هالقائمة.',
     },
-    common: { tryAgain: 'جرّب مرة ثانية', done: 'تم', close: 'أغلق', change: 'غيّر', somethingWrong: 'صار خلل. جرّب مرة ثانية بعد شوي.', offlineTitle: 'ما فيه إنترنت', offlineBody: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع أو تأجّل.`, offlineToast: 'ما فيه إنترنت. اتصل بالإنترنت عشان تدفع أو تأجّل.', copied: 'تم النسخ', and: (a: string, b: string) => `${a} و${b}` },
+    common: { tryAgain: 'جرّب مرة ثانية', done: 'تم', close: 'أغلق', change: 'غيّر', somethingWrong: 'صار خلل. جرّب مرة ثانية بعد شوي.', offlineTitle: 'ما فيه إنترنت', offlineBody: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع أو تأجّل.`, offlineToast: 'ما فيه إنترنت. اتصل بالإنترنت عشان تدفع أو تأجّل.', offlineBodyPay: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع.`, copied: 'تم النسخ', and: (a: string, b: string) => `${a} و${b}` },
     overdue: {
       title: 'دفعة متأخرة', amountOverdue: 'المبلغ المتأخر', failedCard: (l4: string) => `ما قدرنا نخصمها من بطاقتك المنتهية بـ ${l4}.`,
       extendDue: 'أجّل موعد السداد', extendHelper: 'اختر المشتريات، وتشوف الرسوم قبل التأكيد.', extendHelperOne: 'مرة وحدة لكل عملية شراء، وتشوف الرسوم قبل التأكيد.',
@@ -95,6 +105,7 @@ export const strings = {
     },
     pay: {
       titleOverdue: 'ادفع الدفعة المتأخرة', titleNext: 'ادفع الدفعة الجاية', amount: 'المبلغ', payWith: 'الدفع بـ',
+      titlePick: (n: number, name: string) => (n === 1 ? `ادفع ل${name}` : `ادفع ${n} من مشترياتك`), subPick: (who: string, k: number) => `${who} · ${k === 1 ? 'دفعة وحدة' : arCount(k)}`,
       sub: (who: string, d: string) => `${who} · موعدها ${d}`, subLate: (who: string, d: string) => `${who} · كان موعدها ${d}`, subOne: (who: string, n: number, of: number, d: string, late: boolean) => `${who} · الدفعة ${n} من ${of} · ${late ? 'كان موعدها' : 'موعدها'} ${d}`,
       applePay: 'Apple Pay', applePaySub: 'اختر بطاقتك داخل Apple Pay', payApple: 'الدفع عبر Apple Pay', card: (b: string, l4: string) => `${b === 'Visa' ? 'فيزا' : 'ماستركارد'} ${l4}`, credit: 'بطاقة ائتمانية', debit: '',
       failedOn: (d: string) => `ما نجح الخصم ${d}`, addCard: 'أضف بطاقة', pickHelp: 'اضغط على طريقة الدفع عشان تستخدمها لهالدفعة.', paying: 'جاري الدفع…',
@@ -104,6 +115,7 @@ export const strings = {
     paid: {
       backOnTrack: 'رجعت أمورك تمام', paidShop: (a: string) => `دفعت ${a}. تقدر تتسوّق مع تابي من جديد.`, paidToday: 'مسددة اليوم',
       simah: 'سمة (الشركة السعودية للمعلومات الائتمانية) تُظهرها مسددة خلال أسبوع.', nextPayment: 'الدفعة الجاية', done: 'تمّ الدفع', paidOnTime: (a: string) => `دفعت ${a} في موعدها.`,
+      paidAmount: (a: string) => `دفعت ${a}.`, paidOff: (a: string, who: string, _many: boolean) => `دفعت ${a}. تسدّدت كل دفعات ${who}.`, payments: (a: number, b: number) => (a === b ? `الدفعة ${a} من ${b}` : b - a === 1 ? `الدفعة ${a} و${b}` : `الدفعات من ${a} لين ${b}`),
       merchantPaid: (m: string) => `تسدّدت دفعة ${m}`, paidFor: (a: string, n: number, of: number) => `دفعت ${a} للدفعة ${n} من ${of}.`,
       stillOverdue: 'للحين متأخرة', stillPaused: 'الشراء الجديد يبقى موقوف لين تسددها.',
     },

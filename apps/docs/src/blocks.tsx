@@ -99,3 +99,21 @@ export function Cards({ items }: { items: { title: string; text: string; href: s
     </div>
   );
 }
+
+type ShadowData = { light: { bg: string; surface: string }; dark: { bg: string; surface: string }; items: { k: string; light: string; dark: string; desc?: string; usedBy: string[] }[] };
+/** Elevation: one card per shadow token, on the light and the dark page background (values from tokens). */
+export function Shadows({ data }: { data: ShadowData }) {
+  const panel = (mode: 'light' | 'dark') => (
+    <div style={{ flex: 1, minWidth: 300, background: data[mode].bg, borderRadius: 12, padding: 24, display: 'grid', gap: 24 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: mode === 'dark' ? '#e0e2e9' : '#43474c' }}>{mode === 'light' ? 'Light' : 'Dark'}</div>
+      {data.items.map((s) => (
+        <div key={s.k} style={{ background: data[mode].surface, borderRadius: 20, padding: 16, boxShadow: s[mode], color: mode === 'dark' ? '#e0e2e9' : '#181c21' }}>
+          <code style={{ fontSize: 12, background: 'none', border: 0, color: 'inherit' }}>{s.k}</code>
+          <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>{s[mode]}</div>
+          {s.desc ? <div style={{ fontSize: 12, marginTop: 6 }}>{s.desc}{s.usedBy.length ? ` Used by ${s.usedBy.join(', ')}.` : ''}</div> : null}
+        </div>
+      ))}
+    </div>
+  );
+  return <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '8px 0 24px' }}>{panel('light')}{panel('dark')}</div>;
+}

@@ -37,6 +37,19 @@ for (const t of raw.filter((x) => x.path.startsWith('component/'))) {
     if (r?.startsWith('semantic/')) { const k = key(r); if (!usedBy.has(k)) usedBy.set(k, new Set()); usedBy.get(k)!.add(compName(t.path.split('/')[1])); }
   }
 }
+// used-by, part 2: semantic tokens a component reads directly in code (th.t('shadow/sm')), not through a component token.
+const CODE = join(ROOT, 'packages', 'app-kit', 'src', 'components');
+const semKeys = new Set(raw.filter((t) => t.path.startsWith('semantic/')).map((t) => key(t.path)));
+for (const f of readdirSync(CODE).filter((f) => f.endsWith('.tsx'))) {
+  const name = f.replace('.tsx', '');
+  if (!components.some((c) => c.name === name)) continue;
+  for (const m of readFileSync(join(CODE, f), 'utf8').matchAll(/th\.t\('([^']+)'\)/g)) {
+    if (!semKeys.has(m[1])) continue;
+    if (!usedBy.has(m[1])) usedBy.set(m[1], new Set());
+    usedBy.get(m[1])!.add(name);
+  }
+}
+const css = (v: any) => (v && typeof v === 'object' ? `${v.offsetX}px ${v.offsetY}px ${v.blur}px ${v.spread ?? 0}px ${v.color}` : String(v));
 const fmtVal = (v: unknown): string => {
   if (v && typeof v === 'object') { const s = v as any; return `${s.offsetX} ${s.offsetY} blur ${s.blur} ${s.color}`; }
   return String(v);
@@ -57,7 +70,8 @@ const data: Record<string, unknown> = {};
 for (const g of groups) {
   const rows = raw.filter((t) => t.path.startsWith('semantic/') && g.prefix.some((p) => key(t.path).startsWith(p)));
   const isColour = g.file === 'Colour';
-  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Swatches, TypeSpecimen, Scale } from '../../blocks';\nimport data from '../data.json';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n`;
+  const lightDark = isColour || g.file === 'Elevation'; // values differ by theme, not by language
+  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Swatches, TypeSpecimen, Scale, Shadows } from '../../blocks';\nimport data from '../data.json';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n`;
   if (isColour) {
     data.colour = rows.filter((t) => typeof R.light_en[key(t.path)] === 'string').map((t) => ({ k: key(t.path), light: R.light_en[key(t.path)], dark: R.dark_en[key(t.path)], desc: t.description, usedBy: [...(usedBy.get(key(t.path)) ?? [])].sort() }));
     md += `Each card: light on the left, dark on the right.\n\n<Swatches tokens={data.colour} />\n\n## Full table\n\n`;
@@ -73,11 +87,16 @@ for (const g of groups) {
     data[kind] = items;
     md += `<Scale kind="${kind}" items={data.${kind}} />\n\n## Full table\n\n`;
   }
-  md += isColour ? '| Token | Light | Dark | Use | Used by |\n|---|---|---|---|---|\n' : '| Token | EN | AR | Use | Used by |\n|---|---|---|---|---|\n';
+  if (g.file === 'Elevation') {
+    const sk = (m: string) => ({ bg: R[`${m}_en`]['color/bg/default'], surface: R[`${m}_en`]['color/surface/default'] });
+    data.shadow = { light: sk('light'), dark: sk('dark'), items: rows.filter((t) => typeof R.light_en[key(t.path)] === 'object').map((t) => ({ k: key(t.path), light: css(R.light_en[key(t.path)]), dark: css(R.dark_en[key(t.path)]), desc: t.description, usedBy: [...(usedBy.get(key(t.path)) ?? [])].sort() })) };
+    md += `Each token on a card, on the light and the dark page background.\n\n<Shadows data={data.shadow} />\n\n## Full table\n\n`;
+  }
+  md += lightDark ? '| Token | Light | Dark | Use | Used by |\n|---|---|---|---|---|\n' : '| Token | EN | AR | Use | Used by |\n|---|---|---|---|---|\n';
   for (const t of rows) {
     const k = key(t.path);
     const a = R.light_en[k];
-    const b = isColour ? R.dark_en[k] : R.light_ar[k];
+    const b = lightDark ? R.dark_en[k] : R.light_ar[k];
     const ub = [...(usedBy.get(k) ?? [])].sort().join(', ') || '—';
     md += `| \`${k}\` | ${sw(a)}${esc(fmtVal(a))} | ${sw(b)}${esc(fmtVal(b))} | ${esc(t.description ?? '')} | ${ub} |\n`;
   }
@@ -105,14 +124,16 @@ for (const c of components) {
   const u = usage(c.slug);
   const ctoks = Object.keys(R.light_en).filter((k) => k.startsWith(`${c.tokens}/`));
   const story = storyFiles.includes(c.name) ? c.name : null;
-  let md = `import { Meta, Canvas, Source } from '@storybook/addon-docs/blocks';\n`;
+  let md = `import { Meta, Canvas, Controls, Source } from '@storybook/addon-docs/blocks';\n`;
   if (story) md += `import * as S from '../../stories/${story}.stories';\n`;
   md += `import { Status, DoDont } from '../../blocks';\n`;
   md += `\n<Meta title="Components/${c.name}/Docs" />\n\n# ${c.name}\n\n<Status status="Stable" code="https://github.com/MostafaBreem/product-lab/blob/main/packages/app-kit/src/components/${c.name}.tsx" />\n\n${esc(u['Purpose'] ?? c.summary)}\n\n`;
   md += `<DoDont doText={${JSON.stringify(u['Use when'] ?? '')}} dontText={${JSON.stringify(u["Don't use"] ?? '')}} />\n\n`;
   if (story) {
     const names = [...readFileSync(join(__dirname, '..', 'src', 'stories', `${story}.stories.tsx`), 'utf8').matchAll(/export const (\w+)/g)].map((m) => m[1]);
-    md += `## Examples\n\nUse the toolbar to switch English / العربية and Light / Dark.\n\n` + names.map((n) => `### ${n.replace(/([a-z])([A-Z])/g, '$1 $2')}\n\n<Canvas of={S.${n}} />\n`).join('\n') + '\n';
+    if (names.includes('Playground')) md += `## Playground\n\nChange the props in the table under the preview. The toolbar switches English / العربية and Light / Dark.\n\n<Canvas of={S.Playground} />\n\n<Controls of={S.Playground} />\n\n`;
+    const ex = names.filter((n) => n !== 'Playground');
+    if (ex.length) md += `## Examples\n\nReal screens' content, fixed in code.\n\n` + ex.map((n) => `### ${n.replace(/([a-z])([A-Z])/g, '$1 $2')}\n\n<Canvas of={S.${n}} />\n`).join('\n') + '\n';
   }
   for (const [k, title] of SECTIONS) if (u[k]) md += `## ${title}\n\n${esc(u[k])}\n\n`;
   if (c.variants?.length || c.states?.length) md += `## Variants and states\n\n${c.variants ? `- Variants: ${c.variants.join(' · ')}\n` : ''}${c.states ? `- States: ${c.states.join(' · ')}\n` : ''}\n`;

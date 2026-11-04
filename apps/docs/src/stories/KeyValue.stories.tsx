@@ -2,13 +2,14 @@ import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { View } from 'react-native';
 import { fmt, KeyValue, useTheme } from '@lab/app-kit';
-import { useL, useLang } from '../ui/lang';
+import { NOCTRL, pg, useL, useLang, useT } from '../ui/lang';
 
-const meta: Meta<typeof KeyValue> = { title: 'Components/KeyValue/Examples', component: KeyValue, args: { k: 'Total to pay', v: '⃁ 1,350.00', layout: 'stacked', strong: false },
-  argTypes: { layout: { control: 'inline-radio', options: ['stacked', 'row'] } } };
+const meta: Meta<typeof KeyValue> = { title: 'Components/KeyValue/Examples', component: KeyValue, parameters: NOCTRL };
 export default meta;
 type S = StoryObj<typeof KeyValue>;
-export const Playground: S = {};
+const TOTAL = fmt.money(135000, 'en');
+export const Playground: S = { ...pg({ k: 'Total to pay', v: TOTAL, layout: 'stacked', strong: false }), argTypes: { layout: { control: 'inline-radio', options: ['stacked', 'row'] } },
+  render: (a) => { const T = useT(); const lang = useLang(); return <KeyValue {...a} k={T(a.k, 'Total to pay', 'الإجمالي المستحق')} v={T(a.v, TOTAL, fmt.money(135000, lang))} />; } };
 export const SummaryInset: S = { render: () => { const th = useTheme(); const L = useL(); const lang = useLang(); return (
   <View style={{ flexDirection: 'row', gap: 12, backgroundColor: th.t('payment-card/summary/fill/default') as string, borderRadius: 12, padding: 12 }}>
     <KeyValue k={L('Due in 30 days', 'موعدها بعد 30 يوم')} v={fmt.money(31250, lang)} /><KeyValue k={L('Total to pay', 'الإجمالي المستحق')} v={fmt.money(135000, lang)} />

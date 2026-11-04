@@ -10,6 +10,8 @@ const config: StorybookConfig = {
   addons: ['@storybook/addon-a11y', { name: '@storybook/addon-docs', options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } } }],
   staticDirs: [{ from: '../../../packages/app-kit/assets/fonts', to: '/fonts' }, { from: '../public', to: '/' }],
   core: { disableTelemetry: true },
+  // Theme is one toolbar toggle (manager.tsx); the built-in Backgrounds button would be a second, conflicting one.
+  features: { backgrounds: false },
   // GitHub Pages serves the site under /product-lab/
   viteFinal: async (c) => ({
     ...c,

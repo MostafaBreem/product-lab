@@ -14,4 +14,4 @@ export const Primary: S = { render: () => { const L = useL(); const lang = useLa
 export const PrimaryCritical: S = { render: () => { const L = useL(); const lang = useLang(); return <Button tone="critical" label={L(`Pay ${fmt.money(31250, 'en')} now`, `ادفع ${fmt.money(31250, lang)} الحين`)} />; } };
 export const Loading: S = { render: () => { const L = useL(); const [b, setB] = useState(true); return <Button loading={b} label={L('Paying…', 'جاري الدفع…')} onPress={() => setB(true)} />; } };
 export const Disabled: S = { render: () => { const L = useL(); return <Button disabled label={L('Pay', 'ادفع')} />; } };
-export const Links: S = { render: () => { const L = useL(); return (<><Button variant="link" label={L('Pay a different amount', 'ادفع مبلغ ثاني')} /><Button variant="link" tone="critical" label={L('What happens next', 'وش يصير بعدين')} /></>); } };
+export const Links: S = { render: () => { const L = useL(); return (<><Button variant="link" label={L('Choose what to pay', 'اختر دفعاتك')} /><Button variant="link" tone="critical" label={L('What happens next', 'وش يصير بعدين')} /></>); } };

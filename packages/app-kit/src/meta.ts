@@ -19,7 +19,7 @@ export const components: ComponentMeta[] = [
       { name: 'full', type: 'boolean', default: 'primary: true', description: 'Fill the parent width.' },
     ],
     variants: ['Primary', 'Primary Critical', 'Link', 'Link Critical'], states: ['Default', 'Pressed', 'Loading', 'Disabled'],
-    example: `<Button label="Pay ⃁ 312.50" onPress={pay} />\n<Button variant="link" label="Pay a different amount" onPress={open} />`,
+    example: `<Button label="Pay ⃁ 312.50" onPress={pay} />\n<Button variant="link" label="Choose what to pay" onPress={open} />`,
     related: ['Chip', 'ListRow', 'PaymentCard'],
   },
   {

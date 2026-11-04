@@ -7,7 +7,7 @@ export const strings = {
     tabs: { discover: 'Discover', shop: 'Shop', money: 'Money', profile: 'Profile' },
     money: {
       title: 'Money', earnCashback: 'Earn cashback', nextPayment: 'Next payment', pay: (a: string) => `Pay ${a}`, payNow: (a: string) => `Pay ${a} now`,
-      payDifferent: 'Pay a different amount', extendPayment: 'Extend a payment', due30: 'Due in 30 days', totalToPay: 'Total to pay',
+      payDifferent: 'Choose what to pay', extendPayment: 'Extend a payment', due30: 'Due in 30 days', totalToPay: 'Total to pay',
       upcoming: 'Upcoming', history: 'History', r7: '7 days', r30: '30 days', rAll: 'All', rowSub: (date: string, n: number, of: number) => `${date} · ${n} of ${of}`,
       rowSubLate: (date: string) => `Was due ${date}`,
       empty7: 'Nothing due in the next 7 days', empty30: 'Nothing due in the next 30 days', emptyAll: 'You have no payments left',
@@ -80,7 +80,7 @@ export const strings = {
     tabs: { discover: 'اكتشف', shop: 'تسوّق', money: 'أموالك', profile: 'حسابك' },
     money: {
       title: 'أموالك', earnCashback: 'اكسب كاش باك', nextPayment: 'الدفعة الجاية', pay: (a: string) => `ادفع ${a}`, payNow: (a: string) => `ادفع ${a} الحين`,
-      payDifferent: 'ادفع مبلغ ثاني', extendPayment: 'أجّل دفعة', due30: 'موعدها بعد 30 يوم', totalToPay: 'الإجمالي المستحق',
+      payDifferent: 'اختر دفعاتك', extendPayment: 'أجّل دفعة', due30: 'موعدها بعد 30 يوم', totalToPay: 'الإجمالي المستحق',
       upcoming: 'الدفعات الجاية', history: 'سجل الدفعات', r7: '7 أيام', r30: '30 يوم', rAll: 'الكل', rowSub: (date: string, n: number, of: number) => `${date} · ${n} من ${of}`,
       rowSubLate: (date: string) => `كان موعدها ${date}`,
       empty7: 'ما عليك دفعات خلال الـ 7 أيام الجاية', empty30: 'ما عليك دفعات خلال الـ 30 يوم الجاية', emptyAll: 'ما بقي عليك دفعات',

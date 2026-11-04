@@ -64,7 +64,7 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
           <Button label={ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`)} tone="critical" onPress={() => {}} />
           <Button label={ar(lang, 'Paying…', 'جاري الدفع…')} loading={loading} onPress={() => { setLoading(true); setTimeout(() => setLoading(false), 1500); }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Button variant="link" label={ar(lang, 'Pay a different amount', 'ادفع مبلغ ثاني')} />
+            <Button variant="link" label={ar(lang, 'Choose what to pay', 'اختر دفعاتك')} />
             <Button variant="link" tone="critical" label={ar(lang, 'What happens next', 'وش يصير بعدين')} />
           </View>
           <Note>Primary · Primary Critical · Loading (tap) · Link · Link Critical</Note>
@@ -92,7 +92,7 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
         <Section title="Payment card">
           <PaymentCard state="due" label={ar(lang, 'Next payment', 'الدفعة الجاية')} amount={m(31250)} dueLine={fmt.dueLine('2026-11-05', '2026-10-31', lang)}
             pay={{ label: ar(lang, `Pay ${m(31250)}`, `ادفع ${m(31250)}`), onPress: () => {} }} linksRow
-            links={[{ label: ar(lang, 'Pay a different amount', 'ادفع مبلغ ثاني'), onPress: () => {} }, { label: ar(lang, 'Extend a payment', 'أجّل دفعة'), onPress: () => {} }]}
+            links={[{ label: ar(lang, 'Choose what to pay', 'اختر دفعاتك'), onPress: () => {} }, { label: ar(lang, 'Extend a payment', 'أجّل دفعة'), onPress: () => {} }]}
             summary={[{ k: ar(lang, 'Due in 30 days', 'موعدها بعد 30 يوم'), v: m(31250) }, { k: ar(lang, 'Total to pay', 'الإجمالي المستحق'), v: m(135000) }]} />
           <PaymentCard state="overdue" criticalFill tag={fmt.overdueTag(3, lang)} label={ar(lang, 'Amount overdue', 'المبلغ المتأخر')} amount={m(31250)} dueLine={ar(lang, 'Was due Wed 28 Oct', `كان موعدها ${fmt.dayDate('2026-10-28', 'ar')}`)} dueCritical
             pay={{ label: ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`), critical: true, onPress: () => {} }} links={[{ label: ar(lang, 'What happens next', 'وش يصير بعدين'), critical: true, onPress: () => {} }]} />

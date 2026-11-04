@@ -30,13 +30,13 @@ export default function Root() {
 
 function Themed() {
   const st = useStore();
-  const { scheme, lang } = st;
+  const { scheme, lang, setSchemePref, setLang } = st;
   useEffect(() => listenForReminderTaps(st.refresh), []);
   // Reschedule after payment, extension, prefs, permission or clock changes (build-spec-reminders.md).
   useEffect(() => { scheduleReminders(st).catch(() => {}); }, [st.flags.osPermission, st.version, lang]);
   return (
     <ThemeProvider scheme={scheme} lang={lang}>
-      <FrameInsets scheme={scheme} lang={lang}>
+      <FrameInsets scheme={scheme} lang={lang} onScheme={setSchemePref} onLang={setLang}>
       <ToastHost>
         <FlowsProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />

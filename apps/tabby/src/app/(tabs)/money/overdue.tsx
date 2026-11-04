@@ -1,5 +1,5 @@
 // Overdue payment (overdue-map-v5 view 1; offline / loading = pay-flow-rest-map-v5 views 5, 6).
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { analytics, Bar, fmt, Icon, ListGroup, ListRow, NavigationBar, Notice, PaymentCard, Screen, SectionHeader, Txt, useTheme, type IconName } from '@lab/app-kit';
@@ -60,7 +60,10 @@ export default function Overdue() {
 }
 
 /** Overdue cleared (paid or extended) while this screen was open: go back to Money. */
+/** Nothing overdue any more: leave, but only while this screen is the one on top.
+ * After Pay / Extend the Paid or Extended screen sits on top; going back then would close that screen (blank screen bug, board 2026-11-05). */
 function Gone() {
-  useEffect(() => { router.back(); }, []);
+  const focused = useIsFocused();
+  useEffect(() => { if (focused) router.back(); }, [focused]);
   return null;
 }

@@ -5,20 +5,20 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { fontAssets, ThemeProvider, ToastHost, Txt, useTheme } from '@lab/app-kit';
+import { fontAssets, FrameInsets, FramePage, inFrame, ThemeProvider, ToastHost, Txt, useFramePage, useTheme } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
 import { FlowsProvider } from '../ui/flows';
 import { listenForReminderTaps, scheduleReminders } from '../ui/reminders';
-import { FrameInsets, FramePage, inFrame, useFramePage } from '../ui/phone-frame';
 
 const FONTS = fontAssets();
+const CASE_STUDY = process.env.EXPO_PUBLIC_CASE_STUDY === '1';
 
 export default function Root() {
   const [loaded] = useFonts(FONTS);
-  const framePage = useFramePage();
+  const framePage = useFramePage(CASE_STUDY);
   if (!loaded) return <View style={{ flex: 1 }} />;
-  // Wide browser, public case study: phone frame page; the app runs in its iframe (ui/phone-frame.tsx).
-  if (framePage) return <FramePage banner={(lang) => <CaseStudyNotice lang={lang} />} />;
+  // Wide browser, public case study: phone frame page; the app runs in its iframe (app-kit web/phone-frame).
+  if (framePage) return <FramePage notice={(lang) => <CaseStudyNotice lang={lang} />} />;
   return (
     <SafeAreaProvider>
       <StoreProvider>
@@ -40,7 +40,7 @@ function Themed() {
       <ToastHost>
         <FlowsProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          {process.env.EXPO_PUBLIC_CASE_STUDY === '1' && !inFrame ? <CaseStudyBanner /> : null}
+          {CASE_STUDY && !inFrame ? <CaseStudyBanner /> : null}
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="debug" options={{ presentation: 'modal' }} />

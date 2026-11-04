@@ -25,4 +25,5 @@ export { Screen } from './components/Screen';
 export { Switch } from './components/Switch';
 export { TabBar, type TabItem } from './components/TabBar';
 export { Gallery } from './gallery';
+export { FramePage, FrameInsets, useFramePage, inFrame } from './web/phone-frame';
 export { components as componentMeta, type ComponentMeta } from './meta';

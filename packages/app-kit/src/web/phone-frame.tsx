@@ -1,12 +1,17 @@
-// Case study web build only: on a wide browser the app runs inside a drawn iPhone frame.
-// Screen pattern (components/screen-patterns.md > PhoneFrame): one use, web only, fails the Build test.
+// Public case study web build: on a wide browser a case app runs inside a drawn iPhone frame.
+// Shared by every case app (moved from apps/tabby 2026-11-04). Not a DS component: web page chrome.
+// Use: case app root renders <FramePage notice={...}/> when useFramePage(caseStudy) is true,
+// and wraps its themed tree in <FrameInsets>. Template: templates/case-study-page.md (project docs).
 // The app loads in an iframe at the phone screen size, so sheets (Modal), toasts and window size
 // all act like on a real 393 x 852 iPhone. The parent page draws body, status bar, home bar and banner.
 import React, { createElement, useEffect, useRef, useState } from 'react';
 import { Platform, View, useWindowDimensions } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { BatteryFullIcon, CellSignalFullIcon, WifiHighIcon } from 'phosphor-react-native';
-import { SegmentedControl, ThemeProvider, Txt, useTheme, type Lang, type Scheme } from '@lab/app-kit';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { Txt } from '../components/Txt';
+import { ThemeProvider, useTheme } from '../theme';
+import type { Lang, Scheme } from '../tokens';
 
 // raw-ok: device hardware (iPhone 16 screen, safe area, bezel, island), not design tokens.
 const DEVICE = { w: 393, h: 852, top: 59, bottom: 34, bezel: 12, screenRadius: 55, islandW: 125, islandH: 37, islandTop: 11, homeW: 140, homeH: 5, homeGap: 8, statusH: 54, minWidth: 500 };
@@ -20,10 +25,9 @@ const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
 const query = isWeb ? new URLSearchParams(window.location.search) : null;
 /** True inside the iframe that the frame page loads. */
 export const inFrame = !!query?.has('frame');
-const caseStudy = process.env.EXPO_PUBLIC_CASE_STUDY === '1';
 
-/** Wide browser on the public case study: show the frame page instead of the app. */
-export function useFramePage(): boolean {
+/** Wide browser on the public case study (`caseStudy` = the app's public web build flag): show the frame page. */
+export function useFramePage(caseStudy: boolean): boolean {
   const { width } = useWindowDimensions();
   return isWeb && caseStudy && !inFrame && width >= DEVICE.minWidth;
 }
@@ -57,7 +61,7 @@ export function FrameInsets({ scheme, lang, onScheme, onLang, children }: { sche
 }
 
 /** Parent page: background, banner above the phone, phone body with the app iframe inside. */
-export function FramePage({ banner }: { banner: (lang: Lang) => React.ReactNode }) {
+export function FramePage({ notice }: { notice: (lang: Lang) => React.ReactNode }) {
   const [state, setState] = useState<{ scheme: Scheme; lang: Lang }>({
     scheme: query?.get('scheme') === 'dark' ? 'dark' : 'light',
     lang: query?.get('lang') === 'ar' ? 'ar' : 'en',
@@ -73,7 +77,7 @@ export function FramePage({ banner }: { banner: (lang: Lang) => React.ReactNode 
   }, []);
   return (
     <ThemeProvider scheme={state.scheme} lang={state.lang}>
-      <Page banner={banner(state.lang)} lang={state.lang} scheme={state.scheme} />
+      <Page banner={notice(state.lang)} lang={state.lang} scheme={state.scheme} />
     </ThemeProvider>
   );
 }
@@ -105,7 +109,7 @@ function Page({ banner, lang, scheme }: { banner: React.ReactNode; lang: Lang; s
       <View style={{ width: bodyW * scale, height: bodyH * scale }}>
         <View style={{ position: 'absolute', left: 0, top: 0, width: bodyW, height: bodyH, transform: [{ translateX: (bodyW * scale - bodyW) / 2 }, { translateY: (bodyH * scale - bodyH) / 2 }, { scale }], padding: DEVICE.bezel, borderRadius: DEVICE.screenRadius + DEVICE.bezel, backgroundColor: HARDWARE.body, borderWidth: th.t('border-width/sm'), borderColor: th.t('color/border/strong/default') as string }}>
           <View style={{ width: DEVICE.w, height: DEVICE.h, borderRadius: DEVICE.screenRadius, overflow: 'hidden', backgroundColor: th.t('color/bg/default') as string }}>
-            {createElement('iframe', { ref: frame, src, title: 'Case study app', style: { width: DEVICE.w, height: DEVICE.h, border: 0, display: 'block' } })}
+            {createElement('iframe', { ref: frame, src, title: 'App preview', style: { width: DEVICE.w, height: DEVICE.h, border: 0, display: 'block' } })}
             <StatusBar />
             <View pointerEvents="none" style={{ position: 'absolute', left: (DEVICE.w - DEVICE.homeW) / 2, bottom: DEVICE.homeGap, width: DEVICE.homeW, height: DEVICE.homeH, borderRadius: th.t('radius/full'), backgroundColor: th.t('color/text/content/default') as string }} />
           </View>

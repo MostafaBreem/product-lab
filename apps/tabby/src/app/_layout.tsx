@@ -9,12 +9,16 @@ import { fontAssets, ThemeProvider, ToastHost, Txt, useTheme } from '@lab/app-ki
 import { StoreProvider, useStore } from '../state';
 import { FlowsProvider } from '../ui/flows';
 import { listenForReminderTaps, scheduleReminders } from '../ui/reminders';
+import { FrameInsets, FramePage, inFrame, useFramePage } from '../ui/phone-frame';
 
 const FONTS = fontAssets();
 
 export default function Root() {
   const [loaded] = useFonts(FONTS);
+  const framePage = useFramePage();
   if (!loaded) return <View style={{ flex: 1 }} />;
+  // Wide browser, public case study: phone frame page; the app runs in its iframe (ui/phone-frame.tsx).
+  if (framePage) return <FramePage banner={(lang) => <CaseStudyNotice lang={lang} />} />;
   return (
     <SafeAreaProvider>
       <StoreProvider>
@@ -32,10 +36,11 @@ function Themed() {
   useEffect(() => { scheduleReminders(st).catch(() => {}); }, [st.flags.osPermission, st.version, lang]);
   return (
     <ThemeProvider scheme={scheme} lang={lang}>
+      <FrameInsets scheme={scheme} lang={lang}>
       <ToastHost>
         <FlowsProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          {process.env.EXPO_PUBLIC_CASE_STUDY === '1' ? <CaseStudyBanner /> : null}
+          {process.env.EXPO_PUBLIC_CASE_STUDY === '1' && !inFrame ? <CaseStudyBanner /> : null}
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
@@ -43,7 +48,20 @@ function Themed() {
           </Stack>
         </FlowsProvider>
       </ToastHost>
+      </FrameInsets>
     </ThemeProvider>
+  );
+}
+
+const NOTICE = { en: 'Unofficial case study · not affiliated with Tabby · sample data', ar: 'دراسة حالة غير رسمية · ما لها علاقة بتابي · بيانات تجريبية' };
+
+/** Framed page: the same notice as a pill above the phone. */
+function CaseStudyNotice({ lang }: { lang: 'en' | 'ar' }) {
+  const th = useTheme();
+  return (
+    <View accessibilityRole="banner" style={{ paddingVertical: th.t('space/padding-y/2xs'), paddingHorizontal: th.t('space/margin/md'), borderRadius: th.t('radius/full'), backgroundColor: th.t('color/surface/inverse/default') as string }}>
+      <Txt role="caption" color="color/text/content/inverse/default" align="center">{NOTICE[lang]}</Txt>
+    </View>
   );
 }
 
@@ -54,7 +72,7 @@ function CaseStudyBanner() {
   return (
     <View accessibilityRole="banner" style={{ paddingTop: insets.top + th.t('space/padding-y/2xs'), paddingBottom: th.t('space/padding-y/2xs'), paddingHorizontal: th.t('space/margin/md'), backgroundColor: th.t('color/surface/inverse/default') as string }}>
       <Txt role="caption" color="color/text/content/inverse/default" align="center">
-        {th.isRTL ? 'دراسة حالة غير رسمية · ما لها علاقة بتابي · بيانات تجريبية' : 'Unofficial case study · not affiliated with Tabby · sample data'}
+        {NOTICE[th.isRTL ? 'ar' : 'en']}
       </Txt>
     </View>
   );

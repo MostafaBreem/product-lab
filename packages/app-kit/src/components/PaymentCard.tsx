@@ -37,11 +37,11 @@ export function PaymentCard(p: PaymentCardProps) {
         <View style={{ gap: th.t('payment-card/actions/gap') }}>
           {p.pay ? <Button label={p.pay.label} onPress={p.pay.onPress} tone={p.pay.critical ? 'critical' : 'default'} /> : null}
           <View style={p.linksRow ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: th.t('space/gap-x/xs') } : undefined}>
-            {p.links?.map((l, _, all) => (
+            {p.links?.map((l) => (
               <View key={l.label}>
-                {/* One link = the card's one extra action: centred under the Pay button, helper too (user 2026-11-05). */}
-                <Button variant="link" label={l.label} onPress={l.onPress} tone={l.critical ? 'critical' : 'default'} full={all.length === 1} align={all.length === 1 ? 'center' : 'start'} />
-                {l.helper ? <Txt role="body/sm" color="payment-card/note/text/default" wrap align={all.length === 1 ? 'center' : 'start'}>{l.helper}</Txt> : null}
+                {/* Links + helper start-aligned, also when there is only one (user 2026-11-05: centred single link reverted). */}
+                <Button variant="link" label={l.label} onPress={l.onPress} tone={l.critical ? 'critical' : 'default'} full={false} />
+                {l.helper ? <Txt role="body/sm" color="payment-card/note/text/default" wrap>{l.helper}</Txt> : null}
               </View>
             ))}
           </View>

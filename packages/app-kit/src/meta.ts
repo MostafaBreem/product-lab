@@ -130,7 +130,7 @@ export const components: ComponentMeta[] = [
       { name: 'label · amount · title · dueLine · body', type: 'string', description: 'Header text; amount = total due next.' },
       { name: 'tag', type: 'string', description: 'Overdue tag text.' },
       { name: 'pay', type: '{ label; onPress; critical? }', description: 'The one Pay; label repeats the amount.' },
-      { name: 'links', type: '{ label; onPress; critical?; helper? }[]', description: 'Secondary actions under Pay. One link = centred, helper centred too; two = side by side with linksRow (2026-11-05).' },
+      { name: 'links', type: '{ label; onPress; critical?; helper? }[]', description: 'Secondary actions under Pay, start-aligned with their helper text (one link too; centred tried and reverted 2026-11-05). Two = side by side with linksRow.' },
       { name: 'summary', type: '{ k; v }[]', description: 'Key-value inset. One pair = one line, key start, value end (Key-value Row strong); two or more = columns (2026-11-05).' },
       { name: 'criticalFill', type: 'boolean', description: 'Critical tint (Money tab overdue).' },
     ],

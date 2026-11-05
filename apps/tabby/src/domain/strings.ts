@@ -36,7 +36,7 @@ export const strings = {
       sub: (who: string, d: string) => `${who} · due ${d}`, subLate: (who: string, d: string) => `${who} · was due ${d}`, subOne: (who: string, n: number, of: number, d: string, late: boolean) => `${who} · payment ${n} of ${of} · ${late ? 'was due' : 'due'} ${d}`,
       applePay: 'Apple Pay', applePaySub: 'Pick your card in Apple Pay', payApple: 'Pay with Apple Pay', card: (b: string, l4: string) => `${b} ${l4}`, credit: 'Credit card', debit: '',
       failedOn: (d: string) => `Didn't go through on ${d}`, addCard: 'Add a card', pickHelp: 'Tap a method to use it for this payment.', paying: 'Paying…',
-      failedTitle: "Payment didn't go through", failedBody: 'Your bank declined it. No money was taken.', tryAgainAmt: (a: string) => `Try again · ${a}`, useAnother: 'Use another method', extendInstead: 'Extend the due date instead', changeMethodA11y: 'Change payment method', walletCard: (wallet: string, card: string) => `${wallet} · ${card}`,
+      failedTitle: "Payment didn't go through", failedBody: 'Your bank declined it. No money was taken.', tryAgainAmt: (a: string) => `Try again · ${a}`, extendInstead: 'Extend the due date instead', changeMethodA11y: 'Change payment method', walletCard: (wallet: string, card: string) => `${wallet} · ${card}`,
       unknownTitle: "We couldn't confirm this payment", unknownBody: 'Check with your bank before you try again. This screen updates when we know.',
     },
     paid: {
@@ -109,7 +109,7 @@ export const strings = {
       sub: (who: string, d: string) => `${who} · موعدها ${d}`, subLate: (who: string, d: string) => `${who} · كان موعدها ${d}`, subOne: (who: string, n: number, of: number, d: string, late: boolean) => `${who} · الدفعة ${n} من ${of} · ${late ? 'كان موعدها' : 'موعدها'} ${d}`,
       applePay: 'Apple Pay', applePaySub: 'اختر بطاقتك داخل Apple Pay', payApple: 'الدفع عبر Apple Pay', card: (b: string, l4: string) => `${b === 'Visa' ? 'فيزا' : 'ماستركارد'} ${l4}`, credit: 'بطاقة ائتمانية', debit: '',
       failedOn: (d: string) => `ما نجح الخصم ${d}`, addCard: 'أضف بطاقة', pickHelp: 'اضغط على طريقة الدفع عشان تستخدمها لهالدفعة.', paying: 'جاري الدفع…',
-      failedTitle: 'ما تمّ الدفع', failedBody: 'بنكك رفضها، وما انخصم منك شي.', tryAgainAmt: (a: string) => `جرّب مرة ثانية · ${a}`, useAnother: 'استخدم طريقة ثانية', extendInstead: 'أجّل موعد السداد', changeMethodA11y: 'غيّر طريقة الدفع', walletCard: (wallet: string, card: string) => `${wallet} · ${card}`,
+      failedTitle: 'ما تمّ الدفع', failedBody: 'بنكك رفضها، وما انخصم منك شي.', tryAgainAmt: (a: string) => `جرّب مرة ثانية · ${a}`, extendInstead: 'أجّل موعد السداد', changeMethodA11y: 'غيّر طريقة الدفع', walletCard: (wallet: string, card: string) => `${wallet} · ${card}`,
       unknownTitle: 'ما قدرنا نتأكد من الدفعة', unknownBody: 'تأكد من بنكك قبل ما تحاول مرة ثانية. بنحدّث الشاشة أول ما نعرف.',
     },
     paid: {

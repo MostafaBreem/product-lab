@@ -150,7 +150,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
             {payState === 'unknown' ? <Notice tone="neutral" icon="help-circle" title={s.pay.unknownTitle} body={s.pay.unknownBody} /> : null}
             {payState !== 'unknown' ? (
               <View>
-                <SectionHeader title={s.pay.payWith} action={payState === 'sheet' ? s.common.change : undefined} actionLabel={s.pay.changeMethodA11y} onAction={() => setPayState('methods')} />
+                <SectionHeader title={s.pay.payWith} action={payState === 'sheet' || payState === 'failed' ? s.common.change : undefined} actionLabel={s.pay.changeMethodA11y} onAction={() => { if (payState === 'failed') analytics.track('pay_retry', { action: 'other_method' }); setPayState('methods'); }} />
                 {method ? <ListRow plainPadding title={methodTitle(method)} subtitle={payState === 'processing' ? (method.kind === 'credit' ? s.pay.credit : undefined) : methodSub(method)} leading={{ kind: 'icon', icon: method.type === 'applePay' ? 'wallet' : 'credit-card' }} /> : null}
               </View>
             ) : null}
@@ -158,10 +158,9 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
               : payState === 'failed' ? (
                 <View>
                   <Button label={s.pay.tryAgainAmt(m(total, lang))} onPress={() => { analytics.track('pay_retry', { action: 'try_again' }); submit(); }} />
-                  <Button variant="link" label={s.pay.useAnother} onPress={() => { analytics.track('pay_retry', { action: 'other_method' }); setPayState('methods'); }} />
                   {late && st.summary?.card.state === 'overdue' && st.summary.card.extendable ? (
                     // Way out after a decline (pending #4, user pick A); shown only when the payment can be extended.
-                    <Button variant="link" label={s.pay.extendInstead} onPress={() => { const items = pay.items; analytics.track('pay_retry', { action: 'extend' }); stopPoll(); setPay(null); openExtend(items, 'pay_failed'); }} />
+                    <Button variant="link" full align="center" label={s.pay.extendInstead} onPress={() => { const items = pay.items; analytics.track('pay_retry', { action: 'extend' }); stopPoll(); setPay(null); openExtend(items, 'pay_failed'); }} />
                   ) : null}
                 </View>
               ) : method?.type === 'applePay' && payState === 'sheet' ? (

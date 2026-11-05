@@ -8,11 +8,11 @@ import { analytics, BottomSheet, Button, ListGroup, ListRow, MockError, Notice, 
 import { api } from '../domain/server';
 import type { Item, PaymentMethod } from '../domain/types';
 import { useStore } from '../state';
-import { dd, m, newKey, who } from './helpers';
+import { dd, m, methodLabel, newKey, who } from './helpers';
 
 export type PayKind = 'onTime' | 'overdue' | 'one' | 'pick';
 export type PayReq = { kind: PayKind; items: Item[]; source: string };
-export type PayOutcome = { kind: PayKind; items: Item[]; amount: number; next?: { amount: number; dueDate: string; items: Item[] }; stillOverdue: Item[] };
+export type PayOutcome = { kind: PayKind; items: Item[]; amount: number; next?: { amount: number; dueDate: string; items: Item[] }; stillOverdue: Item[]; methodLabel?: string; reference?: string };
 export type ExtendOutcome = { extended: { instalmentId: string; until: string; fee: number; item: Item }[]; totalFee: number; stillOverdue: Item[] };
 
 type Ctx = { openPay: (r: PayReq) => void; openExtend: (items: Item[], source: string) => void; lastPaid?: PayOutcome; lastExtended?: ExtendOutcome; offline: () => boolean };
@@ -59,11 +59,12 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
     const onTime = r.payment.items.every((x) => fmt.diffDays(x.dueDate, settings.today) >= 0);
     const daysLate = Math.max(0, ...r.payment.items.map((x) => fmt.diffDays(settings.today, x.dueDate)));
     analytics.track('payment_result', { paymentId: r.payment.id, final: true, status: 'succeeded', onTime, daysLate, items: r.payment.items.map((x) => x.instalmentId) });
-    setLastPaid({ kind: req.kind, items: r.payment.items, amount: r.payment.amount, next: r.next, stillOverdue: r.stillOverdue });
-    setPay(null);
+    setLastPaid({ kind: req.kind, items: r.payment.items, amount: r.payment.amount, next: r.next, stillOverdue: r.stillOverdue, methodLabel: methodLabel(method, s), reference: `TB-${r.payment.id.replace(/\D/g, '').padStart(4, '0')}` });
     const first = !st.flags.firstPaymentDone;
     st.setFlags({ firstPaymentDone: true });
     router.push('/money/paid');
+    // Sheet ("Paying…") stays up until the Paid screen has drawn, then fades: no blank frame between (tester run 2026-11-05 F1, pending #3).
+    setTimeout(() => setPay(null), 450);
     st.refresh();
     if (first && st.flags.osPermission === 'notDetermined' && !st.flags.reminderAskShown) setTimeout(() => { setAsk(true); st.setFlags({ reminderAskShown: true }); analytics.track('reminder_ask_shown', { paidKind: onTime ? 'onTime' : 'late' }); }, 600);
   };
@@ -121,7 +122,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
   return (
     <FlowCtx.Provider value={{ openPay, openExtend, lastPaid, lastExtended, offline }}>
       {children}
-      <BottomSheet visible={!!pay} title={title} dismissable={payState !== 'processing'}
+      <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={!!pay} title={title} dismissable={payState !== 'processing'}
         leading={payState === 'methods' ? 'back' : 'close'}
         onLeading={payState === 'methods' ? () => setPayState('sheet') : () => { stopPoll(); setPay(null); }}
         onClose={() => { stopPoll(); setPay(null); }}>
@@ -149,7 +150,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
             {payState === 'unknown' ? <Notice tone="neutral" icon="help-circle" title={s.pay.unknownTitle} body={s.pay.unknownBody} /> : null}
             {payState !== 'unknown' ? (
               <View>
-                <SectionHeader title={s.pay.payWith} action={payState === 'sheet' ? s.common.change : undefined} onAction={() => setPayState('methods')} />
+                <SectionHeader title={s.pay.payWith} action={payState === 'sheet' ? s.common.change : undefined} actionLabel={s.pay.changeMethodA11y} onAction={() => setPayState('methods')} />
                 {method ? <ListRow plainPadding title={methodTitle(method)} subtitle={payState === 'processing' ? (method.kind === 'credit' ? s.pay.credit : undefined) : methodSub(method)} leading={{ kind: 'icon', icon: method.type === 'applePay' ? 'wallet' : 'credit-card' }} /> : null}
               </View>
             ) : null}
@@ -158,6 +159,10 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
                 <View>
                   <Button label={s.pay.tryAgainAmt(m(total, lang))} onPress={() => { analytics.track('pay_retry', { action: 'try_again' }); submit(); }} />
                   <Button variant="link" label={s.pay.useAnother} onPress={() => { analytics.track('pay_retry', { action: 'other_method' }); setPayState('methods'); }} />
+                  {late && st.summary?.card.state === 'overdue' && st.summary.card.extendable ? (
+                    // Way out after a decline (pending #4, user pick A); shown only when the payment can be extended.
+                    <Button variant="link" label={s.pay.extendInstead} onPress={() => { const items = pay.items; analytics.track('pay_retry', { action: 'extend' }); stopPoll(); setPay(null); openExtend(items, 'pay_failed'); }} />
+                  ) : null}
                 </View>
               ) : method?.type === 'applePay' && payState === 'sheet' ? (
                 <ApplePayButton label={s.pay.payApple} onPress={submit} />
@@ -203,8 +208,10 @@ function ExtendSheet({ req, onClose, onDone }: { req: { items: Item[]; source: s
   };
   useEffect(() => { if (req) { const ids = req.items.map((x) => x.instalmentId); setTicked(ids); setPick(0); setErr(null); setDropped(null); load(ids); } }, [req]);
   const one = items.length === 1;
-  const feeOf = (id: string) => opts?.[0]?.fees.find((f) => f.instalmentId === id)?.fee ?? 0;
-  const totalFee = ticked.reduce((a, id) => a + feeOf(id), 0);
+  // Fee depends on the length picked (pending #7): item rows + button show the picked date's fee, each date row its own total.
+  const feeOf = (id: string, o = pick) => opts?.[o]?.fees.find((f) => f.instalmentId === id)?.fee ?? 0;
+  const totalOf = (o: number) => ticked.reduce((a, id) => a + feeOf(id, o), 0);
+  const totalFee = totalOf(pick);
   const until = opts?.[pick]?.until;
   const confirm = async () => {
     if (!until) return;
@@ -221,7 +228,7 @@ function ExtendSheet({ req, onClose, onDone }: { req: { items: Item[]; source: s
     } finally { setBusy(false); }
   };
   return (
-    <BottomSheet visible={!!req} title={s.overdue.extendDue} onClose={onClose} dismissable={!busy}>
+    <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={!!req} title={s.overdue.extendDue} onClose={onClose} dismissable={!busy}>
       {dropped ? <Notice title={s.extend.notEligible(dropped)} /> : null}
       <View>
         <SectionHeader title={s.extend.which} />
@@ -243,7 +250,7 @@ function ExtendSheet({ req, onClose, onDone }: { req: { items: Item[]; source: s
         ) : (
           <ListGroup plain>
             {opts.map((o, i) => (
-              <ListRow key={o.until} plainPadding title={s.extend.until(dd(o.until, lang))} quietValue={ticked.length > 1 ? s.extend.totalFee(m(totalFee, lang)) : s.extend.fee(m(totalFee, lang))}
+              <ListRow key={o.until} plainPadding title={s.extend.until(dd(o.until, lang))} quietValue={ticked.length > 1 ? s.extend.totalFee(m(totalOf(i), lang)) : s.extend.fee(m(totalOf(i), lang))}
                 selection={{ kind: 'radio', selected: i === pick }} onPress={() => setPick(i)} />
             ))}
           </ListGroup>
@@ -283,7 +290,7 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
   const noThanks = () => { analytics.track('reminder_ask_result', { action: 'no_thanks', salaryOn }); onClose(); };
   const sample = st.summary?.card;
   return (
-    <BottomSheet visible={visible} title={picker ? s.rem.salaryDay : s.rem.sheetTitle} leading={picker ? 'back' : 'close'} onLeading={picker ? () => setPicker(false) : noThanks} onClose={noThanks}>
+    <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={visible} title={picker ? s.rem.salaryDay : s.rem.sheetTitle} leading={picker ? 'back' : 'close'} onLeading={picker ? () => setPicker(false) : noThanks} onClose={noThanks}>
       {picker ? (
         <SalaryPicker value={day} onSave={(d) => { setDay(d); setPicker(false); }} />
       ) : (

@@ -69,10 +69,12 @@ export const api = {
   extendOptions: (ids: string[]) => call(400, () => clone(extendOptions(state.purchases, ids))),
   extend: (ids: string[], until: string) => call(1200, () => {
     const out: { instalmentId: string; until: string; fee: number; item: Item }[] = [];
+    const opt = extendOptions(state.purchases, ids).find((o) => o.until === until); // fee depends on the length picked
     for (const pur of state.purchases) for (const i of pur.instalments) if (ids.includes(i.id)) {
       if (!i.extendable || i.extendedAt) throw new MockError('notEligible', true);
-      i.extendedUntil = until; i.extendedAt = settings.today; i.extensionFee = pur.extendFee; i.extendable = false;
-      out.push({ instalmentId: i.id, until, fee: pur.extendFee, item: toItem(pur, i) });
+      const fee = opt?.fees.find((f) => f.instalmentId === i.id)?.fee ?? pur.extendFee;
+      i.extendedUntil = until; i.extendedAt = settings.today; i.extensionFee = fee; i.extendable = false;
+      out.push({ instalmentId: i.id, until, fee, item: toItem(pur, i) });
     }
     return clone({ extended: out, totalFee: out.reduce((s, x) => s + x.fee, 0), stillOverdue: overdueItems() });
   }),

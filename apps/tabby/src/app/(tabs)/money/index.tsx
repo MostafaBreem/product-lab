@@ -45,7 +45,7 @@ export default function MoneyTab() {
     <PaymentCard state="due" label={s.money.nextPayment} amount={m(c.amount, lang)} dueLine={fmt.dueLine(c.dueDate, today, lang)}
       pay={{ label: s.money.pay(m(c.amount, lang)), onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'due', amount: c.amount }); flows.openPay({ kind: 'onTime', items: c.items, source: 'money_card' }); } }}
       linksRow links={[{ label: s.money.payDifferent, onPress: () => { analytics.track('pay_different_amount_tapped', { cardState: c.state }); router.push('/money/make-payment'); } }, ...(c.extendable ? [{ label: s.money.extendPayment, onPress: () => flows.openExtend(c.items, 'money_card') }] : [])]}
-      summary={[{ k: s.money.due30, v: m(x.due30, lang) }, { k: s.money.totalToPay, v: m(x.totalToPay, lang) }]} />
+      summary={[{ k: s.money.leftOnPlans, v: m(x.totalToPay, lang) }]} />
   ) : (
     <PaymentCard state="caughtUp" label={s.money.nextPayment} title={s.money.caughtUp} dueLine={s.money.onDate(m(c.amount, lang), dd(c.dueDate, lang))}
       links={[{ label: s.money.payEarly, onPress: () => stub('pay_early') }]} />
@@ -73,7 +73,7 @@ export default function MoneyTab() {
               ))}
             </ListGroup>
           </View>
-          <BottomSheet visible={stepsOpen} title={s.money.whatNext} onClose={() => setStepsOpen(false)}>
+          <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={stepsOpen} title={s.money.whatNext} onClose={() => setStepsOpen(false)}>
             <OverdueSteps s={s} card={false} />
           </BottomSheet>
         </>

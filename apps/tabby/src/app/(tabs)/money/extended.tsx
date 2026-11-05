@@ -6,10 +6,11 @@ import { Button, KeyValue, ListGroup, ListRow, Screen, SectionHeader, Txt, useTh
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
 import { Hero } from '../../../ui/Hero';
-import { dd, m } from '../../../ui/helpers';
+import { dd, m, methodLabel } from '../../../ui/helpers';
 
 export default function Extended() {
-  const { s, lang } = useStore();
+  const st = useStore();
+  const { s, lang } = st;
   const th = useTheme();
   const { lastExtended: r, openPay } = useFlows();
   if (!r || !r.extended.length) return null;
@@ -18,9 +19,12 @@ export default function Extended() {
   const one = r.extended.length === 1 && r.stillOverdue.length > 0;
   const x0 = r.extended[0].item;
   const stillTotal = r.stillOverdue.reduce((a, x) => a + x.amount, 0);
+  const movedTotal = r.extended.reduce((a, e) => a + e.item.amount, 0);
+  const card = methodLabel(st.summary?.methods.find((x) => x.isDefault), s); // named, not "default payment method" (pending #6)
   return (
     <Screen footer={one ? <View><Button label={s.money.payNow(m(stillTotal, lang))} onPress={() => openPay({ kind: r.stillOverdue.length > 1 ? 'overdue' : 'one', items: r.stillOverdue, source: 'extended_one' })} /><Button variant="link" full label={s.common.done} onPress={done} /></View> : <Button label={s.common.done} onPress={done} />}>
-      <Hero icon="calendar-check" tone="brand" title={s.extend.movedTo(dd(until, lang))} body={r.extended.length === 1 ? s.extend.movedBodyOne(x0.merchant.name[lang], x0.number, x0.of, m(x0.amount, lang), dd(until, lang)) : s.extend.movedBody(dd(until, lang))} />
+      <Hero icon="calendar-check" tone="brand" title={s.extend.movedTo(dd(until, lang))} body={r.extended.length === 1 ? s.extend.movedBodyOne(x0.merchant.name[lang], x0.number, x0.of, m(x0.amount, lang), card, dd(until, lang)) : s.extend.movedBody(m(movedTotal, lang), card, dd(until, lang))} />
+      <Button variant="link" full label={s.extend.changeCard} onPress={() => router.push({ pathname: '/money/stub', params: { from: 'change_default_method' } })} />
       {one ? (
         <>
           <Txt role="label/lg" align="center">{s.extend.extFee(m(r.totalFee, lang))}</Txt>

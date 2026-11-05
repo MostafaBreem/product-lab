@@ -11,7 +11,7 @@ export type Instalment = {
   extendedUntil?: Day; extendedAt?: Day; extensionFee?: number; paidAt?: Day; extendable: boolean;
 };
 export type Purchase = { id: string; merchant: Merchant; boughtAt: Day; total: number; orderNumber: string; instalments: Instalment[]; extendFee: number };
-export type PaymentMethod = { id: string; type: 'applePay' | 'card'; brand?: 'Visa' | 'Mastercard'; last4?: string; kind: 'debit' | 'credit'; isDefault: boolean; lastFailureAt?: Day };
+export type PaymentMethod = { id: string; type: 'applePay' | 'card'; brand?: 'Visa' | 'Mastercard'; last4?: string; kind: 'debit' | 'credit'; isDefault: boolean; lastFailureAt?: Day; walletCard?: { brand: 'Visa' | 'Mastercard'; last4: string } };
 export type Item = { instalmentId: string; purchaseId: string; merchant: Merchant; number: number; of: number; amount: number; dueDate: Day };
 export type PaymentStatus = 'succeeded' | 'declined' | 'unknown';
 export type Payment = { id: string; items: Item[]; amount: number; methodId: string; status: PaymentStatus; createdAt: Day };

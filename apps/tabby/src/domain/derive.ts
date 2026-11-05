@@ -60,7 +60,13 @@ export function nextGroup(ps: Purchase[]): { amount: number; dueDate: string; it
 export function extendOptions(ps: Purchase[], instalmentIds: string[]) {
   const items = unpaid(ps).filter((x) => instalmentIds.includes(x.instalmentId));
   const base = items.reduce((m, x) => (x.dueDate < m ? x.dueDate : m), items[0]?.dueDate ?? '');
-  return [7, 14, 21].map((n) => ({ until: fmt.addDays(base, n), fees: items.map((x) => ({ purchaseId: x.purchaseId, instalmentId: x.instalmentId, fee: ps.find((p) => p.id === x.purchaseId)!.extendFee })) }));
+  return [7, 14, 21].map((n) => ({ until: fmt.addDays(base, n), fees: items.map((x) => ({ purchaseId: x.purchaseId, instalmentId: x.instalmentId, fee: extendFeeFor(x.amount, n) })) }));
+}
+
+/** Extension fee grows with the length (guess, S17 UAE third party: 16 / 32 / 48% of the instalment, capped 10-80; KSA fees not public). Halalas, whole riyals. */
+export function extendFeeFor(amount: number, days: number) {
+  const pct = days <= 7 ? 0.16 : days <= 14 ? 0.32 : 0.48;
+  return Math.min(8000, Math.max(1000, Math.round((amount * pct) / 100) * 100));
 }
 
 /** Make payment (flows/make-payment.md): overdue part always paid (own group, per purchase); upcoming part one row per purchase. */

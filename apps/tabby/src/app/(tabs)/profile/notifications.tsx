@@ -67,7 +67,7 @@ export default function NotificationsScreen() {
         </ListGroup>
         <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.rem.dealsNote}</Txt>
       </View>
-      <BottomSheet visible={picker} title={s.rem.salaryDay} onClose={() => setPicker(false)}>
+      <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={picker} title={s.rem.salaryDay} onClose={() => setPicker(false)}>
         <SalaryPicker value={prefs.salaryDay.day} onSave={(d) => { setPicker(false); save({ ...prefs, salaryDay: { on: true, day: d } }, 'salaryDay.day', d); }} />
       </BottomSheet>
     </Screen>

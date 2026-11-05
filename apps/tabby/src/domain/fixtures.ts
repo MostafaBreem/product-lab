@@ -53,7 +53,7 @@ export function buildPurchases(s: Scenario): Purchase[] {
 export function buildMethods(s: Scenario): PaymentMethod[] {
   const failed = s === 'overdue' || s === 'one-overdue';
   return [
-    { id: 'applepay', type: 'applePay', kind: 'debit', isDefault: true },
+    { id: 'applepay', type: 'applePay', kind: 'debit', isDefault: true, walletCard: { brand: 'Mastercard', last4: '5520' } }, // card Apple Pay reports after payment (sample)
     { id: 'visa-4417', type: 'card', brand: 'Visa', last4: '4417', kind: 'debit', isDefault: false, lastFailureAt: failed ? '2026-10-28' : undefined },
     { id: 'mc-5520', type: 'card', brand: 'Mastercard', last4: '5520', kind: 'credit', isDefault: false },
   ];

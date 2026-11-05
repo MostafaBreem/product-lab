@@ -37,6 +37,13 @@ export default function Paid() {
       <View><Button label={s.money.payNow(m(stillTotal, lang))} onPress={() => openPay({ kind: still.length > 1 ? 'overdue' : 'one', items: still, source: 'paid_one_of_two' })} /><Button variant="link" full label={s.common.done} onPress={done} /></View>
     ) : <Button label={s.common.done} onPress={done} />}>
       {hero}
+      {r.methodLabel ? (
+        // Card + reference after paying (pending #6): Apple Pay reports the card after payment (S28).
+        <View style={{ gap: th.t('space/gap-y/3xs') }}>
+          <Txt role="body/sm" color="color/text/content/secondary/default" align="center">{s.paid.paidWith(r.methodLabel)}</Txt>
+          {r.reference ? <Txt role="body/sm" color="color/text/content/secondary/default" align="center">{s.paid.reference(r.reference)}</Txt> : null}
+        </View>
+      ) : null}
       {oneOfTwo ? (
         <View>
           <SectionHeader title={s.paid.stillOverdue} />

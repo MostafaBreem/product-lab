@@ -7,6 +7,7 @@ import { Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Txt, useTheme, useToast } from '@lab/app-kit';
 import { useStore } from '../state';
+import { BodyPortal } from './portal';
 
 const NAMES: Record<string, string> = { ListRow: 'List row', ListGroup: 'List group', SectionHeader: 'Section header', SegmentedControl: 'Segmented control', NavigationBar: 'Navigation bar', PaymentCard: 'Payment card', KeyValue: 'Key-value pair', TabBar: 'Tab bar' };
 // raw-ok: stacking order above every app layer (sheets, toasts); not a design value.
@@ -20,7 +21,8 @@ function describe(el: HTMLElement): Pick | null {
   if (!c) return null;
   const r = c.getBoundingClientRect();
   const all = Array.from(document.querySelectorAll('[data-lab]')).filter(visible) as HTMLElement[];
-  const screen = all.find((e) => (e.dataset.lab === 'NavigationBar' || e.dataset.lab === 'Header') && e.dataset.labLabel)?.dataset.labLabel ?? '';
+  // Topmost title: a sheet's Navigation bar comes later in the DOM than the screen's Header (user 2026-11-05).
+  const screen = all.filter((e) => (e.dataset.lab === 'NavigationBar' || e.dataset.lab === 'Header') && e.dataset.labLabel && (e.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING || e.contains(c))).pop()?.dataset.labLabel ?? '';
   const sec = all.filter((e) => e.dataset.lab === 'SectionHeader' && e !== c && e.getBoundingClientRect().bottom <= r.top + 1 && (e.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING)).pop()?.dataset.labLabel ?? '';
   const name = NAMES[c.dataset.lab!] ?? c.dataset.lab!;
   return { x: r.left, y: r.top, w: r.width, h: r.height, name, label: c.dataset.labLabel ?? '', state: c.dataset.labState ?? '', path: [screen, sec].filter(Boolean).join(' › ') };
@@ -66,6 +68,7 @@ export function Inspector() {
   const gap = th.t('space/gap-y/xs');
   const below = pick ? (pick.y + pick.h + gap + cardH > window.innerHeight ? Math.max(gap, pick.y - gap - cardH) : pick.y + pick.h + gap) : 0;
   return (
+    <BodyPortal>
     <View pointerEvents="box-none" style={[fixed, { top: 0, left: 0, right: 0, bottom: 0, zIndex: Z }]}>
       {pick ? (
         <View pointerEvents="none" style={[fixed, { left: pick.x, top: pick.y, width: pick.w, height: pick.h, borderWidth: th.t('border-width/md'), borderColor: th.t('color/border/info/default') as string }]}>
@@ -90,5 +93,6 @@ export function Inspector() {
         </View>
       </Pressable>
     </View>
+    </BodyPortal>
   );
 }

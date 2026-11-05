@@ -63,7 +63,7 @@ export default function Paid() {
           {r.next ? (
             <View>
               <SectionHeader title={s.paid.nextPayment} />
-              <ListGroup><ListRow title={dd(r.next.dueDate, lang)} subtitle={fmt.dueIn(r.next.dueDate, settings.today, lang)} value={m(r.next.amount, lang)} leading={{ kind: 'icon', icon: 'calendar' }} /></ListGroup>
+              <ListGroup><ListRow title={dd(r.next.dueDate, lang)} subtitle={fmt.dueIn(r.next.dueDate, settings.today, lang)} value={m(r.next.amount, lang)} leading={{ kind: 'icon', icon: 'calendar' }} chevron onPress={() => { const ids = [...new Set(r.next!.items.map((x) => x.purchaseId))]; if (ids.length === 1) router.push(`/money/purchase/${ids[0]}`); else done(); }} /></ListGroup>
             </View>
           ) : null}
         </>

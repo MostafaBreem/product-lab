@@ -37,10 +37,11 @@ export function PaymentCard(p: PaymentCardProps) {
         <View style={{ gap: th.t('payment-card/actions/gap') }}>
           {p.pay ? <Button label={p.pay.label} onPress={p.pay.onPress} tone={p.pay.critical ? 'critical' : 'default'} /> : null}
           <View style={p.linksRow ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: th.t('space/gap-x/xs') } : undefined}>
-            {p.links?.map((l) => (
+            {p.links?.map((l, _, all) => (
               <View key={l.label}>
-                <Button variant="link" label={l.label} onPress={l.onPress} tone={l.critical ? 'critical' : 'default'} full={false} />
-                {l.helper ? <Txt role="body/sm" color="payment-card/note/text/default" wrap>{l.helper}</Txt> : null}
+                {/* One link = the card's one extra action: centred under the Pay button, helper too (user 2026-11-05). */}
+                <Button variant="link" label={l.label} onPress={l.onPress} tone={l.critical ? 'critical' : 'default'} full={all.length === 1} align={all.length === 1 ? 'center' : 'start'} />
+                {l.helper ? <Txt role="body/sm" color="payment-card/note/text/default" wrap align={all.length === 1 ? 'center' : 'start'}>{l.helper}</Txt> : null}
               </View>
             ))}
           </View>
@@ -48,7 +49,10 @@ export function PaymentCard(p: PaymentCardProps) {
       ) : null}
       {p.summary?.length ? (
         <View style={{ flexDirection: 'row', gap: th.t('payment-card/summary/gap'), backgroundColor: th.t(crit ? 'payment-card/summary/fill/critical' : 'payment-card/summary/fill/default') as string, borderRadius: th.t('payment-card/summary/radius'), paddingHorizontal: th.t('payment-card/summary/padding-x'), paddingVertical: th.t('payment-card/summary/padding-y') }}>
-          {p.summary.map((s) => <KeyValue key={s.k} k={s.k} v={s.v} />)}
+          {/* One summary pair = one line, key left, value right (user 2026-11-05); several = stacked columns. */}
+          {p.summary.length === 1
+            ? <View style={{ flex: 1 }}><KeyValue k={p.summary[0].k} v={p.summary[0].v} layout="row" strong /></View>
+            : p.summary.map((s) => <KeyValue key={s.k} k={s.k} v={s.v} />)}
         </View>
       ) : null}
     </View>

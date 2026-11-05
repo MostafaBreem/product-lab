@@ -154,11 +154,12 @@ export function MobileTools() {
   return (
     <>
       {pick ? <ScenarioPicker value={st.settings.scenario} onStart={(s) => { if (s !== st.settings.scenario) st.setSettings({ scenario: s }); setPick(false); }} /> : null}
-      <BottomSheet visible={sheet} onClose={() => setSheet(false)} title="Lab tools">
+      {/* Mounted on open so its layer is added last, above any app sheet already open. */}
+      {sheet ? <BottomSheet visible onClose={() => setSheet(false)} title="Lab tools">
         <View {...toolTag}>
           <ToolsBody v={tools} on={(c) => { run(c); if (c.comment !== undefined || c.reset) setSheet(false); }} onCopy={copy} />
         </View>
-      </BottomSheet>
+      </BottomSheet> : null}
     </>
   );
 }

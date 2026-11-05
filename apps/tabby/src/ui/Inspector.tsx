@@ -1,9 +1,10 @@
-// Inspect mode (web only, debug tool, user 2026-11-04): tap any part of the app to name it, Copy puts
+// Comment mode (was Inspect; web only, debug tool, user 2026-11-04, renamed 2026-11-05): tap any part of the app to name it, Copy puts
 // "<screen> › <section> › <component> \"<label>\" (<state>)" + the screen link on the clipboard. Kit components tag
 // themselves with data-lab (app-kit lab()). While on, taps never reach the app.
 import * as Clipboard from 'expo-clipboard';
 import React, { useEffect, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Txt, useTheme, useToast } from '@lab/app-kit';
 import { useStore } from '../state';
 
@@ -44,6 +45,7 @@ export function Inspector() {
   const link = useScreenLink();
   const [pick, setPick] = useState<Pick | null>(null);
   const [cardH, setCardH] = useState(0);
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     if (Platform.OS !== 'web' || !st.inspect) { setPick(null); return; }
     const own = (e: Event) => !!(e.target as HTMLElement).closest?.('[data-lab-inspector]');
@@ -82,9 +84,9 @@ export function Inspector() {
           </Pressable>
         </View>
       ) : null}
-      <Pressable {...inspectorTag} onPress={() => st.setInspect(false)} style={[fixed, { top: th.t('space/padding-top/xs'), alignSelf: 'center', left: 0, right: 0, alignItems: 'center' }]}>
+      <Pressable {...inspectorTag} onPress={() => st.setInspect(false)} style={[fixed, { top: insets.top + th.t('space/padding-top/xs'), alignSelf: 'center', left: 0, right: 0, alignItems: 'center' }]}>
         <View style={{ paddingHorizontal: th.t('space/padding-x/sm'), paddingVertical: th.t('space/padding-y/2xs'), borderRadius: th.t('radius/full'), backgroundColor: th.t('color/surface/inverse/default') as string }}>
-          <Txt role="caption" color="color/text/content/inverse/default">Inspect on · tap anything · tap here to stop</Txt>
+          <Txt role="caption" color="color/text/content/inverse/default">Comment on · tap anything · tap here to stop</Txt>
         </View>
       </Pressable>
     </View>

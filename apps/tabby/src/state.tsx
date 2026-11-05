@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 import { analytics, fmt } from '@lab/app-kit';
-import { api, configure, defaultSettings, type Settings } from './domain/server';
+import { api, configure, defaultSettings, reseed, type Settings } from './domain/server';
 import { strings, type Strings } from './domain/strings';
 import type { Lang, Range, Summary } from './domain/types';
 
@@ -16,7 +16,7 @@ type Store = {
   settings: Settings; setSettings: (p: Partial<Settings>) => void;
   flags: Flags; setFlags: (p: Partial<Flags>) => void;
   summary?: Summary; summaryError?: string; loading: boolean; range: Range; setRange: (r: Range) => void; rowsLoading: boolean; rowsError?: boolean;
-  refresh: () => Promise<void>; version: number;
+  refresh: () => Promise<void>; version: number; resetData: () => void;
   inspect: boolean; setInspect: (v: boolean) => void; lastHref?: string; setLastHref: (h: string) => void;
 };
 const Ctx = createContext<Store | null>(null);
@@ -57,6 +57,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => refresh(), 0);
   }, [refresh]);
 
+  const resetData = useCallback(() => { reseed(); setSummary(undefined); setLoading(true); setTimeout(() => refresh(), 0); }, [refresh]);
+
   const setRange = useCallback(async (r: Range) => {
     rangeRef.current = r; setRangeState(r); setRowsLoading(true); setRowsError(false);
     analytics.track('range_changed', { range: r });
@@ -94,7 +96,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { analytics.setCommon({ scenario: settings.scenario, locale: lang }); }, [settings.scenario]);
 
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, s: strings[lang] as Strings, scheme, setSchemePref, settings, setSettings, flags, setFlags, summary, summaryError, loading, range, setRange, rowsLoading, rowsError, refresh, version, inspect, setInspect, lastHref, setLastHref }),
+  const value = useMemo<Store>(() => ({ lang, setLang, s: strings[lang] as Strings, scheme, setSchemePref, settings, setSettings, flags, setFlags, summary, summaryError, loading, range, setRange, rowsLoading, rowsError, refresh, version, resetData, inspect, setInspect, lastHref, setLastHref }),
     [lang, scheme, settings, flags, summary, summaryError, loading, range, rowsLoading, rowsError, version, inspect, lastHref]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -15,7 +15,7 @@ export type PayReq = { kind: PayKind; items: Item[]; source: string };
 export type PayOutcome = { kind: PayKind; items: Item[]; amount: number; next?: { amount: number; dueDate: string; items: Item[] }; stillOverdue: Item[]; methodLabel?: string; reference?: string };
 export type ExtendOutcome = { extended: { instalmentId: string; until: string; fee: number; item: Item }[]; totalFee: number; stillOverdue: Item[] };
 
-type Ctx = { openPay: (r: PayReq) => void; openExtend: (items: Item[], source: string) => void; lastPaid?: PayOutcome; lastExtended?: ExtendOutcome; offline: () => boolean };
+type Ctx = { openPay: (r: PayReq) => void; openExtend: (items: Item[], source: string) => void; lastPaid?: PayOutcome; lastExtended?: ExtendOutcome; offline: () => boolean; closeAll: () => void };
 const FlowCtx = createContext<Ctx | null>(null);
 export const useFlows = () => { const v = useContext(FlowCtx); if (!v) throw new Error('no flows'); return v; };
 
@@ -120,7 +120,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
   const methodSub = (x: PaymentMethod) => (x.type === 'applePay' ? s.pay.applePaySub : x.lastFailureAt ? s.pay.failedOn(dd(x.lastFailureAt, lang)) : x.kind === 'credit' ? s.pay.credit : s.pay.debit) || undefined;
 
   return (
-    <FlowCtx.Provider value={{ openPay, openExtend, lastPaid, lastExtended, offline }}>
+    <FlowCtx.Provider value={{ openPay, openExtend, lastPaid, lastExtended, offline, closeAll: () => { stopPoll(); setPay(null); setExt(null); setAsk(false); } }}>
       {children}
       <BottomSheet closeLabel={s.common.close} backLabel={s.common.back} visible={!!pay} title={title} dismissable={payState !== 'processing'}
         leading={payState === 'methods' ? 'back' : 'close'}

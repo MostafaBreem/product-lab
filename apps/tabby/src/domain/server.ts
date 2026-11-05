@@ -22,6 +22,8 @@ export function configure(next: Partial<Settings>) {
   if (next.scenario && next.scenario !== prev.scenario) { const prefs = state.prefs; state = fresh(settings.scenario); state.prefs = prefs; }
 }
 export const getSettings = () => settings;
+/** Lab tools "Reset flow": fresh data for the same scenario; reminder prefs kept (user 2026-11-05). */
+export function reseed() { const prefs = state.prefs; state = fresh(settings.scenario); state.prefs = prefs; }
 const call = <T,>(normalMs: number, run: () => T, timeoutMs = 30000) => mockCall({ net: settings.net, latency: settings.latency, normalMs, timeoutMs }, run);
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
 const itemsOf = (ids: string[]): Item[] => state.purchases.flatMap((p) => p.instalments.filter((i) => ids.includes(i.id)).map((i) => toItem(p, i)));

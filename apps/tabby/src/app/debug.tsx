@@ -29,7 +29,7 @@ export default function Debug() {
         <View>
           <SectionHeader title="Point at something" />
           <ListGroup>
-            <ListRow title="Inspect" subtitle="Tap a part of the app to copy its name" selection={{ kind: 'switch', value: st.inspect, onChange: inspectTo }} onPress={() => inspectTo(!st.inspect)} />
+            <ListRow title="Comment" subtitle="Tap a part of the app to copy its name" selection={{ kind: 'switch', value: st.inspect, onChange: inspectTo }} onPress={() => inspectTo(!st.inspect)} />
             <ListRow title="Copy screen link" subtitle="Screen + scenario, language, theme" leading={{ kind: 'icon', icon: 'copy' }} onPress={async () => { await Clipboard.setStringAsync(link(st.lastHref ?? window.location.href)); toast({ tone: 'neutral', text: 'Copied' }); }} />
           </ListGroup>
         </View>

@@ -19,6 +19,8 @@ const DEVICE = { w: 393, h: 852, top: 59, bottom: 34, bezel: 12, screenRadius: 5
 const HARDWARE = { body: '#1c1c1e', island: '#000000' };
 // raw-ok: width of each page toggle (two segments); widths have no token.
 const TOGGLE_W = 150;
+// raw-ok: side panel width on the frame page (web chrome, no token).
+const PANEL_W = 320;
 const TOGGLE_LABELS = { en: { light: 'Light', dark: 'Dark' }, ar: { light: 'فاتح', dark: 'داكن' } };
 
 const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
@@ -34,6 +36,31 @@ export function useFramePage(caseStudy: boolean): boolean {
 
 type FrameMsg = { type: 'lab-frame'; scheme: Scheme; lang: Lang };
 type SetMsg = { type: 'lab-set'; scheme?: Scheme; lang?: Lang };
+type AppMsg = { type: 'lab-app'; data: unknown };
+type CmdMsg = { type: 'lab-cmd'; cmd: unknown };
+
+/** Inside the iframe: send the app's tool state to the frame page; run the page's side-panel commands (user 2026-11-05). */
+export function useFrameBridge<D, C>(data: D, onCmd: (cmd: C) => void) {
+  const json = JSON.stringify(data);
+  useEffect(() => {
+    if (inFrame) window.parent.postMessage({ type: 'lab-app', data } satisfies AppMsg, window.location.origin);
+  }, [json]);
+  const ref = useRef(onCmd);
+  ref.current = onCmd;
+  useEffect(() => {
+    if (!inFrame) return;
+    const on = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const m = e.data as CmdMsg;
+      if (m?.type === 'lab-cmd') ref.current(m.cmd as C);
+    };
+    window.addEventListener('message', on);
+    return () => window.removeEventListener('message', on);
+  }, []);
+}
+
+/** Side panel beside the phone: gets the app's last tool state and sends commands into the iframe. */
+export type FramePanel = (p: { data: unknown; send: (cmd: unknown) => void }) => React.ReactNode;
 
 /** Inside the iframe: iPhone safe area; tell the parent page the scheme + language; take toggle changes from it. */
 export function FrameInsets({ scheme, lang, onScheme, onLang, children }: { scheme: Scheme; lang: Lang; onScheme: (s: Scheme) => void; onLang: (l: Lang) => void; children: React.ReactNode }) {
@@ -61,31 +88,34 @@ export function FrameInsets({ scheme, lang, onScheme, onLang, children }: { sche
 }
 
 /** Parent page: background, banner above the phone, phone body with the app iframe inside. */
-export function FramePage({ notice }: { notice: (lang: Lang) => React.ReactNode }) {
+export function FramePage({ notice, panel }: { notice: (lang: Lang) => React.ReactNode; panel?: FramePanel }) {
   const [state, setState] = useState<{ scheme: Scheme; lang: Lang }>({
     scheme: query?.get('scheme') === 'dark' ? 'dark' : 'light',
     lang: query?.get('lang') === 'ar' ? 'ar' : 'en',
   });
+  const [app, setApp] = useState<unknown>();
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       const m = e.data as FrameMsg;
       if (m?.type === 'lab-frame') setState({ scheme: m.scheme, lang: m.lang });
+      if ((e.data as AppMsg)?.type === 'lab-app') setApp((e.data as AppMsg).data);
     };
     window.addEventListener('message', on);
     return () => window.removeEventListener('message', on);
   }, []);
   return (
     <ThemeProvider scheme={state.scheme} lang={state.lang}>
-      <Page banner={notice(state.lang)} lang={state.lang} scheme={state.scheme} />
+      <Page banner={notice(state.lang)} lang={state.lang} scheme={state.scheme} panel={panel} app={app} />
     </ThemeProvider>
   );
 }
 
-function Page({ banner, lang, scheme }: { banner: React.ReactNode; lang: Lang; scheme: Scheme }) {
+function Page({ banner, lang, scheme, panel, app }: { banner: React.ReactNode; lang: Lang; scheme: Scheme; panel?: FramePanel; app: unknown }) {
   const th = useTheme();
   const frame = useRef<HTMLIFrameElement | null>(null);
   const send = (m: Omit<SetMsg, 'type'>) => frame.current?.contentWindow?.postMessage({ type: 'lab-set', ...m } satisfies SetMsg, window.location.origin);
+  const sendCmd = (cmd: unknown) => frame.current?.contentWindow?.postMessage({ type: 'lab-cmd', cmd } satisfies CmdMsg, window.location.origin);
   const t = TOGGLE_LABELS[lang];
   const { height } = useWindowDimensions();
   const [bannerH, setBannerH] = useState(0);
@@ -96,7 +126,7 @@ function Page({ banner, lang, scheme }: { banner: React.ReactNode; lang: Lang; s
   const scale = Math.min(1, (height - pad * 2 - gap - bannerH) / bodyH);
   const src = frameSrc();
   return (
-    <View style={{ flex: 1, minHeight: height, alignItems: 'center', justifyContent: 'center', paddingVertical: pad, gap, backgroundColor: th.t('color/bg/default') as string }}>
+    <View style={{ flex: 1, minHeight: height, alignItems: 'center', justifyContent: 'center', paddingVertical: pad, gap, backgroundColor: th.t('color/bg/secondary/default') as string }}>
       <View onLayout={(e) => setBannerH(e.nativeEvent.layout.height)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: th.t('space/gap-x/sm'), direction: th.isRTL ? 'rtl' : 'ltr' }}>
         {banner}
         <View style={{ width: TOGGLE_W }}>
@@ -106,6 +136,7 @@ function Page({ banner, lang, scheme }: { banner: React.ReactNode; lang: Lang; s
           <SegmentedControl value={lang} onChange={(v) => send({ lang: v })} options={[{ value: 'en', label: 'EN' }, { value: 'ar', label: 'عربي' }]} />
         </View>
       </View>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center', gap: th.t('space/gap-x/xl') }}>
       <View style={{ width: bodyW * scale, height: bodyH * scale }}>
         <View style={{ position: 'absolute', left: 0, top: 0, width: bodyW, height: bodyH, transform: [{ translateX: (bodyW * scale - bodyW) / 2 }, { translateY: (bodyH * scale - bodyH) / 2 }, { scale }], padding: DEVICE.bezel, borderRadius: DEVICE.screenRadius + DEVICE.bezel, backgroundColor: HARDWARE.body, borderWidth: th.t('border-width/sm'), borderColor: th.t('color/border/strong/default') as string }}>
           <View style={{ width: DEVICE.w, height: DEVICE.h, borderRadius: DEVICE.screenRadius, overflow: 'hidden', backgroundColor: th.t('color/bg/default') as string }}>
@@ -114,6 +145,8 @@ function Page({ banner, lang, scheme }: { banner: React.ReactNode; lang: Lang; s
             <View pointerEvents="none" style={{ position: 'absolute', left: (DEVICE.w - DEVICE.homeW) / 2, bottom: DEVICE.homeGap, width: DEVICE.homeW, height: DEVICE.homeH, borderRadius: th.t('radius/full'), backgroundColor: th.t('color/text/content/default') as string }} />
           </View>
         </View>
+      </View>
+      {panel ? <View style={{ width: PANEL_W, maxHeight: bodyH * scale }}>{panel({ data: app, send: sendCmd })}</View> : null}
       </View>
     </View>
   );

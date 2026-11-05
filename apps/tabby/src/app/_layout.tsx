@@ -9,6 +9,7 @@ import { fontAssets, FrameInsets, FramePage, inFrame, ThemeProvider, ToastHost, 
 import { StoreProvider, useStore } from '../state';
 import { FlowsProvider } from '../ui/flows';
 import { Inspector } from '../ui/Inspector';
+import { LabBridge, LabFramePanel, MobileTools } from '../ui/LabTools';
 import { listenForReminderTaps, scheduleReminders } from '../ui/reminders';
 
 const FONTS = fontAssets();
@@ -19,7 +20,7 @@ export default function Root() {
   const framePage = useFramePage(CASE_STUDY);
   if (!loaded) return <View style={{ flex: 1 }} />;
   // Wide browser, public case study: phone frame page; the app runs in its iframe (app-kit web/phone-frame).
-  if (framePage) return <FramePage notice={(lang) => <CaseStudyNotice lang={lang} />} />;
+  if (framePage) return <FramePage notice={(lang) => <CaseStudyNotice lang={lang} />} panel={LabFramePanel} />;
   return (
     <SafeAreaProvider>
       <StoreProvider>
@@ -51,6 +52,7 @@ function Themed() {
             <Stack.Screen name="gallery" />
           </Stack>
           <Inspector />
+          {inFrame ? <LabBridge /> : <MobileTools />}
         </FlowsProvider>
       </ToastHost>
       </FrameInsets>

@@ -6,6 +6,7 @@ import { analytics, Bar, BottomSheet, Button, Chip, fmt, Header, ListGroup, List
 import { OverdueSteps } from '../../../ui/OverdueSteps';
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
+import { phoneWeb } from '../../../ui/LabTools';
 import { dd, m, who } from '../../../ui/helpers';
 import type { Range } from '../../../domain/types';
 
@@ -20,7 +21,7 @@ export default function MoneyTab() {
 
   useEffect(() => { if (x) analytics.track('money_tab_viewed', { cardState: x.card.state, range: st.range, fromCache: settings.net === 'offline' }); }, [x?.card.state, st.version]);
 
-  const header = <Header title={s.money.title} onLongPressTitle={() => router.push('/debug')} trailing={<Chip label={s.money.earnCashback} icon="coins" onPress={() => stub('earn_cashback')} />} />;
+  const header = <Header title={s.money.title} onLongPressTitle={phoneWeb ? undefined : () => router.push('/debug')} trailing={<Chip label={s.money.earnCashback} icon="coins" onPress={() => stub('earn_cashback')} />} />;
 
   if (st.loading && !x) return <Screen bottomInset={0}>{header}<Skeleton /></Screen>;
   if (!x) {

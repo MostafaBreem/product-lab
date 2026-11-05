@@ -94,8 +94,8 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
             pay={{ label: ar(lang, `Pay ${m(31250)}`, `ادفع ${m(31250)}`), onPress: () => {} }} linksRow
             links={[{ label: ar(lang, 'Choose what to pay', 'اختر دفعاتك'), onPress: () => {} }, { label: ar(lang, 'Extend a payment', 'أجّل دفعة'), onPress: () => {} }]}
             summary={[{ k: ar(lang, 'Due in 30 days', 'موعدها بعد 30 يوم'), v: m(31250) }, { k: ar(lang, 'Total to pay', 'الإجمالي المستحق'), v: m(135000) }]} />
-          <PaymentCard state="overdue" criticalFill tag={fmt.overdueTag(3, lang)} label={ar(lang, 'Amount overdue', 'المبلغ المتأخر')} amount={m(31250)} dueLine={ar(lang, 'Was due Wed 28 Oct', `كان موعدها ${fmt.dayDate('2026-10-28', 'ar')}`)} dueCritical
-            pay={{ label: ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`), critical: true, onPress: () => {} }} links={[{ label: ar(lang, 'What happens next', 'وش يصير بعدين'), critical: true, onPress: () => {} }]} />
+          <PaymentCard state="overdue" tag={fmt.overdueTag(3, lang)} label={ar(lang, 'Amount overdue', 'المبلغ المتأخر')} amount={m(31250)} dueLine={ar(lang, 'Was due Wed 28 Oct', `كان موعدها ${fmt.dayDate('2026-10-28', 'ar')}`)} dueCritical
+            pay={{ label: ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`), onPress: () => {} }} links={[{ label: ar(lang, 'Extend the due date', 'أجّل موعد السداد'), helper: ar(lang, 'Once per purchase. Fee shown before you confirm.', 'مرة وحدة لكل عملية شراء، وتشوف الرسوم قبل التأكيد.'), onPress: () => {} }]} />
           <PaymentCard state="caughtUp" label={ar(lang, 'Next payment', 'الدفعة الجاية')} title={ar(lang, "You're all caught up", 'ما عليك دفعات مستحقة')} dueLine={ar(lang, `${m(31250)} on Sat 28 Nov`, `${m(31250)} يوم ${fmt.dayDate('2026-11-28', 'ar')}`)}
             links={[{ label: ar(lang, 'Pay early', 'ادفع بدري'), onPress: () => {} }]} />
           <Note>States: Due · Overdue (critical fill) · Caught up</Note>

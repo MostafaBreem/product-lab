@@ -10,7 +10,7 @@ import { Txt } from './Txt';
 
 export type PaymentCardProps = {
   state: 'due' | 'overdue' | 'caughtUp';
-  /** Overdue card keeps neutral fill (critic C1 on overdue-map-v5); true = critical tint (Money tab Overdue). */
+  /** Overdue card keeps neutral fill (critic C1 on overdue-map-v5); true = critical tint (not used by the app since the overdue merge). */
   criticalFill?: boolean;
   tag?: string; label: string; amount?: string; title?: string; dueLine: string; dueCritical?: boolean; body?: string;
   pay?: { label: string; onPress: () => void; critical?: boolean };

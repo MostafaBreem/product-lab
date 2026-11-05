@@ -132,7 +132,7 @@ export const components: ComponentMeta[] = [
       { name: 'pay', type: '{ label; onPress; critical? }', description: 'The one Pay; label repeats the amount.' },
       { name: 'links', type: '{ label; onPress; critical?; helper? }[]', description: 'Secondary actions. With Pay: one link + its helper centred, two links split start / end (linksRow). No Pay (Caught up): start-aligned (2026-11-05).' },
       { name: 'summary', type: '{ k; v }[]', description: 'Key-value inset. One pair = one line, key start, value end (Key-value Row strong); two or more = columns (2026-11-05).' },
-      { name: 'criticalFill', type: 'boolean', description: 'Critical tint (Money tab overdue).' },
+      { name: 'criticalFill', type: 'boolean', description: 'Critical tint. Not used by the app: overdue card stays neutral, red only on tag + due line (critic C1).' },
     ],
     variants: ['Due', 'Overdue', 'Caught up'], example: `<PaymentCard state="due" label="Next payment" amount="⃁ 312.50" dueLine="Due in 5 days · Thu 5 Nov" pay={{ label: 'Pay ⃁ 312.50', onPress: pay }} />`,
     related: ['Button', 'Tag', 'KeyValue', 'ListGroup'],

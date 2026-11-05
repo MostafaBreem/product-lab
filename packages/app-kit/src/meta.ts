@@ -17,7 +17,7 @@ export const components: ComponentMeta[] = [
       { name: 'loading', type: 'boolean', default: 'false', description: 'Primary only: spinner + label, no press, while the action runs.' },
       { name: 'disabled', type: 'boolean', default: 'false', description: 'Primary only: grey fill, no press, label stays. Use when the action cannot run yet (nothing picked, loading, offline). Same look in both tones.' },
       { name: 'full', type: 'boolean', default: 'primary: true', description: 'Fill the parent width.' },
-      { name: 'align', type: "'start' | 'center'", default: "'start'", description: 'Link only: label position inside a full-width link. Payment card centres its single link under Pay (2026-11-05).' },
+      { name: 'align', type: "'start' | 'center'", default: "start; center for a full link in a bottom sheet", description: 'Link only: label position inside a full-width link. Bottom sheets centre the secondary action under the main one; Payment card centres its single link under Pay (2026-11-05).' },
     ],
     variants: ['Primary', 'Primary Critical', 'Link', 'Link Critical'], states: ['Default', 'Pressed', 'Loading', 'Disabled'],
     example: `<Button label="Pay ⃁ 312.50" onPress={pay} />\n<Button variant="link" label="Choose what to pay" onPress={open} />`,
@@ -147,7 +147,7 @@ export const components: ComponentMeta[] = [
     example: `<NavigationBar title="Overdue payment" leading="back" onLeading={router.back} />`, related: ['BottomSheet', 'Header'],
   },
   {
-    name: 'BottomSheet', slug: 'bottom-sheet', tokens: 'bottom-sheet', summary: 'Focused task over the current screen: scrim, sheet pinned bottom, Navigation bar, content.',
+    name: 'BottomSheet', slug: 'bottom-sheet', tokens: 'bottom-sheet', summary: 'Focused task over the current screen: scrim, sheet pinned bottom, Navigation bar, content. A full-width link under the main action is centred (2026-11-05).',
     props: [
       { name: 'visible · onClose', type: 'boolean · () => void', description: 'Open state; close by x, swipe or scrim.' },
       { name: 'title · leading', type: "string · 'close' | 'back' | 'none'", description: 'Navigation bar inside the sheet.' },

@@ -3,19 +3,23 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
 import { lab } from '../inspect';
 import { Txt } from './Txt';
+import { useInSheet } from './sheetContext';
 
 type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'link'; align?: 'start' | 'center'; tone?: 'default' | 'critical'; loading?: boolean; disabled?: boolean; full?: boolean; testID?: string };
 
 /** Button: Primary (filled, one per view) or Link. Loading = Primary only, spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
-export function Button({ label, onPress, variant = 'primary', align = 'start', tone = 'default', loading, disabled, full = variant === 'primary', testID }: Props) {
+export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full = variant === 'primary', testID }: Props) {
   const th = useTheme();
   const crit = tone === 'critical';
+  // Full-width link inside a bottom sheet = secondary action under the main one: centred unless align is given (user 2026-11-05).
+  const inSheet = useInSheet();
+  const textAlign = align ?? (inSheet && full ? 'center' : 'start');
   if (variant === 'link') {
     return (
       <Pressable {...lab('Button', label, crit ? 'link · critical' : 'link')} testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: th.t('space/padding-x/xs'), right: th.t('space/padding-x/xs') }}
         style={{ minHeight: th.t('size/touch/min'), justifyContent: 'center', alignSelf: full ? 'stretch' : 'flex-start' }}>
         {({ pressed }) => (
-          <Txt role="label/lg" align={align} color={crit ? (pressed ? 'button/link/critical/text/active' : 'button/link/critical/text/default') : pressed ? 'button/link/text/active' : 'button/link/text/default'}>{label}</Txt>
+          <Txt role="label/lg" align={textAlign} color={crit ? (pressed ? 'button/link/critical/text/active' : 'button/link/critical/text/default') : pressed ? 'button/link/text/active' : 'button/link/text/default'}>{label}</Txt>
         )}
       </Pressable>
     );

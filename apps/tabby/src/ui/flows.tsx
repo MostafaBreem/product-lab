@@ -294,7 +294,10 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
         <SalaryPicker value={day} onSave={(d) => { setDay(d); setPicker(false); }} />
       ) : (
         <>
-          <View style={{ backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: th.t('radius/md'), padding: th.t('space/padding/sm'), flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
+          {/* Labelled "Example": a picture of the iPhone notification, not a control (user 2026-11-05). */}
+          <View style={{ gap: th.t('space/gap-y/xs') }}>
+          <Txt role="label/md" color="color/text/content/secondary/default">{s.rem.example}</Txt>
+          <View accessibilityLabel={`${s.rem.example}: ${s.rem.sampleTitle}`} style={{ backgroundColor: th.t('color/surface/secondary/default') as string, borderRadius: th.t('radius/md'), padding: th.t('space/padding/sm'), flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
             <View style={{ width: th.t('size/height/2xs'), height: th.t('size/height/2xs'), borderRadius: th.t('radius/sm'), backgroundColor: th.t('color/fill/brand/default') as string, alignItems: 'center', justifyContent: 'center' }}>
               <Txt role="label/lg" color="color/text/on-fill/brand/default" align="center">t</Txt>
             </View>
@@ -305,6 +308,7 @@ function ReminderAsk({ visible, onClose }: { visible: boolean; onClose: () => vo
               </View>
               <Txt role="body/sm" color="color/text/content/secondary/default" wrap>{s.rem.sampleBody(m(sample?.amount ?? 31250, lang), who(sample?.items ?? [], lang, s))}</Txt>
             </View>
+          </View>
           </View>
           <View style={{ gap: th.t('space/gap-y/xs') }}>
             <Txt role="heading/md">{s.rem.why}</Txt>

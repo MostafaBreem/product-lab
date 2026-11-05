@@ -61,7 +61,7 @@ export const strings = {
       talk: 'Talk to us about this purchase', loadError: "We couldn't load this purchase", notFound: "We can't find this purchase", notFoundBody: 'Go back to your Money tab.',
     },
     rem: {
-      sheetTitle: 'Payment reminders', sampleTitle: 'Payment due tomorrow', sampleBody: (a: string, who: string) => `${a} for ${who}. Tap to review and pay.`, now: 'now', appName: 'Tabby',
+      sheetTitle: 'Payment reminders', sampleTitle: 'Payment due tomorrow', example: 'Example', sampleBody: (a: string, who: string) => `${a} for ${who}. Tap to review and pay.`, now: 'now', appName: 'Tabby',
       why: 'Get a reminder before each payment', whyBody: 'Only payment reminders. Deals stay off unless you turn them on. You can change this in Profile › Notifications.',
       salaryToggle: 'Also remind me on salary day', salaryDay: 'Salary day', salaryNote: 'Your due dates stay the same. This is one extra reminder.', turnOn: 'Turn on reminders', noThanks: 'No thanks',
       pickerBody: "We'll send one extra reminder on this day each month.", pickerNote: 'In shorter months, we send it on the last day.', lastDay: 'Last day of the month', save: 'Save',
@@ -134,7 +134,7 @@ export const strings = {
       talk: 'كلّمنا بخصوص هالشراء', loadError: 'ما قدرنا نحمّل هالشراء', notFound: 'ما لقينا هالشراء', notFoundBody: 'ارجع لأموالك.',
     },
     rem: {
-      sheetTitle: 'تذكيرات الدفع', sampleTitle: 'دفعتك موعدها بكرة', sampleBody: (a: string, who: string) => `دفعة ${a} لـ${who}. اضغط عشان تراجعها وتدفع.`, now: 'الحين', appName: 'تابي',
+      sheetTitle: 'تذكيرات الدفع', sampleTitle: 'دفعتك موعدها بكرة', example: 'مثال', sampleBody: (a: string, who: string) => `دفعة ${a} لـ${who}. اضغط عشان تراجعها وتدفع.`, now: 'الحين', appName: 'تابي',
       why: 'خلّنا نذكّرك قبل كل دفعة', whyBody: 'تذكيرات الدفع بس. العروض تبقى مقفلة إلا لو شغّلتها. تقدر تغيّر هذا من حسابك › الإشعارات.',
       salaryToggle: 'ذكّرني كمان يوم الراتب', salaryDay: 'يوم الراتب', salaryNote: 'مواعيد السداد ما تتغيّر. هذا تذكير إضافي واحد.', turnOn: 'شغّل التذكيرات', noThanks: 'لا، شكرًا',
       pickerBody: 'بنرسل لك تذكير إضافي كل شهر في اليوم اللي تختاره.', pickerNote: 'في الشهور القصيرة، بنرسله آخر يوم في الشهر.', lastDay: 'آخر يوم في الشهر', save: 'احفظ',

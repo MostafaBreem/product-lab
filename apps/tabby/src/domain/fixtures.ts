@@ -43,8 +43,8 @@ export function buildPurchases(s: Scenario): Purchase[] {
       instalments: [
         { id: 'jarir-1', purchaseId: 'jarir-11902', number: 1, of: 4, amount: 30000, dueDate: '2026-09-15', paidAt: '2026-09-15', extendable: false },
         { id: 'jarir-2', purchaseId: 'jarir-11902', number: 2, of: 4, amount: 30000, dueDate: '2026-10-15', paidAt: '2026-10-15', extendable: false },
-        { id: 'jarir-3', purchaseId: 'jarir-11902', number: 3, of: 4, amount: 30000, dueDate: '2026-12-15', extendable: true },
-        { id: 'jarir-4', purchaseId: 'jarir-11902', number: 4, of: 4, amount: 30000, dueDate: '2027-01-15', extendable: true },
+        { id: 'jarir-3', purchaseId: 'jarir-11902', number: 3, of: 4, amount: 30000, dueDate: '2026-11-15', extendable: true },
+        { id: 'jarir-4', purchaseId: 'jarir-11902', number: 4, of: 4, amount: 30000, dueDate: '2026-12-15', extendable: true },
       ],
     },
   ];

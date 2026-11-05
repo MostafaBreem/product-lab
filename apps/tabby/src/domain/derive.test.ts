@@ -12,7 +12,7 @@ test('due scenario: card, summary (Money tab acceptance)', () => {
   assert.equal(x.card.state, 'due');
   assert.equal(x.card.amount, 31250);
   assert.equal(x.card.dueDate, '2026-11-05');
-  assert.equal(x.due30, 31250);
+  assert.equal(x.due30, 61250); // + Jarir 15 Nov (monthly, user 2026-11-05)
   assert.equal(x.totalToPay, 135000);
   assert.equal(x.openPlans, 3);
   assert.equal(x.card.amount, x.rows.filter((r) => r.dueDate === x.card.dueDate).reduce((s, r) => s + r.amount, 0));
@@ -24,20 +24,20 @@ test('overdue scenarios', () => {
   const one = S('one-overdue');
   assert.equal(one.card.amount, 18750);
   const cu = S('caught-up');
-  assert.equal(cu.card.state, 'caughtUp'); assert.equal(cu.card.amount, 31250); assert.equal(cu.card.dueDate, '2026-11-28');
+  assert.equal(cu.card.state, 'caughtUp'); assert.equal(cu.card.amount, 30000); assert.equal(cu.card.dueDate, '2026-11-15');
 });
 test('next after paying (Paid screens)', () => {
   const ps = buildPurchases('due');
   for (const p of ps) for (const i of p.instalments) if (i.dueDate === '2026-11-05') i.paidAt = TODAY;
   const n = nextGroup(ps)!;
-  assert.equal(n.dueDate, '2026-12-05'); assert.equal(n.amount, 31250);
+  assert.equal(n.dueDate, '2026-11-15'); assert.equal(n.amount, 30000);
 });
 test('range boundaries: day 7 and day 30 included, overdue first', () => {
   const ps = buildPurchases('overdue');
   const r7 = rowsFor(ps, '7d', TODAY);
   assert.deepEqual(r7.map((r) => r.instalmentId), ['noon-2', 'namshi-3']);
   const r30 = rowsFor(ps, '30d', TODAY);
-  assert.equal(r30.length, 4); // + 28 Nov pair
+  assert.equal(r30.length, 5); // + Jarir 15 Nov + 28 Nov pair
   assert.equal(rowsFor(ps, 'all', TODAY).length, 7);
 });
 test('extended instalment leaves the Overdue card (effective due date)', () => {
@@ -68,7 +68,7 @@ test('make payment: windows, overdue split, totals (make-payment mock v2)', () =
   const due = buildPurchases('due');
   const l30 = pickList(rowsFor(due, '30d', TODAY), TODAY);
   assert.equal(l30.overdue.length, 0);
-  assert.deepEqual(l30.upcoming.map((r) => [r.merchant.name.en, r.amount]), [['Noon', 12500], ['Namshi', 18750]]);
+  assert.deepEqual(l30.upcoming.map((r) => [r.merchant.name.en, r.amount]), [['Noon', 12500], ['Namshi', 18750], ['Jarir', 30000]]);
   const all = pickList(rowsFor(due, 'all', TODAY), TODAY);
   assert.deepEqual(all.upcoming.map((r) => [r.merchant.name.en, r.amount, r.items.length]), [['Noon', 37500, 3], ['Namshi', 37500, 2], ['Jarir', 60000, 2]]);
   const items = pickItems(all, [all.upcoming[0].purchaseId, all.upcoming[2].purchaseId]);
@@ -77,8 +77,8 @@ test('make payment: windows, overdue split, totals (make-payment mock v2)', () =
   assert.equal(paidOff(pickItems(l30, l30.upcoming.map((r) => r.purchaseId))).length, 0);
   const od = pickList(rowsFor(buildPurchases('overdue'), '30d', TODAY), TODAY);
   assert.deepEqual(od.overdue.map((r) => r.amount), [12500, 18750]);
-  assert.deepEqual(od.upcoming.map((r) => r.amount), [12500, 18750]);
+  assert.deepEqual(od.upcoming.map((r) => r.amount), [30000, 12500, 18750]); // Jarir 15 Nov first
   assert.equal(pickItems(od, []).reduce((s, x) => s + x.amount, 0), 31250);
-  assert.equal(pickItems(od, od.upcoming.map((r) => r.purchaseId)).reduce((s, x) => s + x.amount, 0), 62500);
+  assert.equal(pickItems(od, od.upcoming.map((r) => r.purchaseId)).reduce((s, x) => s + x.amount, 0), 92500);
   assert.equal(pickList(rowsFor(buildPurchases('caught-up'), '7d', TODAY), TODAY).upcoming.length, 0);
 });

@@ -11,7 +11,7 @@ type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'link'
 export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full = variant === 'primary', testID }: Props) {
   const th = useTheme();
   const crit = tone === 'critical';
-  // Full-width link inside a bottom sheet = secondary action under the main one: centred unless align is given (user 2026-11-05).
+  // Full-width link in an action area (bottom sheet, Screen footer) = secondary action under the main one: centred unless align is given (user 2026-11-05).
   const inSheet = useInSheet();
   const textAlign = align ?? (inSheet && full ? 'center' : 'start');
   if (variant === 'link') {

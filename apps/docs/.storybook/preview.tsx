@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useContext, useSyncExternalStore } from 'react';
 import { Text, View } from 'react-native';
 import { TileCtx } from '../src/ui/tile';
 import { addons } from 'storybook/preview-api';
-import { GLOBALS_UPDATED, SET_GLOBALS } from 'storybook/internal/core-events';
+import { PREFS_EVENT, PREFS_KEY, readPrefs, type Prefs } from '../src/ui/prefs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Preview } from '@storybook/react-native-web-vite';
 import { ThemeProvider, ToastHost, makeTheme } from '@lab/app-kit';
@@ -56,21 +56,23 @@ function applyDocsTheme(dark: boolean) {
   }
 }
 
-applyDocsTheme(new URLSearchParams(window.location.search).get('globals')?.includes('scheme:dark') ?? false);
-const ch = addons.getChannel();
-const onGlobals = (e: { globals?: { scheme?: string } }) => { if (e?.globals) applyDocsTheme(e.globals.scheme === 'dark'); };
-ch.on(GLOBALS_UPDATED, onGlobals);
-ch.on(SET_GLOBALS, onGlobals);
+// Language + theme live in a small store, not in Storybook globals (a global change reloads the whole frame).
+let prefs: Prefs = readPrefs();
+const subs = new Set<() => void>();
+const setPrefs = (p: Prefs) => { if (p.lang === prefs.lang && p.scheme === prefs.scheme) return; prefs = p; applyDocsTheme(p.scheme === 'dark'); subs.forEach((f) => f()); };
+const usePrefs = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, () => prefs);
+applyDocsTheme(prefs.scheme === 'dark');
+addons.getChannel().on(PREFS_EVENT, (p: Prefs) => setPrefs(p));
+// Another tab changed it: follow.
+window.addEventListener('storage', (e) => { if (e.key === PREFS_KEY) setPrefs(readPrefs()); });
 
 const preview: Preview = {
-  // Toggled by the toolbar buttons in manager.tsx (no dropdowns).
-  globalTypes: { lang: { description: 'Language' }, scheme: { description: 'Theme' } },
-  initialGlobals: { lang: 'en', scheme: 'light', viewport: { value: 'iphone16promax', isRotated: false } },
+  // Language + theme: toolbar buttons in manager.tsx through the prefs store (src/ui/prefs.ts), not globals.
+  initialGlobals: { viewport: { value: 'iphone16promax', isRotated: false } },
   parameters: { viewport: { options: { iphone16: { name: 'iPhone 16 (393 × 852)', styles: { width: '393px', height: '852px' }, type: 'mobile' }, iphone16promax: { name: 'iPhone 16 Pro Max (440 × 956)', styles: { width: '440px', height: '956px' }, type: 'mobile' } } }, a11y: { test: 'todo' }, controls: { exclude: /^on[A-Z]/, expanded: true }, layout: 'padded', options: { storySort: { order: ['Start here', 'Foundations', ['Overview', '*'], 'Components', ['Overview', '*'], 'Rules', ['Overview', '*'], 'For AI agents'] } } },
   decorators: [
-    (Story, ctx) => {
-      const lang = ctx.globals.lang ?? 'en';
-      const page = ctx.globals.scheme ?? 'light';
+    (Story) => {
+      const { lang, scheme: page } = usePrefs();
       const tile = useContext(TileCtx);
       // One phone-wide frame per theme: 440 = iPhone 16 Pro Max, 16 screen margin inside.
       const frame = (scheme: 'light' | 'dark') => {

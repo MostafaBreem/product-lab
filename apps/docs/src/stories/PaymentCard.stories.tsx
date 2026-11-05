@@ -22,3 +22,12 @@ export const Overdue: StoryObj = { render: () => { const L = useL(); const lang 
     pay={{ label: L(`Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`), critical: true, onPress: () => {} }} links={[{ label: L('What happens next', 'وش يصير بعدين'), critical: true, onPress: () => {} }]} />); } };
 export const CaughtUp: StoryObj = { render: () => { const L = useL(); const lang = useLang(); const m = (h: number) => fmt.money(h, lang); return (
   <PaymentCard state="caughtUp" label={L('Next payment', 'الدفعة الجاية')} title={L("You're all caught up", 'ما عليك دفعات مستحقة')} dueLine={L(`${m(31250)} on Sat 28 Nov`, `${m(31250)} يوم ${fmt.dayDate('2026-11-28', 'ar')}`)} links={[{ label: L('Pay early', 'ادفع بدري'), onPress: () => {} }]} />); } };
+// One link = centred with its helper; one summary pair = one line (2026-11-05).
+export const OneLinkOneSummary: StoryObj = { render: () => { const L = useL(); const lang = useLang(); const m = (h: number) => fmt.money(h, lang); return (
+  <>
+    <PaymentCard state="due" label={L('Next payment', 'الدفعة الجاية')} amount={m(31250)} dueLine={fmt.dueLine('2026-11-05', '2026-10-31', lang)} pay={{ label: L(`Pay ${m(31250)}`, `ادفع ${m(31250)}`), onPress: () => {} }} linksRow
+      links={[{ label: L('Choose what to pay', 'اختر دفعاتك'), onPress: () => {} }, { label: L('Extend a payment', 'أجّل دفعة'), onPress: () => {} }]}
+      summary={[{ k: L('Left on all plans', 'باقي على كل خططك'), v: m(135000) }]} />
+    <PaymentCard state="overdue" tag={fmt.overdueTag(3, lang)} label={L('Amount overdue', 'المبلغ المتأخر')} amount={m(18750)} dueLine={L('Was due Wed 28 Oct', `كان موعدها ${fmt.dayDate('2026-10-28', 'ar')}`)} dueCritical
+      pay={{ label: L(`Pay ${m(18750)} now`, `ادفع ${m(18750)} الحين`), critical: true, onPress: () => {} }} links={[{ label: L('Extend the due date', 'أجّل موعد السداد'), helper: L('Once per purchase. Fee shown before you confirm.', 'مرة وحدة لكل عملية شراء، وتشوف الرسوم قبل التأكيد.'), onPress: () => {} }]} />
+  </>); } };

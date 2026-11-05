@@ -47,7 +47,11 @@ function applyDocsTheme(dark: boolean) {
       .docblock-argstable td span, .docblock-argstable td code, .docblock-argstable td div { color: ${t.t('color/text/content/default')} !important; }
       .docblock-argstable td code { background: ${t.t('color/surface/secondary/default')} !important; }
       .docblock-argstable input, .docblock-argstable textarea, .docblock-argstable select { background: ${t.t('color/surface/secondary/default')} !important; color: ${t.t('color/text/content/default')} !important; border-color: ${t.t('color/border/default')} !important; }
-      .docblock-code-toggle, .sbdocs-preview button { color: ${t.t('color/text/content/secondary/default')} !important; }`;
+      .docblock-code-toggle, .sbdocs-preview button { color: ${t.t('color/text/content/secondary/default')} !important; }
+      .docblock-argstable label:has(> input[role=switch]) { background: ${t.t('color/surface/secondary/default')} !important; box-shadow: inset 0 0 0 1px ${t.t('color/border/default')} !important; }
+      .docblock-argstable label:has(> input[role=switch]) span { color: ${t.t('color/text/content/secondary/default')} !important; background: transparent !important; box-shadow: none !important; }
+      .docblock-argstable label:has(> input[role=switch]) input:not(:checked) ~ span:first-of-type,
+      .docblock-argstable label:has(> input[role=switch]) input:checked ~ span:last-of-type { background: ${t.t('color/fill/brand/default')} !important; color: ${t.t('color/text/on-fill/brand/default')} !important; }`;
     }
   }
 }

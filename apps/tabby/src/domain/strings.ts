@@ -48,7 +48,7 @@ export const strings = {
     },
     extend: {
       which: 'Which purchases', fee: (a: string) => `Fee ${a}`, newDate: 'New due date', until: (d: string) => `Until ${d}`, totalFee: (a: string) => `Total fee ${a}`,
-      once: 'You can extend each purchase once.', ctaMany: (n: number, a: string) => `Extend ${n} purchases · ${a}`, ctaOne: (d: string, a: string) => `Extend to ${d} · ${a}`, extending: 'Extending…',
+      once: 'You can extend each purchase once.', ctaMany: (n: number, a: string) => `Extend ${n} purchases · ${a}`, ctaOne: (d: string, a: string) => `Extend to ${d} · ${a}`, extending: 'Extending…', later: 'Later',
       movedTo: (d: string) => `Moved to ${d}`, movedBody: (a: string, card: string, d: string) => `On ${d} we'll take ${a} from ${card}. We'll remind you before then.`,
       movedBodyOne: (m: string, n: number, of: number, a: string, card: string, d: string) => `${m}, payment ${n} of ${of}. On ${d} we'll take ${a} from ${card}. We'll remind you before then.`,
       extended: 'Extended', totalExtFee: 'Total extension fee', extFee: (a: string) => `Extension fee ${a}`,
@@ -121,7 +121,7 @@ export const strings = {
     },
     extend: {
       which: 'أي مشتريات', fee: (a: string) => `الرسوم ${a}`, newDate: 'موعد السداد الجديد', until: (d: string) => `لين ${d}`, totalFee: (a: string) => `إجمالي الرسوم ${a}`,
-      once: 'تقدر تأجّل كل عملية شراء مرة وحدة.', ctaMany: (n: number, a: string) => `أجّل ${n === 2 ? 'عمليتين' : `${n} عمليات`} · ${a}`, ctaOne: (d: string, a: string) => `أجّل لـ${d} · ${a}`, extending: 'جاري التأجيل…',
+      once: 'تقدر تأجّل كل عملية شراء مرة وحدة.', ctaMany: (n: number, a: string) => `أجّل ${n === 2 ? 'عمليتين' : `${n} عمليات`} · ${a}`, ctaOne: (d: string, a: string) => `أجّل لـ${d} · ${a}`, extending: 'جاري التأجيل…', later: 'مو الحين',
       movedTo: (d: string) => `تأجّلت لين ${d}`, movedBody: (a: string, card: string, d: string) => `بنخصم ${a} من ${card} يوم ${d}، ونذكّرك قبلها.`,
       movedBodyOne: (m: string, n: number, of: number, a: string, card: string, d: string) => `${m}، الدفعة ${n} من ${of}. بنخصم ${a} من ${card} يوم ${d}، ونذكّرك قبلها.`,
       extended: 'المؤجّلة', totalExtFee: 'إجمالي رسوم التأجيل', extFee: (a: string) => `رسوم التأجيل ${a}`,

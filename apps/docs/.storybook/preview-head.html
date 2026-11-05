@@ -1,4 +1,6 @@
 <style>
+/* Riyal sign U+20C1 in docs text: borrow it from the kit font, only that one character. */
+@font-face{font-family:'Nunito Sans';src:url('./fonts/BawazekSans.ttf');unicode-range:U+20C1}
 @font-face{font-family:'BawazekSans-400';src:url('./fonts/BawazekSans.ttf')}
 @font-face{font-family:'BawazekSans-500';src:url('./fonts/BawazekSans-Medm.ttf')}
 @font-face{font-family:'BawazekSans-600';src:url('./fonts/BawazekSans-SmBld.ttf')}
@@ -9,4 +11,10 @@
 @font-face{font-family:'BawazekSansArabic-700';src:url('./fonts/BawazekSansArabic-Bold.ttf')}
 .sbdocs .swatch{display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #0002;vertical-align:middle;margin-right:6px}
 .sbdocs table td,.sbdocs table th{font-size:13px;vertical-align:top}
+.lab-tile [data-testid=lab-copy-label]{display:none}
+html[data-lab-scheme=light] .lab-tile [data-testid=lab-copy-dark],html[data-lab-scheme=dark] .lab-tile [data-testid=lab-copy-light]{display:none}
+.lab-tile [data-testid^=lab-copy-],.lab-tile [data-testid=lab-frame]{width:100%!important}
+.sbdocs table code{white-space:normal}
+.sbdocs table td:first-child code{white-space:nowrap}
+.lab-hover{transition:border-color .15s,box-shadow .15s}.lab-hover:hover,.lab-hover:focus-visible{border-color:var(--lab-link)!important;box-shadow:var(--lab-shadow-sm)}
 </style>

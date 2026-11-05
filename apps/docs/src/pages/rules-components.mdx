@@ -1,0 +1,11 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { Rule } from '../blocks';
+import { componentRules } from '../guide';
+
+<Meta title="Rules/Component rules" />
+
+# Component rules
+
+Ten rules every screen built with the kit follows. Each component page adds its own rules under **How to use**.
+
+{componentRules.map((r, i) => <Rule key={r.title} n={i + 1} icon={r.icon} title={r.title} why={r.why} example={r.example} />)}

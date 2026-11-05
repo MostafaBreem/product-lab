@@ -55,6 +55,17 @@ const fmtVal = (v: unknown): string => {
   return String(v);
 };
 const sw = (v: unknown) => (typeof v === 'string' && /^#[0-9a-f]{6,8}$/i.test(v) ? `<span className="swatch" style={{background:'${v}'}}></span>` : '');
+// Public text: drop lab provenance like "(user 2026-11-04)", ", 2026-11-04" inside brackets, "(Usage 6)".
+const clean = (s: string) => s
+  .replace(/\s*\((?:user|added|stated|reconsidered|derived)[^)]*\)/g, '')
+  .replace(/,?\s*(?:user\s+)?\d{4}-\d{2}-\d{2}(?=[^()]*\))/g, '')
+  .replace(/\s*\((?:Usage \d+)?\)/g, '')
+  .replace(/\s*\([^()]*\boption [A-Z]\b[^()]*\)/g, '')
+  .replace(/\s+([.,;])/g, '$1');
+/** Split a usage line into one point per sentence (keeps "⃁ 312.50" and "e.g." whole). */
+const points = (s: string) => clean(s).split(/(?<=[.!?…])\s+(?=[A-Z"“(])|;\s+/).map((p) => p.trim().replace(/^./, (c) => c.toUpperCase())).filter(Boolean);
+/** Inside `code` in a table only the pipe needs escaping (entities would show literally). */
+const cesc = (s: string) => s.replace(/\|/g, '\\|');
 const esc = (s: string) => s.replace(/\|/g, '\\|').replace(/[{}<>]/g, (c) => ({ '{': '&#123;', '}': '&#125;', '<': '&lt;', '>': '&gt;' }[c]!));
 
 // ---------- foundations ----------
@@ -71,7 +82,7 @@ for (const g of groups) {
   const rows = raw.filter((t) => t.path.startsWith('semantic/') && g.prefix.some((p) => key(t.path).startsWith(p)));
   const isColour = g.file === 'Colour';
   const lightDark = isColour || g.file === 'Elevation'; // values differ by theme, not by language
-  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Swatches, TypeSpecimen, Scale, Shadows } from '../../blocks';\nimport data from '../data.json';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n`;
+  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Swatches, TypeSpecimen, Scale, Shadows, Callout } from '../../blocks';\nimport { foundationPoints } from '../../guide';\nimport data from '../data.json';\n\n<Meta title="Foundations/${g.title}" />\n\n# ${g.title}\n\n${g.intro}\n\n<Callout points={foundationPoints['${g.file}']} more={{ label: 'All foundation roles', to: '/docs/rules-foundation-roles--docs' }} />\n\n`;
   if (isColour) {
     data.colour = rows.filter((t) => typeof R.light_en[key(t.path)] === 'string').map((t) => ({ k: key(t.path), light: R.light_en[key(t.path)], dark: R.dark_en[key(t.path)], desc: t.description, usedBy: [...(usedBy.get(key(t.path)) ?? [])].sort() }));
     md += `Each card: light on the left, dark on the right.\n\n<Swatches tokens={data.colour} />\n\n## Full table\n\n`;
@@ -116,7 +127,7 @@ function usage(slug: string): Record<string, string> {
   }
   return out;
 }
-const SECTIONS: [string, string][] = [['Variant pick', 'Which variant'], ['Selection', 'Selection'], ['Content rules', 'Content'], ['Behaviour', 'Behaviour'], ['A11y', 'Accessibility'], ['RTL', 'Arabic and RTL']];
+const SECTIONS: [string, string, string][] = [['Variant pick', 'Which variant', 'pick'], ['Selection', 'Selection', 'check'], ['Content rules', 'Content', 'text'], ['Behaviour', 'Behaviour', 'tap'], ['A11y', 'Accessibility', 'contrast'], ['RTL', 'Arabic and RTL', 'globe']];
 const storyFiles = readdirSync(join(__dirname, '..', 'src', 'stories')).map((f) => f.replace('.stories.tsx', ''));
 
 const agentComponents: unknown[] = [];
@@ -126,18 +137,19 @@ for (const c of components) {
   const story = storyFiles.includes(c.name) ? c.name : null;
   let md = `import { Meta, Canvas, Controls, Source } from '@storybook/addon-docs/blocks';\n`;
   if (story) md += `import * as S from '../../stories/${story}.stories';\n`;
-  md += `import { Status, DoDont } from '../../blocks';\n`;
-  md += `\n<Meta title="Components/${c.name}/Docs" />\n\n# ${c.name}\n\n<Status status="Stable" code="https://github.com/MostafaBreem/product-lab/blob/main/packages/app-kit/src/components/${c.name}.tsx" />\n\n${esc(u['Purpose'] ?? c.summary)}\n\n`;
-  md += `<DoDont doText={${JSON.stringify(u['Use when'] ?? '')}} dontText={${JSON.stringify(u["Don't use"] ?? '')}} />\n\n`;
+  md += `import { Status, DoDont, RuleGrid } from '../../blocks';\n`;
+  md += `\n<Meta title="Components/${c.name}/Docs" />\n\n# ${c.name}\n\n<Status status="Stable" code="https://github.com/MostafaBreem/product-lab/blob/main/packages/app-kit/src/components/${c.name}.tsx" />\n\n${esc(clean(u['Purpose'] ?? c.summary))}\n\n`;
+  md += `<DoDont doText={${JSON.stringify(clean(u['Use when'] ?? ''))}} dontText={${JSON.stringify(clean(u["Don't use"] ?? ''))}} />\n\n`;
+  const rules = SECTIONS.filter(([k]) => u[k]).map(([k, title, icon]) => ({ title, icon, points: points(u[k]) }));
+  if (rules.length) md += `## How to use\n\n<RuleGrid items={${JSON.stringify(rules)}} />\n\n`;
   if (story) {
     const names = [...readFileSync(join(__dirname, '..', 'src', 'stories', `${story}.stories.tsx`), 'utf8').matchAll(/export const (\w+)/g)].map((m) => m[1]);
-    if (names.includes('Playground')) md += `## Playground\n\nChange the props in the table under the preview. The toolbar switches English / العربية and Light / Dark.\n\n<Canvas of={S.Playground} />\n\n<Controls of={S.Playground} />\n\n`;
+    if (names.includes('Playground')) md += `## Playground\n\nChange the props in the table under the preview. Every preview shows light and dark side by side, phone width (iPhone 16 Pro Max, 440). The toolbar switches English / العربية; its Light / Dark switch changes the page around the previews.\n\n<Canvas of={S.Playground} />\n\n<Controls of={S.Playground} />\n\n`;
     const ex = names.filter((n) => n !== 'Playground');
     if (ex.length) md += `## Examples\n\nReal screens' content, fixed in code.\n\n` + ex.map((n) => `### ${n.replace(/([a-z])([A-Z])/g, '$1 $2')}\n\n<Canvas of={S.${n}} />\n`).join('\n') + '\n';
   }
-  for (const [k, title] of SECTIONS) if (u[k]) md += `## ${title}\n\n${esc(u[k])}\n\n`;
   if (c.variants?.length || c.states?.length) md += `## Variants and states\n\n${c.variants ? `- Variants: ${c.variants.join(' · ')}\n` : ''}${c.states ? `- States: ${c.states.join(' · ')}\n` : ''}\n`;
-  md += `## Props\n\n| Prop | Type | Default | What it does |\n|---|---|---|---|\n${c.props.map((p) => `| \`${esc(p.name)}\` | \`${esc(p.type)}\` | ${p.default ? `\`${esc(p.default)}\`` : '—'} | ${esc(p.description)} |`).join('\n')}\n\n`;
+  md += `## Props\n\n| Prop | Type | Default | What it does |\n|---|---|---|---|\n${c.props.map((p) => `| \`${cesc(p.name)}\` | \`${cesc(p.type)}\` | ${p.default ? `\`${cesc(p.default)}\`` : '—'} | ${esc(clean(p.description))} |`).join('\n')}\n\n`;
   md += `## Code\n\n<Source language="tsx" code={${JSON.stringify(`import { ${c.name === 'Toast' ? 'useToast' : c.name} } from '@lab/app-kit';\n\n${c.example}`)}} />\n\n`;
   md += `## Tokens\n\nComponent tokens (light · dark). Change these, not the component code.\n\n| Token | Light | Dark | From |\n|---|---|---|---|\n`;
   for (const k of ctoks) {
@@ -145,7 +157,7 @@ for (const c of components) {
     const from = rawTok ? (refOf(rawTok.value) ?? '') : '';
     md += `| \`${k}\` | ${sw(R.light_en[k])}${esc(fmtVal(R.light_en[k]))} | ${sw(R.dark_en[k])}${esc(fmtVal(R.dark_en[k]))} | ${from ? `\`${key(from)}\`` : '—'} |\n`;
   }
-  md += `\n## Related\n\n${(u['Related'] ? esc(u['Related']) : c.related.join(', '))}\n`;
+  md += `\n## Related\n\n${(u['Related'] ? esc(clean(u['Related'])) : c.related.join(', '))}\n`;
   writeFileSync(join(GEN, 'components', `${c.name}.mdx`), md);
   agentComponents.push({
     name: c.name, import: `import { ${c.name === 'Toast' ? 'ToastHost, useToast' : c.name} } from '@lab/app-kit'`, summary: c.summary, // code names (meta.ts); usage card wording stays on the docs page
@@ -155,11 +167,30 @@ for (const c of components) {
   });
 }
 
-// ---------- rules pages ----------
-const rulesMd = (title: string, file: string) => `import { Meta } from '@storybook/addon-docs/blocks';\n\n<Meta title="Rules/${title}" />\n\n` +
-  esc(readFileSync(join(DESIGN, 'rules', file), 'utf8').replace(/^Status:.*$|^Parent:.*$|^Read when:.*$/gm, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'));
-writeFileSync(join(GEN, 'rules-components.mdx'), rulesMd('Component rules', 'components.md'));
-writeFileSync(join(GEN, 'rules-foundation-roles.mdx'), rulesMd('Foundation roles', 'foundation-roles.md'));
+// ---------- rules pages: hand pages (src/pages/rules-*.mdx, text in src/guide.tsx) ----------
+
+// ---------- overview galleries (Start here cards land here) ----------
+{
+  const fText: Record<string, string> = { Colour: 'Text, icon, fill, surface and border colours for light and dark.', Type: '12 text styles in English and Arabic, Bawazek Sans.', Spacing: 'Gaps and padding, from 2 to 32.', Radius: 'Corner shapes: tags 4, controls 12, cards 20, pills full.', Size: 'Control heights, icon sizes, 44 minimum tap area.', Elevation: 'Shadows for cards, floating parts and sheets.' };
+  const fIcon: Record<string, string> = { Colour: 'colour', Type: 'type', Spacing: 'space', Radius: 'radius', Size: 'size', Elevation: 'shadow' };
+  let md = `import { Meta } from '@storybook/addon-docs/blocks';\nimport { Gallery, Tile, FoundationSample } from '../blocks';\n\n<Meta title="Foundations/Overview" />\n\n# Foundations\n\nThe tokens every component is built from. Pick one to see every value in light and dark, English and Arabic.\n\n<Gallery>\n`;
+  for (const g of groups) md += `  <Tile to="/docs/foundations-${g.file.toLowerCase()}--docs" title="${g.title}" text={${JSON.stringify(fText[g.file])}}><FoundationSample kind="${fIcon[g.file]}" /></Tile>\n`;
+  writeFileSync(join(GEN, 'foundations-overview.mdx'), md + '</Gallery>\n');
+  let cm = `import { Meta, Story } from '@storybook/addon-docs/blocks';\nimport { Gallery, Tile, LivePreview } from '../blocks';\n`;
+  const tiles: string[] = [];
+  for (const c of [...components].sort((a, b) => a.name.localeCompare(b.name))) {
+    const story = storyFiles.includes(c.name) ? c.name : null;
+    let pick = '';
+    if (story) {
+      cm += `import * as ${c.name}S from '../stories/${story}.stories';\n`;
+      const names = [...readFileSync(join(__dirname, '..', 'src', 'stories', `${story}.stories.tsx`), 'utf8').matchAll(/export const (\w+)/g)].map((m) => m[1]);
+      pick = names.includes('Playground') ? 'Playground' : names[0] ?? ''; // the one live instance
+    }
+    tiles.push(`  <Tile to="/docs/components-${c.name.toLowerCase()}-docs--docs" title="${c.name}" badge="Stable" text={${JSON.stringify(clean(c.summary))}}>${pick ? `<LivePreview><Story of={${c.name}S.${pick}} /></LivePreview>` : ''}</Tile>`);
+  }
+  cm += `\n<Meta title="Components/Overview" />\n\n# Components\n\n${components.length} components, live: the toolbar switches English / العربية and Light / Dark. Pick one for examples, rules, props and tokens.\n\n<Gallery>\n${tiles.join('\n')}\n</Gallery>\n`;
+  writeFileSync(join(GEN, 'components-overview.mdx'), cm);
+}
 
 // ---------- agent files ----------
 const tokenOut: Record<string, unknown> = {};

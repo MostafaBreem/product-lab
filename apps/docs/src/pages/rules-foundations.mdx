@@ -1,0 +1,57 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { Rule, JumpLinks } from '../blocks';
+import { foundationPoints, SpacingRoles, TypeLevels, EmphasisLevels, ShapeScale, LayerStack, HeightScale } from '../guide';
+
+<Meta title="Rules/Foundation roles" />
+
+# Foundation roles
+
+Which value to use for which job. Pick by role, not by eye: a value no role names means pick a role, or propose a new one.
+
+<JumpLinks items={['Spacing', 'Text', 'Colour', 'Shape', 'Elevation', 'Size', 'Motion']} />
+
+## Spacing
+
+<Rule n={1} icon="spacing" title="Pick the gap by its job" why="The same job gets the same gap on every screen, so screens read alike." example="Field label to field 8; card to the next section 24.">
+  <SpacingRoles />
+</Rule>
+
+<Rule n={2} icon="layers" title="A label sits nearer its content than the block above" why="Distance shows what belongs together." example="Card to the 'Upcoming' section 24; field label to field 8. No gap larger than the next role up. Gap 0 only when the next tap is a Link button (48 tall, no fill)." />
+
+<Rule n={3} icon="pick" title="Padding inside surfaces" why="Edges line up across screens." example="Rows 12 / 16, cards 20, screen margin 16. Icon to label inside a control: 8 when the control is 40 or taller (Button), 4 when 32 or less (Chip, Tag)." />
+
+## Text
+
+<Rule n={4} icon="text" title="Nine text levels, at most three in a block" why="Clear steps make the important thing stand out." example="One key number per view. Neighbouring text differs in size or weight, never in colour alone.">
+  <TypeLevels />
+</Rule>
+
+<Rule n={5} icon="globe" title="Same line heights in English and Arabic" why="Components keep the same height in both languages." example="Text that wraps into a paragraph uses the taller body wrap style in Arabic." />
+
+## Colour
+
+<Rule n={6} icon="palette" title="Text emphasis levels" why="Colour shows importance and meaning, never decoration." example={foundationPoints.Colour[2]}>
+  <EmphasisLevels />
+</Rule>
+
+## Shape
+
+<Rule n={7} icon="radius" title="Radius by part" why="Matching corners make nested parts look like one object." example="A filled part touching a rounded edge follows the curve, or the parent clips it.">
+  <ShapeScale />
+</Rule>
+
+## Elevation
+
+<Rule n={8} icon="shadow" title="Three layers, three shadows" why="Depth tells what floats above what." example="Cards: small shadow. Toast: medium. Sheets and modals: large. Tab bar: a top line, no shadow.">
+  <LayerStack />
+</Rule>
+
+## Size
+
+<Rule n={9} icon="size" title="Fixed heights, 44 to tap" why="Controls line up, and every tap area is big enough." example="Icons: 16 inline (tag, chip), 20 trailing and chevrons, 24 navigation, tile and standalone, 40 leading tiles. Outcome screens (Paid, Extended): circle 64, icon 32.">
+  <HeightScale />
+</Rule>
+
+## Motion
+
+<Rule n={10} icon="plus" title="Planned, not built yet" example="Press 100 ms, toggle or expand 200 ms, screen push 300 ms, ease out. Sheets use the iOS spring." />

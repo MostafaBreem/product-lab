@@ -22,7 +22,7 @@ export default function Extended() {
   const movedTotal = r.extended.reduce((a, e) => a + e.item.amount, 0);
   const card = methodLabel(st.summary?.methods.find((x) => x.isDefault), s); // named, not "default payment method" (pending #6)
   return (
-    <Screen footer={one ? <View><Button label={s.money.payNow(m(stillTotal, lang))} onPress={() => openPay({ kind: r.stillOverdue.length > 1 ? 'overdue' : 'one', items: r.stillOverdue, source: 'extended_one' })} /><Button variant="link" full align="center" label={s.extend.later} onPress={done} /></View> : <Button label={s.common.done} onPress={done} />}>
+    <Screen footer={one ? <View><Button label={s.money.payNow(m(stillTotal, lang))} onPress={() => openPay({ kind: r.stillOverdue.length > 1 ? 'overdue' : 'one', items: r.stillOverdue, source: 'extended_one' })} /><Button variant="link" full label={s.extend.later} onPress={done} /></View> : <Button label={s.common.done} onPress={done} />}>
       <Hero icon="calendar-check" tone="brand" title={s.extend.movedTo(dd(until, lang))} body={r.extended.length === 1 ? s.extend.movedBodyOne(x0.merchant.name[lang], x0.number, x0.of, m(x0.amount, lang), card, dd(until, lang)) : s.extend.movedBody(m(movedTotal, lang), card, dd(until, lang))} />
       {one ? (
         <>

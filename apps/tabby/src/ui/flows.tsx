@@ -160,7 +160,7 @@ export function FlowsProvider({ children }: { children: React.ReactNode }) {
                   <Button label={s.pay.tryAgainAmt(m(total, lang))} onPress={() => { analytics.track('pay_retry', { action: 'try_again' }); submit(); }} />
                   {late && st.summary?.card.state === 'overdue' && st.summary.card.extendable ? (
                     // Way out after a decline (pending #4, user pick A); shown only when the payment can be extended.
-                    <Button variant="link" full align="center" label={s.pay.extendInstead} onPress={() => { const items = pay.items; analytics.track('pay_retry', { action: 'extend' }); stopPoll(); setPay(null); openExtend(items, 'pay_failed'); }} />
+                    <Button variant="link" label={s.pay.extendInstead} onPress={() => { const items = pay.items; analytics.track('pay_retry', { action: 'extend' }); stopPoll(); setPay(null); openExtend(items, 'pay_failed'); }} />
                   ) : null}
                 </View>
               ) : method?.type === 'applePay' && payState === 'sheet' ? (

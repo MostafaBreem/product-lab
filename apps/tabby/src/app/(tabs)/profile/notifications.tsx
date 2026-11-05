@@ -56,7 +56,7 @@ export default function NotificationsScreen() {
           <ListRow title={s.rem.salaryRem} subtitle={s.rem.salaryRemSub} selection={{ kind: 'switch', value: !off && prefs.salaryDay.on, onChange: (v) => (off ? openSettings('salary') : save({ ...prefs, salaryDay: { ...prefs.salaryDay, on: v } }, 'salaryDay.on', v)) }} />
           {!off && prefs.salaryDay.on ? <ListRow title={s.rem.salaryDay} value={dayLabel} chevron onPress={() => setPicker(true)} /> : null}
         </ListGroup>
-        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{s.rem.lockedNote}</Txt>
+        <Txt role="body/sm" color="color/text/content/secondary/default" wrap style={{ marginTop: th.t('space/gap-y/xs') }}>{off ? s.rem.lockedNoteOff : s.rem.lockedNote}</Txt>
       </View>
       <View>
         <SectionHeader title={s.rem.deals} />

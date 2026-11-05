@@ -95,7 +95,7 @@ export const components: ComponentMeta[] = [
     name: 'ListRow', slug: 'list-row', tokens: 'list-row', summary: 'Tappable row: leading logo / icon, title, subtitle, value, chevron or a selection control.',
     props: [
       { name: 'title', type: 'string', description: 'Max 2 lines.' },
-      { name: 'subtitle', type: 'string', description: '1 line.' },
+      { name: 'subtitle', type: 'string', description: 'Max 2 lines, wraps (large text).' },
       { name: 'value', type: 'string', description: 'Amount or value; never truncates.' },
       { name: 'quietValue', type: 'string', description: 'Secondary value (fees, "Always on").' },
       { name: 'leading', type: "{ kind: 'logo' | 'icon' | 'skeleton', … }", description: 'Logo tile, icon tile or loading tile.' },

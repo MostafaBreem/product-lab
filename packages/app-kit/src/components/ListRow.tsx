@@ -29,7 +29,7 @@ export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/te
         {leading ? <LeadingView leading={leading} /> : null}
         <View style={{ flex: 1, gap: th.t('list-row/text/gap') }}>
           <Txt role="label/lg" color="list-row/title/text/default" numberOfLines={2}>{title}</Txt>
-          {subtitle ? <Txt role="body/sm" color={subtitleColor} numberOfLines={1}>{subtitle}</Txt> : null}
+          {subtitle ? <Txt role="body/sm" color={subtitleColor} numberOfLines={2}>{subtitle}</Txt> : null}
         </View>
         {value ? <Txt role="label/lg" color="list-row/value/text/default" tabular>{value}</Txt> : null}
         {quietValue ? <Txt role="body/sm" color="list-row/value/text/quiet" tabular>{quietValue}</Txt> : null}

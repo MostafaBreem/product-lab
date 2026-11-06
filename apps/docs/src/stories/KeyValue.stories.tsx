@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { View } from 'react-native';
-import { fmt, KeyValue, useTheme } from '@lab/app-kit';
+import { Card, fmt, KeyValue, useTheme } from '@lab/app-kit';
 import { NOCTRL, pg, useL, useLang, useT } from '../ui/lang';
 
 const meta: Meta<typeof KeyValue> = { title: 'Components/KeyValue/Examples', component: KeyValue, parameters: NOCTRL };
@@ -15,8 +15,8 @@ export const SummaryInset: S = { render: () => { const th = useTheme(); const L 
     <KeyValue k={L('Due in 30 days', 'موعدها بعد 30 يوم')} v={fmt.money(31250, lang)} /><KeyValue k={L('Total to pay', 'الإجمالي المستحق')} v={fmt.money(135000, lang)} />
   </View>); } };
 export const DetailsRows: S = { render: () => { const th = useTheme(); const L = useL(); const lang = useLang(); return (
-  <View style={{ gap: th.t('space/gap-y/sm'), backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md') }}>
+  <Card style={{ gap: th.t('space/gap-y/sm') }}>
     <KeyValue layout="row" k={L('Order total', 'إجمالي الطلب')} v={fmt.money(50000, lang)} />
     <KeyValue layout="row" k={L('Paid so far', 'المدفوع لين الحين')} v={fmt.money(12500, lang)} />
     <KeyValue layout="row" strong k={L('Left to pay', 'المتبقي')} v={fmt.money(37500, lang)} />
-  </View>); } };
+  </Card>); } };

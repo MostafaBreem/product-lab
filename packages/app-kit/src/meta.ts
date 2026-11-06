@@ -115,6 +115,14 @@ export const components: ComponentMeta[] = [
     example: `<ListGroup>\n  <ListRow … />\n  <ListRow … />\n</ListGroup>`, related: ['ListRow', 'SectionHeader'],
   },
   {
+    name: 'Card', slug: 'card', tokens: 'card', summary: 'Plain card surface that groups content: radius 20, inset 20, shadow sm. Not tappable.',
+    props: [
+      { name: 'children', type: 'ReactNode', description: 'Content (Figma: Content slot).' },
+      { name: 'style', type: "Pick<ViewStyle, 'gap' | 'flexDirection' | 'alignItems' | 'justifyContent'>", description: 'Content layout only; padding, radius, fill and shadow are fixed.' },
+    ],
+    example: `<Card style={{ gap: th.t('space/gap-y/sm') }}>\n  <KeyValue layout="row" k="Order total" v="AED 1,250.00" />\n</Card>`, related: ['ListGroup', 'PaymentCard', 'KeyValue'],
+  },
+  {
     name: 'TabBar', slug: 'tab-bar', tokens: 'tab-bar', summary: 'Bottom navigation between the app\'s top-level sections.',
     props: [
       { name: 'items', type: '{ key; label; icon }[]', description: '4 tabs (Figma Tab bar (4)).' },

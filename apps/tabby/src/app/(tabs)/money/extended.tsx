@@ -2,7 +2,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
-import { Button, KeyValue, ListGroup, ListRow, Screen, SectionHeader, Txt, useTheme } from '@lab/app-kit';
+import { Button, Card, KeyValue, ListGroup, ListRow, Screen, SectionHeader, Txt, useTheme } from '@lab/app-kit';
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
 import { Hero } from '../../../ui/Hero';
@@ -37,8 +37,8 @@ export default function Extended() {
         <View>
           <SectionHeader title={s.extend.extended} />
           <ListGroup>{r.extended.map((e) => <ListRow key={e.instalmentId} title={e.item.merchant.name[lang]} subtitle={s.extend.fee(m(e.fee, lang))} value={m(e.item.amount, lang)} leading={{ kind: 'logo', text: e.item.merchant.logoText, color: e.item.merchant.logoColor }} />)}</ListGroup>
-          <View style={{ marginTop: th.t('space/gap-y/sm'), backgroundColor: th.t('color/surface/default') as string, borderRadius: th.t('radius/xl'), padding: th.t('space/padding/md') }}>
-            <KeyValue layout="row" strong k={s.extend.totalExtFee} v={m(r.totalFee, lang)} />
+          <View style={{ marginTop: th.t('space/gap-y/sm') }}>
+            <Card><KeyValue layout="row" strong k={s.extend.totalExtFee} v={m(r.totalFee, lang)} /></Card>
           </View>
         </View>
       )}

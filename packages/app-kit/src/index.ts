@@ -15,6 +15,7 @@ export { SegmentedControl } from './components/SegmentedControl';
 export { Header } from './components/Header';
 export { SectionHeader } from './components/SectionHeader';
 export { ListGroup } from './components/ListGroup';
+export { Card } from './components/Card';
 export { ListRow, type Leading } from './components/ListRow';
 export { Notice } from './components/Notice';
 export { NavigationBar } from './components/NavigationBar';

@@ -433,7 +433,10 @@ export const tokenSets = {
   "toast/container/radius": 12,
   "toast/container/fill": "#2d3136",
   "toast/text/default": "#eef1f7",
-  "toast/icon/default": "#e0e2e9"
+  "toast/icon/default": "#e0e2e9",
+  "card/fill/default": "#ffffff",
+  "card/container/radius": 20,
+  "card/container/padding": 20
  },
  "light_ar": {
   "color/text/content/default": "#181c21",
@@ -868,7 +871,10 @@ export const tokenSets = {
   "toast/container/radius": 12,
   "toast/container/fill": "#2d3136",
   "toast/text/default": "#eef1f7",
-  "toast/icon/default": "#e0e2e9"
+  "toast/icon/default": "#e0e2e9",
+  "card/fill/default": "#ffffff",
+  "card/container/radius": 20,
+  "card/container/padding": 20
  },
  "dark_en": {
   "color/text/content/default": "#e0e2e9",
@@ -1303,7 +1309,10 @@ export const tokenSets = {
   "toast/container/radius": 12,
   "toast/container/fill": "#e0e2e9",
   "toast/text/default": "#181c21",
-  "toast/icon/default": "#43474c"
+  "toast/icon/default": "#43474c",
+  "card/fill/default": "#23272c",
+  "card/container/radius": 20,
+  "card/container/padding": 20
  },
  "dark_ar": {
   "color/text/content/default": "#e0e2e9",
@@ -1738,6 +1747,9 @@ export const tokenSets = {
   "toast/container/radius": 12,
   "toast/container/fill": "#e0e2e9",
   "toast/text/default": "#181c21",
-  "toast/icon/default": "#43474c"
+  "toast/icon/default": "#43474c",
+  "card/fill/default": "#23272c",
+  "card/container/radius": 20,
+  "card/container/padding": 20
  }
 } as const;

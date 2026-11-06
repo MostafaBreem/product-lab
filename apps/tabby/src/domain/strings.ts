@@ -18,7 +18,7 @@ export const strings = {
       whatNext: 'What happens next', whatNextSub: 'No late fees · new purchases paused', caughtUp: "You're all caught up", onDate: (a: string, d: string) => `${a} on ${d}`, payEarly: 'Pay early', wasDue: (d: string) => `Was due ${d}`,
       loadError: "We couldn't load your payments", listError: "We couldn't load this list.",
     },
-    common: { tryAgain: 'Try again', done: 'Done', close: 'Close', back: 'Back', change: 'Change', somethingWrong: 'Something went wrong. Try again in a moment.', offlineTitle: "You're offline", offlineBody: (when: string) => `Showing your last update, ${when}. Connect to pay or extend.`, offlineToast: "You're offline. Connect to pay or extend.", offlineBodyPay: (when: string) => `Showing your last update, ${when}. Connect to pay.`, copied: 'Copied', and: (a: string, b: string) => `${a} and ${b}` },
+    common: { tryAgain: 'Try again', done: 'Done', close: 'Close', back: 'Back', change: 'Change', somethingWrong: 'Something went wrong. Try again in a moment.', offlineTitle: "You're offline", offlineBody: (when: string) => `Showing your last update, ${when}. Connect to pay or extend.`, offlineToast: "You're offline. Connect to pay or extend.", offlineBodyPay: (when: string) => `Showing your last update, ${when}. Connect to pay.`, offlineFirstBody: 'Connect to the internet to see your payments and pay.', copied: 'Copied', and: (a: string, b: string) => `${a} and ${b}` },
     overdue: {
       title: 'Overdue payment', amountOverdue: 'Amount overdue', failedCard: (l4: string) => `We couldn't take it from your card ending ${l4}.`,
       extendDue: 'Extend the due date', extendHelper: 'Choose the purchases. Fee shown before you confirm.', extendHelperOne: 'Once per purchase. Fee shown before you confirm.',
@@ -91,7 +91,7 @@ export const strings = {
       whatNext: 'وش يصير بعدين', whatNextSub: 'ما فيه رسوم تحصيل · الشراء موقوف مؤقتًا', caughtUp: 'ما عليك دفعات مستحقة', onDate: (a: string, d: string) => `${a} يوم ${d}`, payEarly: 'ادفع بدري', wasDue: (d: string) => `كان موعدها ${d}`,
       loadError: 'ما قدرنا نحمّل دفعاتك', listError: 'ما قدرنا نحمّل هالقائمة.',
     },
-    common: { tryAgain: 'جرّب مرة ثانية', done: 'تم', close: 'أغلق', back: 'رجوع', change: 'غيّر', somethingWrong: 'صار خلل. جرّب مرة ثانية بعد شوي.', offlineTitle: 'ما فيه إنترنت', offlineBody: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع أو تأجّل.`, offlineToast: 'ما فيه إنترنت. اتصل بالإنترنت عشان تدفع أو تأجّل.', offlineBodyPay: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع.`, copied: 'تم النسخ', and: (a: string, b: string) => `${a} و${b}` },
+    common: { tryAgain: 'جرّب مرة ثانية', done: 'تم', close: 'أغلق', back: 'رجوع', change: 'غيّر', somethingWrong: 'صار خلل. جرّب مرة ثانية بعد شوي.', offlineTitle: 'ما فيه إنترنت', offlineBody: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع أو تأجّل.`, offlineToast: 'ما فيه إنترنت. اتصل بالإنترنت عشان تدفع أو تأجّل.', offlineBodyPay: (when: string) => `هذا آخر تحديث، ${when}. اتصل بالإنترنت عشان تدفع.`, offlineFirstBody: 'اتصل بالإنترنت عشان تشوف دفعاتك وتدفع.', copied: 'تم النسخ', and: (a: string, b: string) => `${a} و${b}` },
     overdue: {
       title: 'دفعة متأخرة', amountOverdue: 'المبلغ المتأخر', failedCard: (l4: string) => `ما قدرنا نخصمها من بطاقتك المنتهية بـ ${l4}.`,
       extendDue: 'أجّل موعد السداد', extendHelper: 'اختر المشتريات، وتشوف الرسوم قبل التأكيد.', extendHelperOne: 'مرة وحدة لكل عملية شراء، وتشوف الرسوم قبل التأكيد.',

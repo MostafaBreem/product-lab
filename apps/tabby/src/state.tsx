@@ -37,6 +37,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [inspect, setInspect] = useState(false);
   const [lastHref, setLastHref] = useState<string>();
   const rangeRef = useRef(range);
+  const settingsRef = useRef(settings); settingsRef.current = settings;
 
   useEffect(() => { AsyncStorage.getItem('flags').then((v) => v && setFlagsState({ ...defaultFlags, ...JSON.parse(v) })).catch(() => {}); }, []);
   const setFlags = useCallback((p: Partial<Flags>) => setFlagsState((f) => { const n = { ...f, ...p }; AsyncStorage.setItem('flags', JSON.stringify(n)).catch(() => {}); return n; }), []);
@@ -45,6 +46,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const x = await api.summary(rangeRef.current);
       setSummary(x); setSummaryError(undefined);
+      // Last summary saved on the phone (approved 2026-11-06, Money tab offline first open A): later offline opens show it.
+      AsyncStorage.setItem('summary', JSON.stringify({ scenario: settingsRef.current.scenario, summary: x })).catch(() => {});
     } catch (e) {
       setSummaryError((e as { code?: string }).code ?? 'server');
     } finally { setLoading(false); setVersion((v) => v + 1); }
@@ -77,8 +80,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (q.get('scenario')) p.scenario = q.get('scenario') as Settings['scenario'];
       if (q.get('net')) p.net = q.get('net') as Settings['net'];
       if (q.get('pay')) p.payResult = q.get('pay') as Settings['payResult'];
-      if (Object.keys(p).length) { configure(p); setSettingsState((x) => ({ ...x, ...p })); }
+      if (Object.keys(p).length) { configure(p); setSettingsState((x) => ({ ...x, ...p })); settingsRef.current = { ...settingsRef.current, ...p }; }
     }
+    AsyncStorage.getItem('summary').then((v) => {
+      const o = v ? (JSON.parse(v) as { scenario: Settings['scenario']; summary: Summary }) : undefined;
+      if (o && o.scenario === settingsRef.current.scenario) setSummary((cur) => cur ?? o.summary);
+    }).catch(() => {});
     refresh();
   }, [refresh]);
 

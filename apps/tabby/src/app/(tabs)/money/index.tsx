@@ -2,7 +2,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
-import { analytics, Bar, BottomSheet, Button, Chip, fmt, Header, ListGroup, ListRow, Notice, PaymentCard, Screen, SectionHeader, SegmentedControl, Txt, useTheme } from '@lab/app-kit';
+import { analytics, Bar, BottomSheet, Button, Chip, fmt, Header, ListGroup, ListRow, Notice, PaymentCard, Screen, SectionHeader, SegmentedControl, Txt, useTheme, useToast } from '@lab/app-kit';
 import { OverdueSteps } from '../../../ui/OverdueSteps';
 import { useStore } from '../../../state';
 import { useFlows } from '../../../ui/flows';
@@ -16,6 +16,9 @@ export default function MoneyTab() {
   const th = useTheme();
   const flows = useFlows();
   const today = settings.today;
+  const toast = useToast();
+  // Try again (offline notices): reload; still offline = offline toast (critic 2026-11-06 #3).
+  const retry = async () => { await st.refresh(); if (settings.net === 'offline') toast({ tone: 'neutral', text: s.common.offlineToast }); };
   const stub = (from: string) => router.push({ pathname: '/money/stub', params: { from } });
   const [stepsOpen, setStepsOpen] = useState(false);
 
@@ -28,8 +31,8 @@ export default function MoneyTab() {
     return (
       <Screen>
         {header}
-        <Notice icon={st.summaryError === 'network' ? 'wifi-slash' : undefined} title={st.summaryError === 'network' ? s.common.offlineTitle : s.money.loadError} body={st.summaryError === 'network' ? s.common.offlineToast : s.common.somethingWrong}>
-          <Button variant="link" label={s.common.tryAgain} onPress={() => st.refresh()} />
+        <Notice icon={st.summaryError === 'network' ? 'wifi-slash' : undefined} title={st.summaryError === 'network' ? s.common.offlineTitle : s.money.loadError} body={st.summaryError === 'network' ? s.common.offlineFirstBody : s.common.somethingWrong}>
+          <Button variant="link" label={s.common.tryAgain} onPress={retry} />
         </Notice>
       </Screen>
     );
@@ -43,7 +46,7 @@ export default function MoneyTab() {
       pay={{ label: s.money.payNow(m(c.amount, lang)), onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'overdue', amount: c.amount }); flows.openPay({ kind: 'overdue', items: c.items, source: 'money_card' }); } }}
       links={c.extendable ? [{ label: s.overdue.extendDue, helper: c.items.length > 1 ? s.overdue.extendHelper : s.overdue.extendHelperOne, onPress: () => flows.openExtend(c.items, 'money_card') }] : []} />
   ) : c.state === 'due' ? (
-    <PaymentCard state="due" label={s.money.nextPayment} amount={m(c.amount, lang)} dueLine={fmt.dueLine(c.dueDate, today, lang)}
+    <PaymentCard state="due" label={s.money.nextPayment} amount={m(c.amount, lang)} dueLine={fmt.diffDays(c.dueDate, today) < 0 ? s.money.wasDue(dd(c.dueDate, lang)) : fmt.dueLine(c.dueDate, today, lang)}
       pay={{ label: s.money.pay(m(c.amount, lang)), onPress: () => { analytics.track('pay_tapped', { source: 'money_card', cardState: 'due', amount: c.amount }); flows.openPay({ kind: 'onTime', items: c.items, source: 'money_card' }); } }}
       linksRow links={[{ label: s.money.payDifferent, onPress: () => { analytics.track('pay_different_amount_tapped', { cardState: c.state }); router.push('/money/make-payment'); } }, ...(c.extendable ? [{ label: s.money.extendPayment, onPress: () => flows.openExtend(c.items, 'money_card') }] : [])]}
       summary={[{ k: s.money.leftOnPlans, v: m(x.totalToPay, lang) }]} />
@@ -57,7 +60,7 @@ export default function MoneyTab() {
   return (
     <Screen refreshControl={<RefreshControl refreshing={false} onRefresh={() => st.refresh()} />}>
       {header}
-      {offline ? <Notice icon="wifi-slash" title={s.common.offlineTitle} body={s.common.offlineBody(fmt.lastUpdate(x.asOf.day, x.asOf.time, today, lang))} /> : null}
+      {offline ? <Notice icon="wifi-slash" title={s.common.offlineTitle} body={s.common.offlineBody(fmt.lastUpdate(x.asOf.day, x.asOf.time, today, lang))}><Button variant="link" label={s.common.tryAgain} onPress={retry} /></Notice> : null}
       {card}
       {c.state === 'overdue' ? (
         <>

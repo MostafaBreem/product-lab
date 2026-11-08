@@ -15,7 +15,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 const root = resolve(__dirname, '../../..');
-const dirs = ['packages/app-kit/src/components', 'packages/app-kit/src/web', 'packages/app-kit/src/gallery.tsx', 'apps/tabby/src', 'apps/docs/src/stories'];
+const dirs = ['packages/app-kit/src/components', 'packages/app-kit/src/web', 'packages/app-kit/src/gallery.tsx', 'apps/tabby/src', 'apps/vezeeta/src/app', 'apps/vezeeta/src/ui', 'apps/docs/src/stories'];
 const COLOUR = /#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?)\(/;
 const PROPS = '(?:width|height|minHeight|maxHeight|minWidth|maxWidth|borderRadius|border[A-Za-z]*Radius|gap|rowGap|columnGap|padding[A-Za-z]*|margin[A-Za-z]*|top|left|right|bottom|inset|size|hitSlop|h|r)';
 const STYLE = new RegExp(`\\b${PROPS}\\s*(?::|=\\{)\\s*([^,}\\]]+)`, 'g');

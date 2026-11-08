@@ -118,6 +118,8 @@ export const copy = {
   "r1.rows": { en: "Free follow-up reminders · Next visit reminders · Visit changes", ar: "تذكير المتابعة المجانية · تذكير الميعاد الجاي · تغييرات الميعاد" },
   "r1.locked": { en: "Always on, so you know before you leave", ar: "شغّالة دايمًا، عشان تعرف قبل ما تنزل" },
   "r1.err": { en: "Couldn't save. Try again.", ar: "مقدرناش نحفظ. جرّب تاني." },
+  "resched.toast": { en: "Moved to {day, time}", ar: "اتغيّر لـ{day, time}" },
+  "notif.ask.t / b / cta": { en: "Get updates about this visit? · We'll tell you if the clinic moves or cancels it. · Turn on notifications · Not now", ar: "تحب نبلّغك بأي تغيير؟ · هنقولك لو العيادة غيّرت الميعاد أو لغته. · شغّل الإشعارات · مش دلوقتي" },
   "acc.reminders": { en: "Reminders", ar: "التذكيرات" },
 } as const;
 export type CopyId = keyof typeof copy;
@@ -134,6 +136,7 @@ export const fmtStrings = {
   fuExpired: (date: string, lang: Lang) => fill(split('a3.fu.expired', lang)[0], { date }),
   fuExpiredCta: (fee: string, lang: Lang) => fill(split('a3.fu.expired', lang)[1], { fee }),
   reschedTitle: (lang: Lang) => split('resched.t / cta', lang)[0],
+  reschedToast: (dayTime: string, lang: Lang) => fill(t('resched.toast', lang), { 'day, time': dayTime }),
   reschedCta: (dayTime: string, lang: Lang) => fill(split('resched.t / cta', lang)[1], { 'day, time': dayTime }),
   cancelNormal: (doctor: string, dayTime: string, lang: Lang) => fill(t('b2c.b.normal', lang), { doctor, 'day, time': dayTime }),
 };

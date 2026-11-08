@@ -1,7 +1,7 @@
 // Screen patterns (components/screen-patterns.md; build-spec.md > Kit work "pattern, not kit"). Tokens only.
-import React from 'react';
-import { Pressable, View } from 'react-native';
-import { Bar, Card, Icon, Txt, useTheme, type IconName } from '@lab/app-kit';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Easing, Pressable, View } from 'react-native';
+import { Bar, Card, Icon, KeyValue, Txt, useTheme, type IconName } from '@lab/app-kit';
 import type { TokenKey } from '@lab/app-kit';
 
 /** Key-value with leading icon (icon 20 + key + value on one line, mock A1 card). */
@@ -79,5 +79,59 @@ export function SkeletonGrid() {
         </View>
       ))}
     </View>
+  );
+}
+
+/** A3 summary row: icon 24 + stacked key-value. struck = taken time (A3e): critical icon + struck critical value. */
+export function SummaryRow({ icon, k, v, struck }: { icon: IconName; k: string; v: string; struck?: boolean }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: th.t('space/gap-x/sm') }}>
+      <Icon name={icon} size={th.t('size/icon/md')} color={struck ? 'color/icon/content/critical/default' : 'color/icon/content/secondary/default'} />
+      {struck ? (
+        <View style={{ flex: 1, gap: th.t('key-value/container/gap') }}>
+          <Txt role="body/sm" color="key-value/key/text/default">{k}</Txt>
+          <Txt role="label/lg" color="color/text/content/critical/default" style={{ textDecorationLine: 'line-through' }}>{v}</Txt>
+        </View>
+      ) : <KeyValue k={k} v={v} />}
+    </View>
+  );
+}
+
+/** Consent caption with a trailing inline link (a3.consent: last sentence = link label). */
+export function Caption({ text, link, onLink }: { text: string; link?: string; onLink?: () => void }) {
+  return (
+    <Txt role="caption" color="color/text/content/secondary/default" wrap>
+      {text}
+      {link ? <>{' '}<Txt role="caption" color="color/text/content/link/default" onPress={onLink} accessibilityRole="link">{link}</Txt></> : null}
+    </Txt>
+  );
+}
+
+export function useReduceMotion() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setOn).catch(() => {});
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setOn);
+    return () => sub.remove();
+  }, []);
+  return on;
+}
+
+/** A4 hero: 64 success circle + check. Scale 0.8 -> 1, small 200 ease-out (motion role; tokens not built); Reduce Motion = static. */
+export function HeroCheck({ onShown }: { onShown?: () => void }) {
+  const th = useTheme();
+  const rm = useReduceMotion();
+  const scale = useRef(new Animated.Value(0.8)).current;
+  const shown = useRef(false);
+  const done = () => { if (!shown.current) { shown.current = true; onShown?.(); } };
+  useEffect(() => {
+    if (rm) { scale.setValue(1); done(); return; }
+    Animated.timing(scale, { toValue: 1, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(done);
+  }, [rm]);
+  return (
+    <Animated.View accessibilityElementsHidden importantForAccessibility="no" style={{ alignSelf: 'center', width: th.t('size/height/xl'), height: th.t('size/height/xl'), borderRadius: th.t('radius/full'), alignItems: 'center', justifyContent: 'center', backgroundColor: th.t('color/surface/success/default') as string, transform: [{ scale }] }}>
+      <Icon name="check" size={th.t('size/icon/lg')} color="color/icon/on-fill/success/secondary/default" />
+    </Animated.View>
   );
 }

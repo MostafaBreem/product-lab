@@ -40,3 +40,27 @@ export const initials = (d: Doctor) => d.name.en.split(' ').map((w) => w[0]).joi
 export const drName = (d: Doctor, lang: Lang) => (lang === 'en' ? `Dr ${d.name.en}` : `د. ${d.name.ar}`);
 /** off.cache age: time today, else day + time. */
 export const cacheAge = (at: Local, now: Local, lang: Lang) => (dayOf(at) === dayOf(now) ? f.time(at, lang) : f.dayTime(at, lang));
+
+// A3 / A4 sample rows turned into templates (same swap approach as above; gap logged).
+const SAMPLE_FEE = /(250|٢٥٠)[\s ](EGP|جنيه)/;
+/** a3.fee.v: "250 EGP, pay at the clinic" with the doctor's fee. */
+export const feeLine = (fee: number, lang: Lang) => t('a3.fee.v', lang).replace(SAMPLE_FEE, f.egp(fee, lang));
+/** a3.cta: "Book for Mon 9 Nov, 7:00 PM" (sample = a3.when.v). */
+export const bookCta = (start: Local, lang: Lang) => t('a3.cta', lang).replace(t('a3.when.v', lang), f.dayTime(start, lang));
+/** a3.points: 1 point per EGP (copy note: inferred). */
+export const pointsLine = (fee: number, lang: Lang) => t('a3.points', lang).replace(f.plural(250, 'points', lang), f.plural(fee, 'points', lang));
+/** a4.b: "Dr Nour Hassan, Mon 9 Nov at 7:00 PM. Pay 250 EGP at the clinic." */
+export function bookedLine(d: Doctor, start: Local, fee: number, lang: Lang) {
+  const sampleDr = lang === 'en' ? 'Dr Nour Hassan' : 'د. نور حسن';
+  const sampleDay = lang === 'en' ? 'Mon 9 Nov' : 'الإثنين ٩ نوفمبر';
+  const sampleTime = lang === 'en' ? '7:00 PM' : '٧:٠٠ م';
+  return t('a4.b', lang).replace(sampleDr, drName(d, lang)).replace(sampleDay, f.day(dayOf(start), lang)).replace(sampleTime, f.time(start, lang)).replace(SAMPLE_FEE, f.egp(fee, lang));
+}
+/** a3.consent: text + trailing link label (last sentence). */
+export function consentParts(lang: Lang) {
+  const s = t('a3.consent', lang);
+  const i = s.lastIndexOf('. ');
+  return { text: s.slice(0, i + 1), link: s.slice(i + 2) };
+}
+/** Stored "+201012345678" -> field text "10 1234 5678" (prefix "+20" is the field's). */
+export const phoneField = (stored: string) => f.phone(stored, 'en').replace(/^\+20 /, '');

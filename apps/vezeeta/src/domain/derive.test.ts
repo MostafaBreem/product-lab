@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBookings, buildSlots, PRESETS } from './fixtures';
+import { buildBookings, buildSlots, doctor, PRESETS } from './fixtures';
+import { allBookings, api, configure, reset } from './server';
 import { followUpSlots, nextSlot, isNorthStar, isPromptAttributed, northStar, past, prompts, upcoming, upcomingRows, visits, withinFollowUp } from './derive';
 import { due, plan } from './reminders';
 import { dayTime, egp, plural, rating } from './format';
@@ -53,11 +54,35 @@ test('follow-up expiry: window ends Mon 30 Nov; Dec 1 out; closes after until', 
   assert.equal(fmtStrings.fuExpired('Mon 30 Nov', 'en'), 'Your free follow-up ended on Mon 30 Nov. Book a regular visit?');
 });
 
-test('slots: 6:00-9:30 PM every 30 min, 9:00 PM tomorrow taken, Laila none', () => {
+test('slots: 6:00-9:30 PM every 30 min, 9:00 PM tomorrow taken', () => {
   const s = buildSlots('nour', PRESETS.sun8, []);
   assert.equal(s.filter((x) => x.start.startsWith('2026-11-08')).length, 8);
   assert.ok(s.find((x) => x.start === '2026-11-09T21:00')!.taken);
-  assert.deepEqual(buildSlots('laila', PRESETS.sun8, []), []);
+});
+
+test('Laila (Round 2 fix): General dentist, Dokki · Mossadak St, 400 EGP, 15 min, has slots, not in A1 / A1b results', async () => {
+  const l = doctor('laila')!;
+  assert.deepEqual([l.kind, l.area?.en, l.street?.en, l.fee, l.waitMin], ['general', 'Dokki', 'Mossadak St', 400, 15]);
+  const s = buildSlots('laila', PRESETS.sun8, []);
+  assert.equal(s.length, buildSlots('nour', PRESETS.sun8, []).length);
+  assert.ok(s.some((x) => !x.taken));
+  configure({ latency: 'fast' });
+  const [all, gen] = [await api.doctors('Toothache'), await api.doctors('Toothache', 'general')];
+  assert.ok(!all.doctors.some((d) => d.id === 'laila') && !gen.doctors.some((d) => d.id === 'laila'));
+  reset();
+});
+
+test('slotTaken: no booking made, slot stays struck in GET slots', async () => {
+  reset(); configure({ latency: 'fast', nextBookingSlotTaken: true });
+  const before = allBookings().length;
+  const req = { doctorId: 'nour', start: '2026-11-09T19:00', patientName: 'Mona Saeed', phone: '+201012345678', kind: 'normal' as const, offersOptIn: false, consentVersion: 'a3.consent', idempotencyKey: 'k1', source: 'results_book' as const };
+  await assert.rejects(api.createBooking(req), (e: { code: string }) => e.code === 'slotTaken');
+  assert.equal(allBookings().length, before);
+  assert.ok((await api.slots('nour', '2026-11-09', 1)).find((x) => x.start === '2026-11-09T19:00')!.taken);
+  const ok = await api.createBooking({ ...req, start: '2026-11-09T18:00', idempotencyKey: 'k2' });
+  assert.equal((await api.createBooking({ ...req, start: '2026-11-09T18:00', idempotencyKey: 'k2' })).id, ok.id);
+  assert.equal(allBookings().length, before + 1);
+  reset();
 });
 
 test('scheduler: Mon 9 Nov 10 AM due = followup_open, next_visit_4w (Laila), status_* per event', () => {

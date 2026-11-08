@@ -19,11 +19,12 @@ export const DOCTORS: Doctor[] = [
     area: L('Nasr City', 'مدينة نصر'), street: L('Abbas El Akkad St', 'شارع عباس العقاد'), fee: 200, waitMin: 12, freeFollowUpDays: 30, rating: 4.7, reviews: 88, badges: [] },
   { id: 'hana', name: L('Hana Youssef', 'هنا يوسف'), title: L('Orthodontist', 'أخصائي تقويم'), kind: 'specialist',
     area: L('Heliopolis', 'مصر الجديدة'), street: L('14 Al Thawra St', '١٤ شارع الثورة'), fee: 300, badges: [] },
-  { id: 'laila', name: L('Laila Samir', 'ليلى سمير'), title: L('General dentist', 'دكتور أسنان عام'), kind: 'general', fee: 400, badges: [] },
+  { id: 'laila', name: L('Laila Samir', 'ليلى سمير'), title: L('General dentist', 'دكتور أسنان عام'), kind: 'general',
+    area: L('Dokki', 'الدقي'), street: L('Mossadak St', 'شارع مصدق'), fee: 400, waitMin: 15, badges: [] }, // Round 2 fix (build-spec-rules.md); AR names = sample transliteration
 ];
-/** A1 order ("Recommended") and A1b (general filter). Laila has no slots in this demo, not listed. */
+/** A1 order ("Recommended") and A1b (general filter). Laila: slots like the others, listed in A2 only (Round 2 fix). */
 export const RESULTS_ORDER = { none: ['karim', 'nour', 'sherif'], general: ['nour', 'sherif'] };
-export const NO_SLOTS = ['laila'];
+export const NO_SLOTS: string[] = [];
 export const doctor = (id: string) => DOCTORS.find((d) => d.id === id);
 
 const seed = (id: string, doctorId: string, start: Local, status: Booking['status'], extra: Partial<Booking> = {}): Booking => ({

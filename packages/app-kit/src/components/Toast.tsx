@@ -5,7 +5,8 @@ import { useTheme } from '../theme';
 import { Icon } from './Icon';
 import { Txt } from './Txt';
 
-type ToastMsg = { tone: 'success' | 'neutral'; text: string };
+/** bottomOffset (optional): per-toast height of the lowest bar above the safe-area bottom; overrides the host's (e.g. 0 on a screen with no tab bar). */
+type ToastMsg = { tone: 'success' | 'neutral'; text: string; bottomOffset?: number };
 const Ctx = createContext<(m: ToastMsg) => void>(() => {});
 export const useToast = () => useContext(Ctx);
 
@@ -24,7 +25,7 @@ export function ToastHost({ children, bottomOffset = 83 }: { children: React.Rea
     <Ctx.Provider value={show}>
       {children}
       {msg ? (
-        <View pointerEvents="none" accessibilityLiveRegion="polite" style={{ position: 'absolute', left: th.t('space/margin/md'), right: th.t('space/margin/md'), bottom: Math.max(insets.bottom, 0) + bottomOffset + th.t('space/margin/md'), flexDirection: 'row', alignItems: 'flex-start', gap: th.t('toast/container/gap'), paddingHorizontal: th.t('toast/container/padding-x'), paddingVertical: th.t('toast/container/padding-y'), borderRadius: th.t('toast/container/radius'), backgroundColor: th.t('toast/container/fill') as string, direction: th.isRTL ? 'rtl' : 'ltr' }}>
+        <View pointerEvents="none" accessibilityLiveRegion="polite" style={{ position: 'absolute', left: th.t('space/margin/md'), right: th.t('space/margin/md'), bottom: Math.max(insets.bottom, 0) + (msg.bottomOffset ?? bottomOffset) + th.t('space/margin/md'), flexDirection: 'row', alignItems: 'flex-start', gap: th.t('toast/container/gap'), paddingHorizontal: th.t('toast/container/padding-x'), paddingVertical: th.t('toast/container/padding-y'), borderRadius: th.t('toast/container/radius'), backgroundColor: th.t('toast/container/fill') as string, direction: th.isRTL ? 'rtl' : 'ltr' }}>
           {/* Icon box = first line height (body/md wrap), so the icon sits on line 1 when the text wraps. */}
           <View style={{ height: th.type('body/md', { wrap: true }).lineHeight, justifyContent: 'center' }}>
             <Icon name={msg.tone === 'success' ? 'check-circle' : 'bell-slash'} size={th.t('size/icon/sm')} color="toast/icon/default" />

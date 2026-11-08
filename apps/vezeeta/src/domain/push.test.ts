@@ -38,6 +38,13 @@ test('push text matches mock B5 / B5b (EN)', () => {
   assert.deepEqual(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, 'en'), { title: 'Dr Sherif Fathy cancelled Fri 13 Nov', body: 'Sorry about this. Tap to book another time.' });
   assert.deepEqual(pushText({ type: 'followup_ending', doctorId: 'nour' }, bs, 'en', '2026-11-30'), { title: 'Free follow-up ends in 3 days', body: 'Book it with Dr Nour Hassan by Mon 30 Nov.' });
   assert.equal(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'ar').body.replace(/[\u2066\u2069]/g, ''), 'بقى الخميس ١٢ نوفمبر الساعة ٦:٣٠ م. دوس وخلّيه أو اختار ميعاد تاني.');
+  // Designer AR fix 2026-11-09 (gender-neutral b5.1 / b5.3): sample values still swap.
+  const bidi = (x: { title: string; body: string }) => ({ title: x.title.replace(/[\u2066\u2069]/g, ''), body: x.body.replace(/[\u2066\u2069]/g, '') });
+  assert.deepEqual(bidi(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'ar')), { title: 'ميعادك مع د. هنا يوسف اتأكّد', body: 'بكرة الثلاثاء ١٠ نوفمبر الساعة ٧:٠٠ م. دوس وشوف الطريق.' });
+  assert.deepEqual(bidi(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, 'ar')), { title: 'ميعادك مع د. شريف فتحي يوم الجمعة ١٣ نوفمبر اتلغى', body: 'آسفين على كده. دوس واحجز ميعاد تاني.' });
+  // Swap: Sherif's cancel text on Karim's booking (Thu 12 Nov) -> Karim + Thu 12 Nov.
+  const swapped = bs.map((b) => (b.id === 'b-sherif' ? { ...b, doctorId: 'karim', start: '2026-11-12T18:30' } : b));
+  assert.equal(bidi(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, swapped, 'ar')).title, 'ميعادك مع د. كريم عادل يوم الخميس ١٢ نوفمبر اتلغى');
   assert.equal(pushText({ type: 'next_visit_10w', doctorId: 'laila' }, bs, 'en').body, "It's been 10 weeks since your last visit. Tap to pick a time.");
 });
 

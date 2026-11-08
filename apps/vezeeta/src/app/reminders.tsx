@@ -36,7 +36,8 @@ export default function Reminders() {
       TYPES[k].forEach((type) => (v ? ev.reminderOptIn({ type }) : ev.reminderOptOut({ type })));
     } catch {
       setPrefs(prev); // PUT fail: switch reverts
-      toast({ tone: 'neutral', text: t('r1.err', lang) });
+      // R1 has no tab bar: 16 above the home indicator / safe-area bottom (Round 2 toast rule).
+      toast({ tone: 'neutral', text: t('r1.err', lang), bottomOffset: 0 });
     }
   };
 

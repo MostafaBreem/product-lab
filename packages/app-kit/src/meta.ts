@@ -63,7 +63,7 @@ export const components: ComponentMeta[] = [
   },
   {
     name: 'Toast', slug: 'toast', tokens: 'toast', summary: 'Short confirmation after an action; disappears on its own. One at a time.',
-    props: [{ name: 'useToast()', type: "(m: { tone: 'success' | 'neutral'; text: string }) => void", description: 'Show a toast; wrap the app in <ToastHost>.' }],
+    props: [{ name: 'useToast()', type: "(m: { tone: 'success' | 'neutral'; text: string; bottomOffset?: number }) => void", description: 'Show a toast; wrap the app in <ToastHost>. bottomOffset = height of the lowest bar above the safe-area bottom for this toast (default: ToastHost bottomOffset, 83 = tab bar); 0 on screens with no bar.' }],
     variants: ['Success', 'Neutral'], example: `const toast = useToast();\ntoast({ tone: 'success', text: 'Reminders on' });`, related: ['Notice', 'Switch'],
   },
   {

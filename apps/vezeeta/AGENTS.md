@@ -46,3 +46,10 @@ Docs: https://docs.expo.dev/eas/index.md
 - Web screenshots: add a query to any URL, e.g. `http://localhost:8081/appointments?preset=mon9&lang=ar`.
   - `preset` = `sun8` (Sun 8 Nov 6:00 PM, default) · `mon9` (Mon 9 Nov 10:00 AM, clinic events applied) · `fri27` (Fri 27 Nov 10:00 AM). Reseeds the mock data; wins over stored settings.
   - `lang` = `en` · `ar`.
+
+## Copy sync (vezeeta)
+
+- Source of truth: `cases/vezeeta/copy-flows-ab.md` (Mobbin project). `src/domain/strings.ts` holds its rows verbatim.
+- Check: `node scripts/sync-strings.mjs <path>/copy-flows-ab.md` lists every id where EN or AR differs, doc ids missing in the app, and app-only ids (kept). Exit 1 when anything differs.
+- Fix: add `--write` to set EN + AR from the doc for every id in both. Then `npm test` (text.ts / push.ts swap sample values out of these rows).
+- `OVERRIDES` in the script = Designer calls that win until the doc is updated (2026-11-09: b5.1, b5.3 gender-neutral AR). Remove an entry once the doc holds the same text.

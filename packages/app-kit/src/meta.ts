@@ -101,7 +101,7 @@ export const components: ComponentMeta[] = [
       { name: 'quietValue', type: 'string', description: 'Secondary value (fees, "Always on").' },
       { name: 'leading', type: "{ kind: 'logo' | 'icon' | 'skeleton', … }", description: 'Logo tile, icon tile or loading tile.' },
       { name: 'chevron', type: 'boolean', description: 'Shows the row opens something.' },
-      { name: 'selection', type: "{ kind: 'radio' | 'check', selected } | { kind: 'switch', value, onChange }", description: 'Replaces the chevron.' },
+      { name: 'selection', type: "{ kind: 'radio' | 'check', selected } | { kind: 'switch', value, onChange, disabled? }", description: 'Replaces the chevron. Switch disabled = locked row or offline (Switch Disabled on / off).' },
       { name: 'onPress', type: '() => void', description: 'Whole row taps.' },
     ],
     variants: ['Leading Logo / Icon / None', 'Selection None / Radio / Check / Switch'], states: ['Default', 'Pressed', 'Loading'],

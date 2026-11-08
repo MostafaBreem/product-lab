@@ -15,7 +15,7 @@ export type Leading =
 type Props = {
   title: string; subtitle?: string; subtitleColor?: TokenKey; value?: string; quietValue?: string;
   leading?: Leading; chevron?: boolean; onPress?: () => void; divider?: boolean; plainPadding?: boolean;
-  selection?: { kind: 'radio' | 'check'; selected: boolean } | { kind: 'switch'; value: boolean; onChange: (v: boolean) => void };
+  selection?: { kind: 'radio' | 'check'; selected: boolean } | { kind: 'switch'; value: boolean; onChange: (v: boolean) => void; disabled?: boolean };
   testID?: string;
 };
 
@@ -34,7 +34,7 @@ export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/te
         {value ? <Txt role="label/lg" color="list-row/value/text/default" tabular>{value}</Txt> : null}
         {quietValue ? <Txt role="body/sm" color="list-row/value/text/quiet" tabular>{quietValue}</Txt> : null}
         {selection?.kind === 'switch' ? (
-          <Switch value={selection.value} onValueChange={selection.onChange} accessibilityLabel={title} />
+          <Switch value={selection.value} onValueChange={selection.onChange} accessibilityLabel={title} disabled={selection.disabled} />
         ) : selection ? (
           <Icon size={th.t('list-row/selection/size')} weight={selection.selected ? 'fill' : 'regular'}
             name={selection.kind === 'radio' ? (selection.selected ? 'radio-button' : 'circle') : selection.selected ? 'check-square' : 'square'}

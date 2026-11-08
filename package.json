@@ -9,7 +9,8 @@
   "scripts": {
     "tokens": "node packages/app-kit/scripts/gen-tokens.mjs",
     "tabby": "npm --workspace tabby run start",
-    "test": "npm --workspace @lab/app-kit test && npm --workspace tabby test"
+    "test": "npm --workspace @lab/app-kit test && npm --workspace tabby test && npm --workspace vezeeta test",
+    "vezeeta": "npm --workspace vezeeta run start"
   },
   "devDependencies": {
     "@figma/code-connect": "^2.1.0",

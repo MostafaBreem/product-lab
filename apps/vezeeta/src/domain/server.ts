@@ -25,15 +25,33 @@ function fresh(p: ClockPreset): State {
   ];
   return { bookings: buildBookings(p), events, prefs: { followUp: true, nextVisit: true, statusChanges: true }, byKey: new Map(), seq: 0, takenByOthers: new Set() };
 }
+/** Persisted server data (build-spec-rules > Analytics + data: store survives reload; reset store clears). */
+export type ServerSnapshot = { preset: ClockPreset; bookings: Booking[]; events: ClinicEvent[]; prefs: ReminderPrefs; byKey: [string, string][]; seq: number; takenByOthers: string[] };
+const listeners = new Set<(s: ServerSnapshot) => void>();
+export const onServerChange = (f: (s: ServerSnapshot) => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
+export function snapshot(): ServerSnapshot {
+  return clone({ preset: settings.preset, bookings: state.bookings, events: state.events, prefs: state.prefs, byKey: [...state.byKey].map(([k, b]) => [k, b.id] as [string, string]), seq: state.seq, takenByOthers: [...state.takenByOthers] });
+}
+const changed = () => { if (listeners.size) { const s = snapshot(); listeners.forEach((f) => f(s)); } };
+/** Re-hydrate stored data. Only when it was saved under the current preset (a changed preset reseeds). */
+export function restore(x: ServerSnapshot | null | undefined): boolean {
+  if (!x || x.preset !== settings.preset || !Array.isArray(x.bookings)) return false;
+  const bookings = clone(x.bookings);
+  const byId = new Map(bookings.map((b) => [b.id, b]));
+  const byKey = new Map<string, Booking>();
+  (x.byKey ?? []).forEach(([k, id]) => { const b = byId.get(id); if (b) byKey.set(k, b); });
+  state = { bookings, events: clone(x.events ?? []), prefs: { ...state.prefs, ...x.prefs }, byKey, seq: x.seq ?? 0, takenByOthers: new Set(x.takenByOthers ?? []) };
+  return true;
+}
 export const getSettings = () => settings;
 export const now = () => settings.now;
 /** Preset change reseeds; other settings keep data. */
 export function configure(next: Partial<Settings>) {
   const prev = settings;
   settings = { ...settings, ...next };
-  if (next.preset && next.preset !== prev.preset) { settings.now = next.now ?? PRESETS[next.preset]; const prefs = state.prefs; state = fresh(next.preset); state.prefs = prefs; }
+  if (next.preset && next.preset !== prev.preset) { settings.now = next.now ?? PRESETS[next.preset]; const prefs = state.prefs; state = fresh(next.preset); state.prefs = prefs; changed(); }
 }
-export function reset() { settings = { ...defaultSettings }; state = fresh(settings.preset); }
+export function reset() { settings = { ...defaultSettings }; state = fresh(settings.preset); changed(); }
 /** Debug clinic event on a chosen booking (fires push in the app layer). */
 export function clinicEvent(bookingId: string, type: ClinicEvent['type'], newStart?: Local): Booking {
   const b = state.bookings.find((x) => x.id === bookingId);
@@ -42,6 +60,7 @@ export function clinicEvent(bookingId: string, type: ClinicEvent['type'], newSta
   if (type === 'cancelled') b.status = 'cancelledByClinic';
   if (type === 'moved') { b.previousStart = b.start; b.start = newStart ?? b.start; b.status = 'movedByClinic'; }
   state.events.push({ bookingId, type, at: settings.now });
+  changed();
   return clone(b);
 }
 export const clinicEvents = () => clone(state.events);
@@ -57,7 +76,7 @@ const find = (id: string) => { const b = state.bookings.find((x) => x.id === id)
 const othersKey = (doctorId: string, start: Local) => `${doctorId}|${start}`;
 const markOthers = (xs: Slot[]) => xs.map((s) => (state.takenByOthers.has(othersKey(s.doctorId, s.start)) ? { ...s, taken: true } : s));
 const slotFree = (doctorId: string, start: Local) => markOthers(buildSlots(doctorId, settings.now, state.bookings, start.slice(0, 10), 1)).some((s) => s.start === start && !s.taken);
-const taken = (doctorId: string, start: Local) => { state.takenByOthers.add(othersKey(doctorId, start)); return new MockError('slotTaken', true); };
+const taken = (doctorId: string, start: Local) => { state.takenByOthers.add(othersKey(doctorId, start)); changed(); return new MockError('slotTaken', true); };
 
 export type BookingRequest = { doctorId: string; start: Local; patientName: string; phone: string; email?: string; kind: BookingKind; offersOptIn: boolean; consentVersion: string; idempotencyKey: string; source: Source };
 
@@ -83,21 +102,21 @@ export const api = {
     }
     const b: Booking = { id: `bk-${++state.seq}`, doctorId: r.doctorId, patientName: r.patientName, phone: r.phone, email: r.email, start: r.start, fee, kind: r.kind,
       status: 'booked', createdAt: settings.now, source: r.source, bookingConsentAt: settings.now, consentVersion: r.consentVersion };
-    state.bookings.push(b); state.byKey.set(r.idempotencyKey, b);
+    state.bookings.push(b); state.byKey.set(r.idempotencyKey, b); changed();
     return clone(b);
   }),
   appointments: () => call(500, () => clone(state.bookings)),
-  keep: (id: string) => call(600, () => { const b = find(id); b.status = 'kept'; return clone(b); }),
+  keep: (id: string) => call(600, () => { const b = find(id); b.status = 'kept'; changed(); return clone(b); }),
   /** Fee 0 after a clinic move (guess). */
-  cancel: (id: string) => call(800, () => { const b = find(id); const afterClinicMove = b.status === 'movedByClinic'; b.status = 'cancelledByPatient'; if (afterClinicMove) b.fee = 0; return clone({ booking: b, afterClinicMove }); }),
+  cancel: (id: string) => call(800, () => { const b = find(id); const afterClinicMove = b.status === 'movedByClinic'; b.status = 'cancelledByPatient'; if (afterClinicMove) b.fee = 0; changed(); return clone({ booking: b, afterClinicMove }); }),
   /** PATCH /bookings/:id {start}: reschedule. */
   reschedule: (id: string, start: Local) => call(1000, () => {
     const b = find(id);
     if (!slotFree(b.doctorId, start)) throw taken(b.doctorId, start);
-    const fromStart = b.start; b.start = start; b.status = 'booked'; b.previousStart = undefined;
+    const fromStart = b.start; b.start = start; b.status = 'booked'; b.previousStart = undefined; changed();
     return clone({ booking: b, fromStart });
   }),
   prefs: () => call(300, () => clone(state.prefs)),
-  savePrefs: (p: ReminderPrefs) => call(300, () => { state.prefs = { ...clone(p), statusChanges: true }; return clone(state.prefs); }),
+  savePrefs: (p: ReminderPrefs) => call(300, () => { state.prefs = { ...clone(p), statusChanges: true }; changed(); return clone(state.prefs); }),
 };
 export { DOCTORS, sleep };

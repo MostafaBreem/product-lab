@@ -6,7 +6,7 @@ import { ev, onEvent, setClock, setCommon, type Logged } from './domain/analytic
 import { crossed, visits } from './domain/derive';
 import { PRESETS } from './domain/fixtures';
 import { fireDue, type Reminder } from './domain/reminders';
-import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, configure, defaultSettings, now as serverNow, reset, type Settings } from './domain/server';
+import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, configure, defaultSettings, now as serverNow, onServerChange, reset, restore, type ServerSnapshot, type Settings } from './domain/server';
 import { addMinutes } from './domain/time';
 import type { Booking, ClockPreset, Lang, Local } from './domain/types';
 
@@ -25,7 +25,7 @@ type Store = {
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
 };
 const Ctx = createContext<Store | null>(null);
-const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings', prefs: 'vz.prefs' };
+const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings', prefs: 'vz.prefs', server: 'vz.server' };
 export const PREFS_KEY = K.prefs;
 /** Debug settings persisted across reloads (one-shot errors are not). */
 const persisted = (x: Settings) => ({ preset: x.preset, now: x.now, net: x.net, latency: x.latency });
@@ -63,6 +63,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setFlags({ passedEmitted: [...seen] });
   }, [setFlags]);
 
+  /** Mock server data (bookings, clinic events, keeps, cancels, prefs) survives reload; saved after every change. */
+  const hydrated = useRef(false);
+  useEffect(() => onServerChange((x) => { if (hydrated.current) save(K.server, x); }), []);
   useEffect(() => onEvent((e) => setEvents((xs) => { const n = [e, ...xs].slice(0, 500); save(K.events, n); return n; })), []);
 
   const refresh = useCallback(async () => {
@@ -115,11 +118,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const [f, e, s] = await Promise.all([K.flags, K.events, K.settings].map((k) => AsyncStorage.getItem(k).catch(() => null)));
+      const [f, e, s, sv] = await Promise.all([K.flags, K.events, K.settings, K.server].map((k) => AsyncStorage.getItem(k).catch(() => null)));
       if (f) { const o = { ...defaultFlags, ...JSON.parse(f) }; flagsRef.current = o; setFlagsState(o); }
       if (e) setEvents(JSON.parse(e));
       if (s) { const o = { ...defaultSettings, ...JSON.parse(s) } as Settings; configure({ preset: o.preset }); configure({ now: o.now, net: o.net, latency: o.latency }); setSettingsState(o); }
       else emitPassed(visits(allBookings(), serverNow())); // first launch = store reset
+      // Stored server data under the same preset = reload: keep it (no reseed).
+      if (sv) restore(JSON.parse(sv) as ServerSnapshot);
+      hydrated.current = true;
       // Web screenshots: ?preset=mon9&lang=ar (AGENTS.md > Screenshot URLs). Wins over stored settings.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         const q = new URLSearchParams(window.location.search);

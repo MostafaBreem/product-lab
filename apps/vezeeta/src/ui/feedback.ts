@@ -10,6 +10,8 @@ export const haptic = {
   /** Booking success. */
   success: () => { if (native) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {}); },
   /** slotTaken notice. */
+  /** B2b keep (Motion: Toast in, light on keep). */
+  light: () => { if (native) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); },
   warning: () => { if (native) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {}); },
 };
 
@@ -19,5 +21,14 @@ export async function askNotifications(): Promise<'granted' | 'denied' | 'web'> 
   try {
     const r = await Notifications.requestPermissionsAsync();
     return r.granted ? 'granted' : 'denied';
+  } catch { return 'denied'; }
+}
+
+/** Current OS permission without asking (R1 Notice, push delivery). Web = 'web' (banners only). */
+export async function notificationStatus(): Promise<'granted' | 'denied' | 'undetermined' | 'web'> {
+  if (!native) return 'web';
+  try {
+    const r = await Notifications.getPermissionsAsync();
+    return r.granted ? 'granted' : r.canAskAgain ? 'undetermined' : 'denied';
   } catch { return 'denied'; }
 }

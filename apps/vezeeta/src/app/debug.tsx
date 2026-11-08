@@ -5,13 +5,14 @@ import React, { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { Button, ListGroup, ListRow, NavigationBar, Screen, SectionHeader, SegmentedControl, Txt, useTheme, useToast } from '@lab/app-kit';
 import { ev } from '../domain/analytics';
-import { isCancelled } from '../domain/derive';
+import { followUpUntil, isCancelled, prompts } from '../domain/derive';
+import { pushText } from '../domain/push';
+import { allBookings } from '../domain/server';
 import { doctor } from '../domain/fixtures';
 import { dayTime } from '../domain/format';
-import { split } from '../domain/strings';
 import type { ClockPreset } from '../domain/types';
 import { drName } from '../ui/text';
-import { useStore } from '../state';
+import { firePush, useStore } from '../state';
 
 type EventType = 'confirmed' | 'moved' | 'cancelled';
 
@@ -23,17 +24,19 @@ export default function Debug() {
   const [evType, setEvType] = useState<EventType>('confirmed');
   const targets = (st.bookings ?? []).filter((b) => !isCancelled(b) && b.start >= x.now).sort((a, b) => a.start.localeCompare(b.start));
 
-  /** Reminder in 5 s: iOS local notification; web = in-app toast (B5 web banner, task 3b). Copy b5.4 / b5.5. */
+  /** Reminder in 5 s: iOS local notification (TIME_INTERVAL); web = in-app banner (NotifyHost). Copy b5.4 / b5.5 with the current prompt's doctor. */
   const fire = (kind: 'followUp' | 'nextVisit') => {
-    const [title, body] = split(kind === 'followUp' ? 'b5.4' : 'b5.5', lang, ' / ');
+    const p = prompts(st.bookings ?? [], x.now).find((q) => q.type === kind);
+    if (!p) { toast({ tone: 'neutral', text: `No ${kind} prompt at this clock` }); return; }
     const type = kind === 'followUp' ? 'followup_open' : 'next_visit_4w';
-    setTimeout(() => {
-      ev.reminderSent({ type });
-      if (Platform.OS === 'web') toast({ tone: 'neutral', text: `${title}. ${body}` });
-    }, 5000);
+    const r = { type, key: `debug:${type}`, fireAt: x.now, doctorId: p.doctorId, bookingId: p.visitId } as const;
     if (Platform.OS !== 'web') {
-      Notifications.scheduleNotificationAsync({ content: { title, body, data: { kind } }, trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 5 } }).catch((e) => console.warn(e));
-    }
+      const bs = allBookings();
+      const visit = bs.find((b) => b.id === p.visitId);
+      const text = pushText(r, bs, lang, kind === 'followUp' && visit ? followUpUntil(visit) : undefined);
+      Notifications.scheduleNotificationAsync({ content: { title: text.title, body: text.body, data: { type, bookingId: p.visitId, doctorId: p.doctorId } }, trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 5 } }).catch((e) => console.warn(e));
+      setTimeout(() => ev.reminderSent({ type }), 5000);
+    } else setTimeout(() => { ev.reminderSent({ type }); firePush(r); }, 5000);
   };
 
   return (

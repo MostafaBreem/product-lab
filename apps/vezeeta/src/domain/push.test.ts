@@ -1,0 +1,71 @@
+// Task 3b: push routing (build-spec.md > push taps, deep link), B2 keep flow, reminder due firing once, B2c late rule.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { buildBookings, PRESETS } from './fixtures';
+import { linkData, linkTarget, pushTarget, pushText } from './push';
+import { fireDue } from './reminders';
+import { allBookings, api, clinicEvent, clinicEvents, configure, reset } from './server';
+import { underThreeHours } from './derive';
+import { keptToast } from '../ui/text';
+
+const mon9 = PRESETS.mon9;
+const bs = buildBookings('mon9');
+const prefs = { followUp: true, nextVisit: true, statusChanges: true as const };
+
+test('push tap routing at Mon 9 Nov: confirmed -> B1 card, moved -> B2, cancelled -> B1 card, follow-up / next visit -> A2 matching mode', () => {
+  assert.deepEqual(pushTarget({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, mon9), { to: 'b1', bookingId: 'b-hana' });
+  assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'b-karim' }, bs, mon9), { to: 'b2', bookingId: 'b-karim' });
+  assert.deepEqual(pushTarget({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, mon9), { to: 'b1', bookingId: 'b-sherif' });
+  assert.deepEqual(pushTarget({ type: 'followup_open', bookingId: 'b-nour-oct', doctorId: 'nour' }, bs, mon9), { to: 'a2', doctorId: 'nour', mode: 'followUp', source: 'push_followup' });
+  assert.deepEqual(pushTarget({ type: 'next_visit_4w', bookingId: 'b-laila-oct', doctorId: 'laila' }, bs, mon9), { to: 'a2', doctorId: 'laila', mode: 'normal', source: 'push_next_visit' });
+});
+
+test('push / deep link to unknown, resolved or past booking -> stale (B1 + Toast)', () => {
+  assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'nope' }, bs, mon9), { to: 'stale' });
+  const kept = bs.map((b) => (b.id === 'b-karim' ? { ...b, status: 'kept' as const } : b));
+  assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'b-karim' }, kept, mon9), { to: 'stale' });
+  assert.deepEqual(pushTarget({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, PRESETS.fri27), { to: 'stale' });
+  assert.deepEqual(linkTarget('b-karim', bs, mon9), { to: 'b2', bookingId: 'b-karim' });
+  assert.deepEqual(linkTarget('b-hana', bs, mon9), { to: 'b1', bookingId: 'b-hana' });
+  assert.deepEqual(linkTarget('nope', bs, mon9), { to: 'stale' });
+  assert.deepEqual(linkData('b-karim', undefined, bs), { type: 'status_moved', bookingId: 'b-karim' });
+  assert.deepEqual(linkData('nope', 'status_cancelled', bs), { type: 'status_cancelled', bookingId: 'nope' });
+});
+
+test('push text matches mock B5 / B5b (EN)', () => {
+  assert.deepEqual(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'en'), { title: 'Dr Hana Youssef confirmed your visit', body: 'Tomorrow, Tue 10 Nov at 7:00 PM. Tap for directions.' });
+  assert.deepEqual(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'en'), { title: 'Your visit was moved', body: 'Now Thu 12 Nov, 6:30 PM. Tap to keep it or pick another time.' });
+  assert.deepEqual(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, 'en'), { title: 'Dr Sherif Fathy cancelled Fri 13 Nov', body: 'Sorry about this. Tap to book another time.' });
+  assert.deepEqual(pushText({ type: 'followup_ending', doctorId: 'nour' }, bs, 'en', '2026-11-30'), { title: 'Free follow-up ends in 3 days', body: 'Book it with Dr Nour Hassan by Mon 30 Nov.' });
+  assert.equal(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'ar').body.replace(/[\u2066\u2069]/g, ''), 'بقى الخميس ١٢ نوفمبر الساعة ٦:٣٠ م. دوس وخلّيه أو اختار ميعاد تاني.');
+  assert.equal(pushText({ type: 'next_visit_10w', doctorId: 'laila' }, bs, 'en').body, "It's been 10 weeks since your last visit. Tap to pick a time.");
+});
+
+test('B2 keep: POST keep -> status kept, moved push goes stale, B2b toast text = mock', async () => {
+  reset(); configure({ preset: 'mon9', now: mon9 }); configure({ latency: 'fast' });
+  const b = await api.keep('b-karim');
+  assert.equal(b.status, 'kept');
+  assert.equal(b.start, '2026-11-12T18:30');
+  assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'b-karim' }, allBookings(), mon9), { to: 'stale' });
+  assert.equal(keptToast(b.start, 'en'), 'Visit kept: Thu 12 Nov, 6:30 PM');
+  assert.equal(keptToast(b.start, 'ar').replace(/[\u2066\u2069]/g, ''), 'تمام، ميعادك الخميس ١٢ نوفمبر الساعة ٦:٣٠ م');
+});
+
+test('reminders: due items fire once (once flags); a new clinic event fires its status push once', () => {
+  reset(); configure({ preset: 'mon9', now: mon9 });
+  const a = fireDue(allBookings(), clinicEvents(), prefs, mon9, []);
+  assert.ok(a.fire.some((r) => r.type === 'status_moved' && r.bookingId === 'b-karim'));
+  assert.equal(a.fire.filter((r) => r.type.startsWith('status_')).length, 3);
+  const b = fireDue(allBookings(), clinicEvents(), prefs, mon9, a.fired);
+  assert.deepEqual(b.fire, []);
+  clinicEvent('b-hana', 'moved', '2026-11-11T18:30');
+  const c = fireDue(allBookings(), clinicEvents(), prefs, mon9, b.fired);
+  assert.deepEqual(c.fire.map((r) => `${r.type}:${r.bookingId}`), ['status_moved:b-hana']);
+  assert.deepEqual(fireDue(allBookings(), clinicEvents(), prefs, mon9, c.fired).fire, []);
+});
+
+test('B2c late rule: under 3 hours before the visit', () => {
+  assert.ok(underThreeHours('2026-11-09T12:59', '2026-11-09T10:00'));
+  assert.ok(!underThreeHours('2026-11-09T13:00', '2026-11-09T10:00'));
+  assert.ok(!underThreeHours('2026-11-09T09:00', '2026-11-09T10:00'));
+});

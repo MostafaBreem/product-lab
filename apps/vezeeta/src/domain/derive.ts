@@ -99,3 +99,5 @@ export function northStar(created: BookingCreated[], visitPassedCount: number) {
   const num = created.filter(isNorthStar);
   return { numerator: num.length, denominator: visitPassedCount, promptAttributed: num.filter(isPromptAttributed).length };
 }
+/** B2c late rule (guess, Round 2): visit starts in under 3 hours. */
+export const underThreeHours = (start: Local, now: Local) => start >= now && Date.parse(`${start}:00Z`) - Date.parse(`${now}:00Z`) < 3 * 60 * 60000;

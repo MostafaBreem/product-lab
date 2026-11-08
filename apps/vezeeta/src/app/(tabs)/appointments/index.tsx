@@ -1,6 +1,6 @@
-// B1 Upcoming / B3 Past (one screen, SegmentedControl) + B6 empty + B2c cancel confirm sheet.
+// B1 Upcoming / B3 Past (one screen, SegmentedControl) + B6 empty + B2 moved sheet (param moved) / B2b kept + B2c cancel confirm sheet.
 // Mock appointments-en-v3 B1 / B2c / B3 / B6; build-spec-screens.md > Flow B; build-spec-rules.md > Patient cancel, Round 2 fixes.
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { BottomSheet, Button, Card, Header, KeyValue, ListGroup, Notice, Screen, SectionHeader, SegmentedControl, Tag, Txt, useTheme, useToast } from '@lab/app-kit';
@@ -11,8 +11,10 @@ import { dayTime, monthName } from '../../../domain/format';
 import { api } from '../../../domain/server';
 import { fmtStrings, split, t } from '../../../domain/strings';
 import type { Booking, Prompt, Source } from '../../../domain/types';
-import { DoctorLine, EmptyBlock, FadeCollapse, IconKV, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
-import { bookAgain, cacheAge, cancelledBody, cancelMovedBody, drName, feeLine, fuRow, initials, nextRow, pastFee, pastFuBody, pastFuTitle, pastRowSub, streetArea, visitOn, wasLine } from '../../../ui/text';
+import { underThreeHours } from '../../../domain/derive';
+import { haptic } from '../../../ui/feedback';
+import { DoctorLine, EmptyBlock, FadeCollapse, FadeSwap, IconKV, MovedTimes, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
+import { bookAgain, cacheAge, keptToast, placeLine, cancelledBody, cancelMovedBody, drName, feeLine, fuRow, initials, nextRow, pastFee, pastFuBody, pastFuTitle, pastRowSub, streetArea, visitOn, wasLine } from '../../../ui/text';
 import { useStore } from '../../../state';
 
 type Seg = 'upcoming' | 'past';
@@ -20,7 +22,7 @@ const CANCELLABLE = new Set<Booking['status']>(['booked', 'confirmedForTomorrow'
 const pkey = (p: Prompt) => `${p.type}:${p.doctorId}`;
 
 /** A2 for a doctor (Home stack). */
-function toDoctor(id: string, source: Source, mode: 'normal' | 'followUp', extra: Record<string, string> = {}) {
+function toDoctor(id: string, source: Source, mode: 'normal' | 'followUp' | 'reschedule', extra: Record<string, string> = {}) {
   router.navigate({ pathname: '/home/doctor/[id]', params: { id, source, mode, ...extra } });
 }
 
@@ -34,6 +36,15 @@ export default function Appointments() {
   const [cancelId, setCancelId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [cancelErr, setCancelErr] = useState(false);
+  // B2 moved sheet: opened from the card, a push tap or a deep link (param moved).
+  const params = useLocalSearchParams<{ moved?: string; focus?: string }>();
+  const [movedId, setMovedId] = useState<string>();
+  const [keepBusy, setKeepBusy] = useState(false);
+  const [keepErr, setKeepErr] = useState(false);
+  useEffect(() => {
+    if (params.moved) { setSeg('upcoming'); setKeepErr(false); setMovedId(params.moved); router.setParams({ moved: undefined }); }
+    else if (params.focus) { setSeg('upcoming'); router.setParams({ focus: undefined }); }
+  }, [params.moved, params.focus]);
   useFocusEffect(useCallback(() => { setCommon({ screen: seg === 'upcoming' ? 'B1' : 'B3' }); if (!loading) st.refresh(); }, [seg]));
 
   const ps = useMemo(() => (bookings ? prompts(bookings, now) : []), [bookings, now]);
@@ -67,6 +78,31 @@ export default function Appointments() {
     toDoctor(p.doctorId, source, p.type === 'followUp' ? 'followUp' : 'normal');
   };
 
+  const moved = bookings?.find((b) => b.id === movedId && b.status === 'movedByClinic');
+  const movedDoc = moved ? doctor(moved.doctorId) : undefined;
+  async function keep() {
+    if (!moved) return;
+    if (offline) { offToast(); return; }
+    setKeepBusy(true); setKeepErr(false);
+    try {
+      const b = await api.keep(moved.id);
+      ev.movedResolved({ bookingId: b.id, resolution: 'keep' });
+      setMovedId(undefined);
+      await st.refresh();
+      haptic.light();
+      toast({ tone: 'success', text: keptToast(b.start, lang) });
+    } catch (e) {
+      if ((e as { code?: string }).code === 'network') offToast(); else setKeepErr(true);
+    } finally { setKeepBusy(false); }
+  }
+  const pickAnother = () => {
+    if (!moved) return;
+    ev.movedResolved({ bookingId: moved.id, resolution: 'pick' });
+    setMovedId(undefined);
+    toDoctor(moved.doctorId, 'moved_pick', 'reschedule', { bookingId: moved.id });
+  };
+  const cancelFromMoved = () => { if (!moved) return; const id = moved.id; setMovedId(undefined); setCancelErr(false); setCancelId(id); };
+
   const target = bookings?.find((b) => b.id === cancelId);
   async function confirmCancel() {
     if (!target) return;
@@ -75,6 +111,7 @@ export default function Appointments() {
     try {
       const r = await api.cancel(target.id);
       ev.patientCancelled({ bookingId: target.id, afterClinicMove: r.afterClinicMove });
+      if (r.afterClinicMove) ev.movedResolved({ bookingId: target.id, resolution: 'cancel' });
       setCancelId(undefined);
       await st.refresh();
     } catch (e) {
@@ -111,18 +148,39 @@ export default function Appointments() {
               </FadeCollapse>
             );
           })}
-          {ups.map((b) => <BookingCard key={b.id} b={b} onCancel={() => { setCancelErr(false); setCancelId(b.id); }} />)}
+          {ups.map((b) => <BookingCard key={b.id} b={b} onCancel={() => { setCancelErr(false); setCancelId(b.id); }} onReview={() => { setKeepErr(false); setMovedId(b.id); }} />)}
           {ups.length === 0 ? <EmptyBlock icon="calendar" title={t('b6.t', lang)} body={t('b6.b', lang)} cta={t('b6.cta', lang)} onPress={() => router.navigate('/home')} /> : null}
         </View>
       ) : (
         <PastView top={pastList.top} months={pastList.months} ps={ps} onPrompt={(p) => tapPrompt(p, 'past')} />
       )}
 
+      <BottomSheet visible={!!moved && !!movedDoc} onClose={() => setMovedId(undefined)} title={t('b2.t', lang)} dismissable={!keepBusy} footer={
+        <View style={{ gap: th.t('space/gap-y/xs') }}>
+          <Button label={split('b2.acts', lang)[0]} loading={keepBusy} onPress={keep} testID="b2-keep" />
+          <Button variant="secondary" label={split('b2.acts', lang)[1]} disabled={keepBusy} onPress={pickAnother} testID="b2-pick" />
+          <Button variant="link" label={split('b2.acts', lang)[2]} onPress={cancelFromMoved} testID="b2-cancel" />
+        </View>
+      }>
+        {keepErr ? (
+          <Notice tone="critical" title={errT} body={errB}>
+            <Button variant="link" label={t('err.retry', lang)} onPress={keep} testID="b2-retry" />
+          </Notice>
+        ) : null}
+        {moved && movedDoc ? (
+          <>
+            <MovedTimes newK={split('b.moved.keys', lang)[0]} newV={dayTime(moved.start, lang)} wasK={split('b.moved.keys', lang)[1]} wasV={moved.previousStart ? dayTime(moved.previousStart, lang) : ''} />
+            {/* Kit ListRow has no Avatar leading: DoctorLine pattern (gap) */}
+            <DoctorLine initials={initials(movedDoc)} name={drName(movedDoc, lang)} sub={placeLine(movedDoc, lang)} />
+            <Txt role="body/md" wrap color="color/text/content/secondary/default">{t('b2.note', lang)}</Txt>
+          </>
+        ) : null}
+      </BottomSheet>
+
       <BottomSheet visible={!!target} onClose={() => setCancelId(undefined)} title={t('b2c.t', lang)} footer={
-        <View>
+        <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Button tone="critical" label={busy ? t('btn.cancelling', lang) : split('b2c.acts', lang)[0]} loading={busy} onPress={confirmCancel} testID="b2c-cancel" />
-          {/* Kit has no Secondary Button: Link (gap) */}
-          <Button variant="link" label={split('b2c.acts', lang)[1]} onPress={() => setCancelId(undefined)} testID="b2c-keep" />
+          <Button variant="secondary" label={split('b2c.acts', lang)[1]} disabled={busy} onPress={() => setCancelId(undefined)} testID="b2c-keep" />
         </View>
       }>
         {cancelErr ? <Notice tone="critical" title={errT} body={errB} /> : null}
@@ -132,13 +190,15 @@ export default function Appointments() {
   );
 }
 
-/** B2c body: after a clinic move = free (b2c.b); else b2c.b.normal. Under-3-hours body has no copy row (gap): b2c.b.normal used. */
-function cancelBody(b: Booking, _now: string, lang: 'en' | 'ar') {
+/** B2c body: after a clinic move = free (b2c.b); under 3 hours before = b2c.b.late (Round 2; cancel still allowed); else b2c.b.normal. */
+function cancelBody(b: Booking, now: string, lang: 'en' | 'ar') {
   const d = doctor(b.doctorId)!;
-  return b.status === 'movedByClinic' ? cancelMovedBody(d, b.start, lang) : fmtStrings.cancelNormal(drName(d, lang), dayTime(b.start, lang), lang);
+  if (b.status === 'movedByClinic') return cancelMovedBody(d, b.start, lang);
+  if (underThreeHours(b.start, now)) return t('b2c.b.late', lang);
+  return fmtStrings.cancelNormal(drName(d, lang), dayTime(b.start, lang), lang);
 }
 
-function BookingCard({ b, onCancel }: { b: Booking; onCancel: () => void }) {
+function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => void; onReview: () => void }) {
   const { lang } = useStore();
   const th = useTheme();
   const d = doctor(b.doctorId);
@@ -154,17 +214,16 @@ function BookingCard({ b, onCancel }: { b: Booking; onCancel: () => void }) {
 
   if (b.status === 'movedByClinic') {
     const [newK] = split('b.moved.keys', lang);
-    const open = () => router.push({ pathname: '/appointments/moved/[id]', params: { id: b.id } });
     return (
       <Card>
-        <Tag tone="warning" label={t('b.moved.tag', lang)} />
+        <FadeSwap k={b.status}><Tag tone="warning" label={t('b.moved.tag', lang)} /></FadeSwap>
         {who}
         <View style={{ gap: th.t('space/gap-y/2xs') }}>
           <KeyValue k={newK} v={dayTime(b.start, lang)} />
           {b.previousStart ? <Txt role="body/sm" color="color/text/content/secondary/default">{wasLine(b.previousStart, lang)}</Txt> : null}
         </View>
         <Txt role="body/sm" wrap>{t('b.moved.b', lang)}</Txt>
-        <Button label={t('b.moved.cta', lang)} onPress={open} testID={`moved-${b.id}`} />
+        <Button label={t('b.moved.cta', lang)} onPress={onReview} testID={`moved-${b.id}`} />
         {cancelLink}
       </Card>
     );
@@ -173,7 +232,7 @@ function BookingCard({ b, onCancel }: { b: Booking; onCancel: () => void }) {
     const [again, other] = split('b.canc.cta', lang);
     return (
       <Card>
-        <Tag tone="critical" label={t('b.canc.tag', lang)} />
+        <FadeSwap k={b.status}><Tag tone="critical" label={t('b.canc.tag', lang)} /></FadeSwap>
         <DoctorLine initials={initials(d)} name={drName(d, lang)} />
         <Txt role="body/sm" wrap>{cancelledBody(d, b.start, lang)}</Txt>
         <View>
@@ -190,7 +249,7 @@ function BookingCard({ b, onCancel }: { b: Booking; onCancel: () => void }) {
   const full = b.status === 'confirmedForTomorrow';
   return (
     <Card>
-      {tag}
+      <FadeSwap k={b.status}>{tag}</FadeSwap>
       {who}
       <View style={{ gap: th.t('space/gap-y/xs') }}>
         <IconKV icon="calendar" v={dayTime(b.start, lang)} />
@@ -227,8 +286,7 @@ function PastView({ top, months, ps, onPrompt }: { top: Booking[]; months: { mon
           <Card key={v.id}>
             {who}
             <Txt role="body/sm" color="color/text/content/secondary/default">{pastFee(d.fee, lang)}</Txt>
-            {/* Kit has no Secondary Button: Link (gap) */}
-            <Button variant="link" label={t('b3.next', lang)} onPress={() => onPrompt(p)} testID={`past-next-${v.id}`} />
+            <Button variant="secondary" label={t('b3.next', lang)} onPress={() => onPrompt(p)} testID={`past-next-${v.id}`} />
           </Card>
         );
         return (

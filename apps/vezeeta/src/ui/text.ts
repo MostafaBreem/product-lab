@@ -114,3 +114,9 @@ export function pastRowSub(reason: string | undefined, start: Local, lang: Lang)
   return reason ? `${reason} · ${d}` : d;
 }
 export const bookAgain = (lang: Lang) => split('b3.sep', lang)[3];
+/** b2b.toast: "Visit kept: Thu 12 Nov, 6:30 PM". AR sample = day + "الساعة" + time. */
+export function keptToast(start: Local, lang: Lang) {
+  const sampleDT = lang === 'en' ? 'Thu 12 Nov, 6:30 PM' : 'الخميس ١٢ نوفمبر الساعة ٦:٣٠ م';
+  const dt = lang === 'en' ? f.dayTime(start, lang) : `${f.day(dayOf(start), lang)} الساعة ${f.time(start, lang)}`;
+  return t('b2b.toast', lang).replace(sampleDT, dt);
+}

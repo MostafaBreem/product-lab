@@ -158,7 +158,7 @@ export function Tile({ icon }: { icon: IconName }) {
 }
 
 /** B1 prompt row (mock "Card · Follow-up row" / "Next visit row"): tile + title + subtitle + small trailing Book.
- * Kit has no Secondary small Button: Button link, not full (gap). */
+ * Trailing Book = Button Secondary small (mock "Button · Secondary small"). */
 export function PromptRow({ icon, title, sub, cta, onPress, testID }: { icon: IconName; title: string; sub: string; cta: string; onPress: () => void; testID?: string }) {
   const th = useTheme();
   return (
@@ -168,7 +168,7 @@ export function PromptRow({ icon, title, sub, cta, onPress, testID }: { icon: Ic
         <Txt role="label/lg" wrap>{title}</Txt>
         <Txt role="body/sm" wrap color="color/text/content/secondary/default">{sub}</Txt>
       </View>
-      <Button variant="link" full={false} label={cta} onPress={onPress} testID={testID} />
+      <Button variant="secondary" full={false} label={cta} onPress={onPress} testID={testID} />
     </Card>
   );
 }
@@ -242,5 +242,34 @@ export function SkeletonRow() {
       <Bar w={th.t('size/height/lg')} h={th.t('size/height/lg')} r={th.t('radius/md')} />
       <View style={{ flex: 1, gap: th.t('space/gap-y/2xs') }}><Bar w="70%" /><Bar w="40%" /></View>
     </Card>
+  );
+}
+
+/** Tag change: new tag fades in 200 (motion role small, ease-out; B2b "cross-fade 200 tag"). First mount = no motion; Reduce Motion = swap. */
+export function FadeSwap({ k, children }: { k: string; children: React.ReactNode }) {
+  const rm = useReduceMotion();
+  const v = useRef(new Animated.Value(1)).current;
+  const prev = useRef(k);
+  useEffect(() => {
+    if (prev.current === k) return;
+    prev.current = k;
+    if (rm) { v.setValue(1); return; }
+    v.setValue(0);
+    Animated.timing(v, { toValue: 1, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }).start();
+  }, [k, rm]);
+  return <Animated.View style={{ opacity: v, alignSelf: 'flex-start' }}>{children}</Animated.View>;
+}
+
+/** B2 inset times: "New time" value + "Was" struck old value (KeyValue has no struck value: pattern). */
+export function MovedTimes({ newK, newV, wasK, wasV }: { newK: string; newV: string; wasK: string; wasV: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/md'), paddingHorizontal: th.t('space/padding-x/md'), paddingVertical: th.t('space/padding-y/sm'), borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string }}>
+      <View style={{ flex: 1 }}><KeyValue k={newK} v={newV} /></View>
+      <View style={{ flex: 1, gap: th.t('key-value/container/gap') }}>
+        <Txt role="body/sm" color="key-value/key/text/default">{wasK}</Txt>
+        <Txt role="label/lg" color="color/text/content/secondary/default" style={{ textDecorationLine: 'line-through' }}>{wasV}</Txt>
+      </View>
+    </View>
   );
 }

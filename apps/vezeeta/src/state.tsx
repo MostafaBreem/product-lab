@@ -1,11 +1,11 @@
 // App store: debug settings (mock clock, net, latency, one-shot errors), language, reminder once-flags, cached bookings, event log.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, useColorScheme } from 'react-native';
+import { AppState, Platform, useColorScheme } from 'react-native';
 import { ev, onEvent, setClock, setCommon, type Logged } from './domain/analytics';
 import { crossed, visits } from './domain/derive';
 import { PRESETS } from './domain/fixtures';
-import { due } from './domain/reminders';
+import { fireDue, type Reminder } from './domain/reminders';
 import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, configure, defaultSettings, now as serverNow, reset, type Settings } from './domain/server';
 import { addMinutes } from './domain/time';
 import type { Booking, ClockPreset, Lang, Local } from './domain/types';
@@ -20,11 +20,17 @@ type Store = {
   flags: Flags; setFlags: (p: Partial<Flags>) => void;
   bookings?: Booking[]; cachedAt?: Local; loadError?: string; loading: boolean; refresh: () => Promise<void>;
   events: Logged[]; resetStore: () => void; version: number;
-  /** Debug clinic event on a chosen booking (push fired in task 3b). */
+  /** Debug clinic event on a chosen booking: updates the card + fires the status push. */
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
 };
 const Ctx = createContext<Store | null>(null);
 const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings' };
+/** Fired reminders -> NotifyHost (inside the theme + toast tree). */
+const reminderSinks = new Set<(r: Reminder) => void>();
+export const onReminder = (f: (r: Reminder) => void) => { reminderSinks.add(f); return () => { reminderSinks.delete(f); }; };
+const emitReminder = (r: Reminder) => reminderSinks.forEach((f) => f(r));
+/** Debug: deliver a push now without the once flags (web banner / iOS local push). */
+export const firePush = emitReminder;
 const save = (k: string, v: unknown) => AsyncStorage.setItem(k, JSON.stringify(v)).catch(() => {});
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -58,12 +64,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally { setLoading(false); setVersion((v) => v + 1); }
   }, []);
 
-  /** Fire due reminders (once flags; newest per type on a clock jump). Real notifications come later. */
+  /** Fire due reminders (once flags, persisted; newest per type on a clock jump). Delivery = NotifyHost (iOS local push / web banner). */
   const runReminders = useCallback(async () => {
     const prefs = await api.prefs().catch(() => ({ followUp: true, nextVisit: true, statusChanges: true as const }));
-    const r = due(allBookings(), clinicEvents(), prefs, serverNow(), flagsRef.current.firedReminders);
-    r.due.forEach((x) => ev.reminderSent({ type: x.type }));
-    if (r.due.length || r.skipped.length) setFlags({ firedReminders: [...flagsRef.current.firedReminders, ...r.due.map((x) => x.key), ...r.skipped.map((x) => x.key)] });
+    const r = fireDue(allBookings(), clinicEvents(), prefs, serverNow(), flagsRef.current.firedReminders);
+    if (r.fired.length === flagsRef.current.firedReminders.length) return;
+    flagsRef.current = { ...flagsRef.current, firedReminders: r.fired }; // sync: a second run in flight sees these keys
+    setFlags({ firedReminders: r.fired });
+    r.fire.forEach((x) => { ev.reminderSent({ type: x.type }); emitReminder(x); });
   }, [setFlags]);
 
   const moveClock = useCallback((to: Local, preset?: ClockPreset) => {
@@ -85,6 +93,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const resetStore = useCallback(() => {
     reset();
+    flagsRef.current = defaultFlags;
     setSettingsState(defaultSettings); setFlagsState(defaultFlags); setEvents([]); setBookings(undefined); setLoading(true);
     Promise.all(Object.values(K).map((k) => AsyncStorage.removeItem(k))).catch(() => {});
     visits(allBookings(), serverNow()).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId }));
@@ -94,7 +103,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       const [f, e, s] = await Promise.all([K.flags, K.events, K.settings].map((k) => AsyncStorage.getItem(k).catch(() => null)));
-      if (f) setFlagsState({ ...defaultFlags, ...JSON.parse(f) });
+      if (f) { const o = { ...defaultFlags, ...JSON.parse(f) }; flagsRef.current = o; setFlagsState(o); }
       if (e) setEvents(JSON.parse(e));
       if (s) { const o = { ...defaultSettings, ...JSON.parse(s) } as Settings; configure({ preset: o.preset }); configure({ now: o.now, net: o.net, latency: o.latency }); setSettingsState(o); }
       else visits(allBookings(), serverNow()).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId })); // first launch = store reset
@@ -113,14 +122,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
+  // App back to foreground = app open for the scheduler.
+  useEffect(() => { const sub = AppState.addEventListener('change', (a) => { if (a === 'active') runReminders(); }); return () => sub.remove(); }, [runReminders]);
+
   const clinicEvent = useCallback((bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => {
     const b = allBookings().find((x) => x.id === bookingId);
     if (!b) return;
     // Move target not in spec (guess): next day, 30 min earlier (sample Wed 7:00 PM -> Thu 6:30 PM).
     serverClinicEvent(bookingId, type, type === 'moved' ? addMinutes(b.start, 24 * 60 - 30) : undefined);
     ev.clinicEventReceived({ bookingId, type });
-    refresh();
-  }, [refresh]);
+    refresh(); runReminders(); // status_* push fires now (clinic event time = mock now)
+  }, [refresh, runReminders]);
 
   const setLang = useCallback((l: Lang) => { setLangState(l); setCommon({ locale: l }); }, []);
   useEffect(() => { setCommon({ locale: lang }); }, []);

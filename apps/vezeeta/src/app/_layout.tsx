@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { fontAssets, ThemeProvider, ToastHost } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
+import { NotifyHost } from '../ui/notify';
 
 const FONTS = fontAssets();
 
@@ -29,8 +30,10 @@ function Themed() {
         <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="reminders" />
           <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
         </Stack>
+        <NotifyHost />
       </ToastHost>
     </ThemeProvider>
   );

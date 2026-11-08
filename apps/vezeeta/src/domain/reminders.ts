@@ -57,3 +57,9 @@ export function due(bs: Booking[], events: ClinicEvent[], prefs: ReminderPrefs, 
 }
 /** Future reminders to hand to the device scheduler. */
 export const upcomingReminders = (bs: Booking[], events: ClinicEvent[], prefs: ReminderPrefs, now: Local) => plan(bs, events, prefs, now).filter((r) => r.fireAt > now);
+
+/** One pass of the scheduler with once flags: what to fire now + the new fired list (due + skipped marked). Same input twice = fires once. */
+export function fireDue(bs: Booking[], events: ClinicEvent[], prefs: ReminderPrefs, now: Local, fired: string[]): { fire: Reminder[]; fired: string[] } {
+  const r = due(bs, events, prefs, now, fired);
+  return { fire: r.due, fired: [...fired, ...r.due.map((x) => x.key), ...r.skipped.map((x) => x.key)] };
+}

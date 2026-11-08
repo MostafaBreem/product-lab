@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBookings, buildSlots, PRESETS } from './fixtures';
-import { followUpSlots, isNorthStar, isPromptAttributed, northStar, past, prompts, upcoming, upcomingRows, visits, withinFollowUp } from './derive';
+import { followUpSlots, nextSlot, isNorthStar, isPromptAttributed, northStar, past, prompts, upcoming, upcomingRows, visits, withinFollowUp } from './derive';
 import { due, plan } from './reminders';
 import { dayTime, egp, plural, rating } from './format';
 import { normalisePhone, validateForm, validName } from './validate';
@@ -130,4 +130,31 @@ test('north star numerator: <= 90 days, any source except cancelled_card + moved
   assert.ok(!isPromptAttributed({ source: 'past_book_again', daysSincePrevVisitSameDoctor: 10 }));
   assert.deepEqual(northStar([{ source: 'followup_row', daysSincePrevVisitSameDoctor: 9 }, { source: 'moved_pick', daysSincePrevVisitSameDoctor: 3 }, { source: 'results_card', daysSincePrevVisitSameDoctor: 40 }], 3),
     { numerator: 2, denominator: 3, promptAttributed: 1 });
+});
+
+test('Karim next slot at Sun 8 Nov 6 PM = Today 9:30 PM (6:00-9:00 PM taken); other days untouched', () => {
+  const s = buildSlots('karim', PRESETS.sun8, buildBookings('sun8'));
+  assert.equal(nextSlot(s, PRESETS.sun8)!.start, '2026-11-08T21:30');
+  assert.equal(s.find((x) => x.start === '2026-11-10T18:00')!.taken, false);
+  assert.equal(nextSlot(buildSlots('nour', PRESETS.sun8, []), PRESETS.sun8)!.start, '2026-11-08T18:00');
+});
+
+test('followup_open fires at the later of visit end and 10:00 AM that day', () => {
+  const b = (start: string): Booking => ({ ...buildBookings('sun8').find((x) => x.id === 'b-nour-oct')!, start });
+  const fire = (start: string) => plan([b(start)], [], prefs, '2026-11-08T18:00').find((x) => x.type === 'followup_open')!.fireAt;
+  assert.equal(fire('2026-10-31T19:00'), '2026-10-31T19:00');
+  assert.equal(fire('2026-10-31T08:30'), '2026-10-31T10:00');
+});
+
+test('status_* fire per clinic event, not newest-only; clock jump still collapses other types', () => {
+  const bs = buildBookings('mon9');
+  const ev: ClinicEvent[] = [
+    { bookingId: 'b-karim', type: 'moved', at: '2026-11-09T09:00' },
+    { bookingId: 'b-karim', type: 'moved', at: '2026-11-09T09:30' },
+    { bookingId: 'b-hana', type: 'moved', at: '2026-11-09T09:45' },
+  ];
+  const r = due(bs, ev, prefs, '2027-01-15T10:00', []);
+  assert.equal(r.due.filter((x) => x.type === 'status_moved').length, 3);
+  assert.ok(!r.skipped.some((x) => x.type.startsWith('status_')));
+  assert.equal(r.due.filter((x) => x.type === 'next_visit_4w').length, 1);
 });

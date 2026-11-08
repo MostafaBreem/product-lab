@@ -48,18 +48,21 @@ export function buildBookings(preset: ClockPreset): Booking[] {
 }
 
 const SLOT_TIMES = ['18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'];
-/** Every 30 min 6:00-9:30 PM, `days` days from `from`; 9:00 PM tomorrow taken (A2); slots held by live bookings taken. */
+/** Karim, Sun 8 Nov 6:00-9:00 PM taken, so nextSlot at the default clock = "Today 9:30 PM" (mock A1). */
+const FIXED_TAKEN: Record<string, string[]> = { karim: ['2026-11-08T18:00', '2026-11-08T18:30', '2026-11-08T19:00', '2026-11-08T19:30', '2026-11-08T20:00', '2026-11-08T20:30', '2026-11-08T21:00'] };
+/** Every 30 min 6:00-9:30 PM, `days` days from `from`; 9:00 PM tomorrow taken (A2); fixed taken slots (A1); slots held by live bookings taken. */
 export function buildSlots(doctorId: string, now: Local, bookings: Booking[], from: string = dayOf(now), days = 3): Slot[] {
   if (NO_SLOTS.includes(doctorId)) return [];
   const tomorrow = addDays(dayOf(now), 1);
   const held = new Set(bookings.filter((b) => b.doctorId === doctorId && b.status !== 'cancelledByClinic' && b.status !== 'cancelledByPatient').map((b) => b.start));
+  const fixed = new Set(FIXED_TAKEN[doctorId] ?? []);
   const out: Slot[] = [];
   for (let i = 0; i < days; i++) {
     const d = addDays(from, i);
     for (const t of SLOT_TIMES) {
       const start = at(d, t);
       if (start < now) continue;
-      out.push({ doctorId, start, taken: (d === tomorrow && t === '21:00') || held.has(start) });
+      out.push({ doctorId, start, taken: (d === tomorrow && t === '21:00') || held.has(start) || fixed.has(start) });
     }
   }
   return out;

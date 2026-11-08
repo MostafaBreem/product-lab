@@ -20,8 +20,10 @@ type Props = {
 };
 
 /** List row: leading logo / icon, title, subtitle, value, chevron or selection control. Whole row taps. Min 56 tall. */
-export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/text/default', value, quietValue, leading, chevron, onPress, divider, selection, plainPadding, testID }: Props) {
+export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/text/default', value, quietValue, leading, chevron, onPress: onPressProp, divider, selection, plainPadding, testID }: Props) {
   const th = useTheme();
+  // Switch row: the whole row toggles (unless disabled or the caller gives its own onPress).
+  const onPress = onPressProp ?? (selection?.kind === 'switch' && !selection.disabled ? () => selection.onChange(!selection.value) : undefined);
   const padX = plainPadding ? 0 : th.t('list-row/container/padding-x');
   const body = (pressed: boolean) => (
     <View style={{ backgroundColor: pressed ? (th.t('list-row/fill/active') as string) : 'transparent' }}>
@@ -48,9 +50,9 @@ export function ListRow({ title, subtitle, subtitleColor = 'list-row/subtitle/te
   );
   const labState = selection ? (selection.kind === 'switch' ? `switch ${selection.value ? 'on' : 'off'}` : `${selection.kind} ${selection.selected ? 'on' : 'off'}`) : chevron ? 'chevron' : onPress ? undefined : 'not tappable';
   const tag = lab('ListRow', title, labState);
-  const accState = selection && selection.kind !== 'switch' ? { selected: selection.selected, checked: selection.selected } : undefined;
+  const accState = selection ? (selection.kind === 'switch' ? { checked: selection.value } : { selected: selection.selected, checked: selection.selected }) : undefined;
   if (!onPress) return <View {...tag} testID={testID}>{body(false)}</View>;
-  return <Pressable {...tag} testID={testID} onPress={onPress} accessibilityRole={selection?.kind === 'radio' ? 'radio' : selection?.kind === 'check' ? 'checkbox' : 'button'} accessibilityState={accState}>{({ pressed }) => body(pressed)}</Pressable>;
+  return <Pressable {...tag} testID={testID} onPress={onPress} accessibilityRole={selection?.kind === 'radio' ? 'radio' : selection?.kind === 'check' ? 'checkbox' : selection?.kind === 'switch' ? 'switch' : 'button'} accessibilityState={accState}>{({ pressed }) => body(pressed)}</Pressable>;
 }
 
 function LeadingView({ leading }: { leading: Leading }) {

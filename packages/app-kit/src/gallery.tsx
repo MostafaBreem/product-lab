@@ -19,6 +19,10 @@ import { PaymentCard } from './components/PaymentCard';
 import { SectionHeader } from './components/SectionHeader';
 import { SegmentedControl } from './components/SegmentedControl';
 import { Tag } from './components/Tag';
+import { TextField } from './components/TextField';
+import { Checkbox } from './components/Checkbox';
+import { Avatar } from './components/Avatar';
+import { Switch } from './components/Switch';
 import { ToastHost, useToast } from './components/Toast';
 import { Txt } from './components/Txt';
 type Lang = 'en' | 'ar';
@@ -46,6 +50,9 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
   const [sw, setSw] = useState(true);
   const [sheet, setSheet] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [critLoading, setCritLoading] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [agree, setAgree] = useState(false);
   const m = (h: number) => fmt.money(h, lang);
   const roles: TypeRole[] = ['display/lg', 'display/md', 'heading/lg', 'heading/md', 'heading/sm', 'body/lg', 'body/md', 'body/sm', 'label/lg', 'label/md', 'label/sm', 'caption'];
   return (
@@ -63,11 +70,12 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
           <Button label={ar(lang, `Pay ${m(31250)}`, `ادفع ${m(31250)}`)} onPress={() => {}} />
           <Button label={ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`)} tone="critical" onPress={() => {}} />
           <Button label={ar(lang, 'Paying…', 'جاري الدفع…')} loading={loading} onPress={() => { setLoading(true); setTimeout(() => setLoading(false), 1500); }} />
+          <Button label={ar(lang, 'Cancelling…', 'جاري الإلغاء…')} tone="critical" loading={critLoading} onPress={() => { setCritLoading(true); setTimeout(() => setCritLoading(false), 1500); }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Button variant="link" label={ar(lang, 'Choose what to pay', 'اختر دفعاتك')} />
             <Button variant="link" tone="critical" label={ar(lang, 'What happens next', 'وش يصير بعدين')} />
           </View>
-          <Note>Primary · Primary Critical · Loading (tap) · Link · Link Critical</Note>
+          <Note>Primary · Primary Critical · Loading (tap) · Critical Loading (tap) · Link · Link Critical</Note>
         </Section>
 
         <Section title="Tag · Chip">
@@ -131,10 +139,32 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
           <Notice tone="critical" title={ar(lang, "Payment didn't go through", 'ما تمّ الدفع')} body={ar(lang, 'Your bank declined it. No money was taken.', 'بنكك رفضها، وما انخصم منك شي.')} />
           <Notice icon="wifi-slash" title={ar(lang, "You're offline", 'ما فيه إنترنت')} body={ar(lang, 'Showing your last update, today 8:15 AM. Connect to pay or extend.', 'هذا آخر تحديث، اليوم 8:15 ص. اتصل بالإنترنت عشان تدفع أو تأجّل.')} />
           <Notice icon="bell-slash" title={ar(lang, 'Notifications are off', 'الإشعارات مقفلة')}><Button variant="link" label={ar(lang, 'Open iPhone Settings', 'افتح إعدادات الآيفون')} /></Notice>
+          <Notice tone="brand" title={ar(lang, 'Same doctor as last time', 'نفس الطبيب المرة اللي فاتت')} body={ar(lang, 'Book your next visit in two taps.', 'احجز زيارتك الجاية بضغطتين.')} />
+          <Notice tone="success" title={ar(lang, 'Booking confirmed', 'تم تأكيد الحجز')} body={ar(lang, 'The clinic confirmed your visit.', 'العيادة أكّدت زيارتك.')} />
           <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
             <Button full={false} variant="link" label="Toast · Success" onPress={() => toast({ tone: 'success', text: ar(lang, 'Reminders on', 'التذكيرات شغّالة') })} />
             <Button full={false} variant="link" label="Toast · Neutral" onPress={() => toast({ tone: 'neutral', text: ar(lang, 'Reminders are off. You can change this in Profile › Notifications.', 'التذكيرات مقفلة. تقدر تغيّر هذا من حسابك › الإشعارات.') })} />
           </View>
+        </Section>
+
+        <Section title="Text field · Checkbox · Switch">
+          <TextField label={ar(lang, 'Mobile number', 'رقم الجوال')} prefix="+20" value={phone} onChangeText={setPhone} placeholder="10 1234 5678" keyboardType="phone-pad" />
+          <TextField label={ar(lang, 'Notes for the clinic', 'ملاحظات للعيادة')} optional={ar(lang, '(optional)', '(اختياري)')} value="" onChangeText={() => {}} />
+          <TextField label={ar(lang, 'Mobile number', 'رقم الجوال')} prefix="+20" value="12" onChangeText={() => {}} error={ar(lang, 'Enter a 10-digit number.', 'اكتب رقم من 10 أرقام.')} />
+          <Checkbox checked={agree} onChange={setAgree} label={ar(lang, 'Send me offers and health tips', 'أرسل لي العروض ونصائح صحية')} />
+          <View style={{ flexDirection: 'row', gap: th.t('space/gap-x/sm') }}>
+            <Switch value onValueChange={() => {}} disabled accessibilityLabel="Disabled on" />
+            <Switch value={false} onValueChange={() => {}} disabled accessibilityLabel="Disabled off" />
+          </View>
+          <Note>Text field: Default · Optional · Error. Checkbox: tap. Switch: Disabled on · off</Note>
+        </Section>
+
+        <Section title="Avatar">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
+            {/* raw-ok: Avatar size is a variant name (40 | 56 | 72), mapped to size tokens inside Avatar. */}
+            <Avatar initials="MS" size={40} /><Avatar initials="MS" size={56} /><Avatar initials="MS" size={72} />
+          </View>
+          <Note>40 · 56 · 72</Note>
         </Section>
 
         <Section title="Bottom sheet">

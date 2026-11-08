@@ -7,7 +7,7 @@ import { useInSheet } from './sheetContext';
 
 type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'link'; align?: 'start' | 'center'; tone?: 'default' | 'critical'; loading?: boolean; disabled?: boolean; full?: boolean; testID?: string };
 
-/** Button: Primary (filled, one per view) or Link. Loading = Primary only, spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
+/** Button: Primary (filled, one per view) or Link. Loading = Primary only (Default and Critical tone), spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
 export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full = variant === 'primary', testID }: Props) {
   const th = useTheme();
   const crit = tone === 'critical';

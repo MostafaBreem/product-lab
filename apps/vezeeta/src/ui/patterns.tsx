@@ -1,7 +1,7 @@
 // Screen patterns (components/screen-patterns.md; build-spec.md > Kit work "pattern, not kit"). Tokens only.
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, View } from 'react-native';
-import { Bar, Card, Icon, KeyValue, Txt, useTheme, type IconName } from '@lab/app-kit';
+import { Avatar, Bar, Button, Card, Icon, KeyValue, Txt, useTheme, type IconName } from '@lab/app-kit';
 import type { TokenKey } from '@lab/app-kit';
 
 /** Key-value with leading icon (icon 20 + key + value on one line, mock A1 card). */
@@ -82,9 +82,20 @@ export function SkeletonGrid() {
   );
 }
 
-/** A3 summary row: icon 24 + stacked key-value. struck = taken time (A3e): critical icon + struck critical value. */
-export function SummaryRow({ icon, k, v, struck }: { icon: IconName; k: string; v: string; struck?: boolean }) {
+/** A3 summary row: icon 24 + stacked key-value. struck = taken time (A3e): critical icon + struck critical value.
+ * was = reschedule: old time struck (secondary) above the new time. */
+export function SummaryRow({ icon, k, v, struck, was }: { icon: IconName; k: string; v: string; struck?: boolean; was?: string }) {
   const th = useTheme();
+  if (was && !struck) return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: th.t('space/gap-x/sm') }}>
+      <Icon name={icon} size={th.t('size/icon/md')} color="color/icon/content/secondary/default" />
+      <View style={{ flex: 1, gap: th.t('key-value/container/gap') }}>
+        <Txt role="body/sm" color="key-value/key/text/default">{k}</Txt>
+        <Txt role="body/sm" color="color/text/content/secondary/default" style={{ textDecorationLine: 'line-through' }}>{was}</Txt>
+        <Txt role="label/lg">{v}</Txt>
+      </View>
+    </View>
+  );
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: th.t('space/gap-x/sm') }}>
       <Icon name={icon} size={th.t('size/icon/md')} color={struck ? 'color/icon/content/critical/default' : 'color/icon/content/secondary/default'} />
@@ -133,5 +144,103 @@ export function HeroCheck({ onShown }: { onShown?: () => void }) {
     <Animated.View accessibilityElementsHidden importantForAccessibility="no" style={{ alignSelf: 'center', width: th.t('size/height/xl'), height: th.t('size/height/xl'), borderRadius: th.t('radius/full'), alignItems: 'center', justifyContent: 'center', backgroundColor: th.t('color/surface/success/default') as string, transform: [{ scale }] }}>
       <Icon name="check" size={th.t('size/icon/lg')} color="color/icon/on-fill/success/secondary/default" />
     </Animated.View>
+  );
+}
+
+/** Icon tile 40 (prompt rows, B6 empty). */
+export function Tile({ icon }: { icon: IconName }) {
+  const th = useTheme();
+  return (
+    <View style={{ width: th.t('size/height/lg'), height: th.t('size/height/lg'), borderRadius: th.t('radius/md'), alignItems: 'center', justifyContent: 'center', backgroundColor: th.t('color/fill/default') as string }}>
+      <Icon name={icon} size={th.t('size/icon/md')} color="color/icon/content/secondary/default" />
+    </View>
+  );
+}
+
+/** B1 prompt row (mock "Card · Follow-up row" / "Next visit row"): tile + title + subtitle + small trailing Book.
+ * Kit has no Secondary small Button: Button link, not full (gap). */
+export function PromptRow({ icon, title, sub, cta, onPress, testID }: { icon: IconName; title: string; sub: string; cta: string; onPress: () => void; testID?: string }) {
+  const th = useTheme();
+  return (
+    <Card style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
+      <Tile icon={icon} />
+      <View style={{ flex: 1, gap: th.t('space/gap-y/2xs') }}>
+        <Txt role="label/lg" wrap>{title}</Txt>
+        <Txt role="body/sm" wrap color="color/text/content/secondary/default">{sub}</Txt>
+      </View>
+      <Button variant="link" full={false} label={cta} onPress={onPress} testID={testID} />
+    </Card>
+  );
+}
+
+/** Prompt row removal: fade + collapse 200 (motion role small, ease-out); Reduce Motion = remove. */
+export function FadeCollapse({ leaving, onGone, children }: { leaving: boolean; onGone: () => void; children: React.ReactNode }) {
+  const rm = useReduceMotion();
+  const v = useRef(new Animated.Value(1)).current;
+  const [h, setH] = useState<number>();
+  useEffect(() => {
+    if (!leaving) return;
+    if (rm) { onGone(); return; }
+    Animated.timing(v, { toValue: 0, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(() => onGone());
+  }, [leaving, rm]);
+  const style = leaving && h !== undefined ? { opacity: v, height: v.interpolate({ inputRange: [0, 1], outputRange: [0, h] }), overflow: 'hidden' as const } : undefined;
+  return <Animated.View style={style} onLayout={(e) => { if (!leaving) setH(e.nativeEvent.layout.height); }}>{children}</Animated.View>;
+}
+
+/** Avatar + name + subtitle (booking cards, B3 cards). */
+export function DoctorLine({ initials, name, sub }: { initials: string; name: string; sub?: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
+      {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
+      <Avatar initials={initials} size={40} />
+      <View style={{ flex: 1 }}>
+        <Txt role="label/lg">{name}</Txt>
+        {sub ? <Txt role="body/sm" wrap color="color/text/content/secondary/default">{sub}</Txt> : null}
+      </View>
+    </View>
+  );
+}
+
+/** B3 month list row: Avatar + title + subtitle + trailing Link (kit ListRow has no trailing action: pattern). */
+export function PastRow({ initials, title, sub, action, onAction, divider, testID }: { initials: string; title: string; sub: string; action: string; onAction: () => void; divider?: boolean; testID?: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm'), paddingHorizontal: th.t('space/padding-x/md'), minHeight: th.t('size/height/xl'),
+      borderBottomWidth: divider ? th.t('border-width/sm') : 0, borderBottomColor: th.t('color/border/default') as string }}>
+      {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
+      <Avatar initials={initials} size={40} />
+      <View style={{ flex: 1 }}>
+        <Txt role="label/lg">{title}</Txt>
+        <Txt role="body/sm" color="color/text/content/secondary/default">{sub}</Txt>
+      </View>
+      <Button variant="link" full={false} label={action} onPress={onAction} testID={testID} />
+    </View>
+  );
+}
+
+/** B6 empty: tile 40 + title + body + Button. */
+export function EmptyBlock({ icon, title, body, cta, onPress }: { icon: IconName; title: string; body: string; cta: string; onPress: () => void }) {
+  const th = useTheme();
+  return (
+    <View style={{ alignItems: 'center', gap: th.t('space/gap-y/md'), paddingTop: th.t('space/padding-top/xl') }}>
+      <Tile icon={icon} />
+      <View style={{ gap: th.t('space/gap-y/xs') }}>
+        <Txt role="heading/sm" align="center">{title}</Txt>
+        <Txt role="body/md" wrap align="center" color="color/text/content/secondary/default">{body}</Txt>
+      </View>
+      <Button label={cta} onPress={onPress} testID="b6-cta" />
+    </View>
+  );
+}
+
+/** B1 skeleton: prompt row + 2 cards (static blocks). */
+export function SkeletonRow() {
+  const th = useTheme();
+  return (
+    <Card style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
+      <Bar w={th.t('size/height/lg')} h={th.t('size/height/lg')} r={th.t('radius/md')} />
+      <View style={{ flex: 1, gap: th.t('space/gap-y/2xs') }}><Bar w="70%" /><Bar w="40%" /></View>
+    </Card>
   );
 }

@@ -1,12 +1,12 @@
 // App store: debug settings (mock clock, net, latency, one-shot errors), language, reminder once-flags, cached bookings, event log.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 import { ev, onEvent, setClock, setCommon, type Logged } from './domain/analytics';
 import { crossed, visits } from './domain/derive';
 import { PRESETS } from './domain/fixtures';
 import { due } from './domain/reminders';
-import { allBookings, api, clinicEvents, configure, defaultSettings, now as serverNow, reset, type Settings } from './domain/server';
+import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, configure, defaultSettings, now as serverNow, reset, type Settings } from './domain/server';
 import { addMinutes } from './domain/time';
 import type { Booking, ClockPreset, Lang, Local } from './domain/types';
 
@@ -20,6 +20,8 @@ type Store = {
   flags: Flags; setFlags: (p: Partial<Flags>) => void;
   bookings?: Booking[]; cachedAt?: Local; loadError?: string; loading: boolean; refresh: () => Promise<void>;
   events: Logged[]; resetStore: () => void; version: number;
+  /** Debug clinic event on a chosen booking (push fired in task 3b). */
+  clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
 };
 const Ctx = createContext<Store | null>(null);
 const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings' };
@@ -96,15 +98,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (e) setEvents(JSON.parse(e));
       if (s) { const o = { ...defaultSettings, ...JSON.parse(s) } as Settings; configure({ preset: o.preset }); configure({ now: o.now, net: o.net, latency: o.latency }); setSettingsState(o); }
       else visits(allBookings(), serverNow()).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId })); // first launch = store reset
+      // Web screenshots: ?preset=mon9&lang=ar (AGENTS.md > Screenshot URLs). Wins over stored settings.
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const q = new URLSearchParams(window.location.search);
+        const p = q.get('preset') as ClockPreset | null;
+        if (p && p in PRESETS) {
+          configure({ preset: p, now: PRESETS[p] }); setSettingsState((x) => ({ ...x, preset: p, now: PRESETS[p] }));
+          visits(allBookings(), PRESETS[p]).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId })); // preset jump reseeds
+        }
+        const l = q.get('lang');
+        if (l === 'ar' || l === 'en') { setLangState(l); setCommon({ locale: l }); }
+      }
       await refresh(); runReminders();
     })();
   }, []);
 
+  const clinicEvent = useCallback((bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => {
+    const b = allBookings().find((x) => x.id === bookingId);
+    if (!b) return;
+    // Move target not in spec (guess): next day, 30 min earlier (sample Wed 7:00 PM -> Thu 6:30 PM).
+    serverClinicEvent(bookingId, type, type === 'moved' ? addMinutes(b.start, 24 * 60 - 30) : undefined);
+    ev.clinicEventReceived({ bookingId, type });
+    refresh();
+  }, [refresh]);
+
   const setLang = useCallback((l: Lang) => { setLangState(l); setCommon({ locale: l }); }, []);
   useEffect(() => { setCommon({ locale: lang }); }, []);
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version }),
-    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay]);
+  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent }),
+    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export function useStore() { const v = useContext(Ctx); if (!v) throw new Error('no store'); return v; }

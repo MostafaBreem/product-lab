@@ -16,7 +16,7 @@ import { addrLine, dayWord, drName, initials, ratingLine, waitValue } from '../.
 import { useStore } from '../../../../state';
 
 export type Mode = 'normal' | 'followUp' | 'reschedule';
-type Params = { id: string; source?: string; filter?: string; mode?: Mode; bookingId?: string };
+type Params = { id: string; source?: string; filter?: string; mode?: Mode; bookingId?: string; rebookOf?: string };
 
 export default function Profile() {
   const p = useLocalSearchParams<Params>();
@@ -56,7 +56,7 @@ export default function Profile() {
   const [feeK, waitK, areaK] = split('a2.facts', lang);
   const [noneT, noneL] = split('a2.nofree', lang);
   const [errT, errB] = split('err.load.t / b', lang);
-  const pick = (start: string) => router.push({ pathname: '/home/confirm', params: { doctorId: d.id, start, mode, source: p.source ?? '', filter: p.filter ?? 'none', bookingId: p.bookingId ?? '' } });
+  const pick = (start: string) => router.push({ pathname: '/home/confirm', params: { doctorId: d.id, start, mode, source: p.source ?? '', filter: p.filter ?? 'none', bookingId: p.bookingId ?? '', rebookOf: p.rebookOf ?? '' } });
   const facts: [string, string][] = [
     [feeK, mode === 'followUp' ? t('b4.fee.v', lang) : egp(d.fee, lang)],
     ...(d.waitMin ? [[waitK, waitValue(d.waitMin, lang)] as [string, string]] : []),

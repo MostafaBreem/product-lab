@@ -18,7 +18,7 @@ import { bookCta, consentParts, drName, feeLine, initials, phoneField, placeLine
 import { useStore } from '../../../state';
 
 type Mode = 'normal' | 'followUp' | 'reschedule';
-type Params = { doctorId: string; start: string; mode?: Mode; source?: string; filter?: string; bookingId?: string };
+type Params = { doctorId: string; start: string; mode?: Mode; source?: string; filter?: string; bookingId?: string; rebookOf?: string };
 type Fail = 'slotTaken' | 'followUpExpired' | 'error' | undefined;
 const newKey = () => `idem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -55,6 +55,7 @@ export default function Confirm() {
 
   const resched = mode === 'reschedule';
   const fu = mode === 'followUp';
+  const oldStart = resched ? st.bookings?.find((b) => b.id === p.bookingId)?.start : undefined;
   const fee = resched ? (st.bookings?.find((b) => b.id === p.bookingId)?.fee ?? d.fee) : fu ? 0 : d.fee;
   const [whenK, feeK, whereK, cancelK] = split('a3.keys', lang);
   const [errT, errB] = split('a3.err.book.t / b', lang);
@@ -66,7 +67,7 @@ export default function Confirm() {
   const stub = () => toast({ tone: 'neutral', text: t('stub', lang) });
 
   async function submit(kind: BookingKind = fu ? 'followUp' : 'normal') {
-    const v = validateForm({ name, phone, email });
+    const v = resched ? { errors: {}, first: undefined, phone: undefined } : validateForm({ name, phone, email }); // reschedule: PATCH {start} only, no form
     setErrors(v.errors);
     if (v.first) return; // errors on Book tap; kit TextField has no focus ref (gap): error text is announced (role alert)
     if (settings.net === 'offline') { toast({ tone: 'neutral', text: t('off.book', lang) }); return; }
@@ -90,6 +91,7 @@ export default function Confirm() {
       ev.bookingResult({ result: 'ok', bookingId: b.id });
       ev.bookingCreated({ bookingId: b.id, doctorId: b.doctorId, source, isFollowUp: b.kind === 'followUp', isFirstBooking: isFirst, filter: p.filter === 'general' ? 'general' : 'none',
         ...(days !== undefined ? { daysSincePrevVisitSameDoctor: days } : {}) });
+      if (p.rebookOf) ev.cancelledRebooked({ bookingId: p.rebookOf, newBookingId: b.id });
       if (isFirst && !fu && offers) { ev.offersOptIn({ on: true }); st.setFlags({ offersOptIn: true }); }
       st.setFlags({ firstBookingDone: true });
       haptic.success();
@@ -139,18 +141,18 @@ export default function Confirm() {
           </View>
         </View>
         <View style={{ gap: th.t('space/gap-y/sm') }}>
-          <SummaryRow icon="calendar" k={whenK} v={dayTime(p.start, lang)} struck={taken} />
+          <SummaryRow icon="calendar" k={whenK} v={dayTime(p.start, lang)} struck={taken} was={resched && oldStart ? dayTime(oldStart, lang) : undefined} />
           <SummaryRow icon="coins" k={feeK} v={fu ? t('b4.fee.v', lang) : feeLine(fee, lang)} />
           {placeLine(d, lang) ? <SummaryRow icon="compass" k={whereK} v={placeLine(d, lang)!} /> : null}
           <SummaryRow icon="calendar-check" k={cancelK} v={t('a3.cancel.v', lang)} />
         </View>
       </Card>
 
-      <View style={{ gap: th.t('space/gap-y/md') }}>
+      {resched ? null : <View style={{ gap: th.t('space/gap-y/md') }}>
         <TextField label={t('a3.name', lang)} value={name} onChangeText={setName} error={errors.name ? t('a3.err.name', lang) : undefined} testID="a3-name" />
         <TextField label={t('a3.phone', lang)} prefix="+20" value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" error={errors.phone ? t('a3.err.phone', lang) : undefined} testID="a3-phone" />
         <TextField label={t('a3.email', lang)} value={email} onChangeText={setEmail} keyboardType="email-address" inputMode="email" error={errors.email ? t('a3.err.email', lang) : undefined} testID="a3-email" />
-      </View>
+      </View>}
 
       {mode === 'normal' ? <IconLine icon="coins" text={pointsLine(fee, lang)} /> : null}
       {isFirst && !fu && !resched ? <Checkbox checked={offers} onChange={setOffers} label={t('a3.offers', lang)} testID="a3-offers" /> : null}

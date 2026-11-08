@@ -39,3 +39,10 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Debug menu and screenshot URLs (vezeeta)
+
+- Debug menu: long-press the "Appointments" title (B1 / B3). Route `/debug` (modal). Clock presets, +1 day, clinic events on a chosen booking, next POST = slotTaken, network, latency, fire reminder in 5 s, language, reset store, event log.
+- Web screenshots: add a query to any URL, e.g. `http://localhost:8081/appointments?preset=mon9&lang=ar`.
+  - `preset` = `sun8` (Sun 8 Nov 6:00 PM, default) · `mon9` (Mon 9 Nov 10:00 AM, clinic events applied) · `fri27` (Fri 27 Nov 10:00 AM). Reseeds the mock data; wins over stored settings.
+  - `lang` = `en` · `ar`.

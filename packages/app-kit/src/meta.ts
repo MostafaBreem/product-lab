@@ -8,14 +8,14 @@ export type ComponentMeta = {
 
 export const components: ComponentMeta[] = [
   {
-    name: 'Button', slug: 'button', tokens: 'button', summary: 'One tap action. Primary = filled main action, Secondary = outlined action next to or under the main one, Link = text-only secondary action.',
+    name: 'Button', slug: 'button', tokens: 'button', summary: 'One tap action. Primary = filled main action, Secondary = grey filled action next to or under the main one, Link = text-only secondary action.',
     props: [
       { name: 'label', type: 'string', description: 'Says exactly what the tap does; repeats the amount when it pays.' },
       { name: 'onPress', type: '() => void', description: 'Tap handler.' },
-      { name: 'variant', type: "'primary' | 'secondary' | 'link'", default: "'primary'", description: 'Primary = one per view, full width. Secondary = outlined (brand border + brand label on surface), full width by default, any number per view. Link = text-only secondary.' },
+      { name: 'variant', type: "'primary' | 'secondary' | 'link'", default: "'primary'", description: 'Primary = one per view, full width. Secondary = grey filled (color/fill default / active / disabled, content-colour label, no outline), full width by default, any number per view. Link = text-only secondary.' },
       { name: 'tone', type: "'default' | 'critical'", default: "'default'", description: 'Critical for overdue or destructive actions.' },
       { name: 'loading', type: 'boolean', default: 'false', description: 'Primary (both tones) and Secondary: spinner + label, no press, while the action runs.' },
-      { name: 'disabled', type: 'boolean', default: 'false', description: 'Primary and Secondary: grey fill (Secondary: grey border too), no press, label stays. Use when the action cannot run yet (nothing picked, loading, offline). Same look in both tones.' },
+      { name: 'disabled', type: 'boolean', default: 'false', description: 'Primary and Secondary: grey fill (Secondary: disabled fill + disabled label), no press, label stays. Use when the action cannot run yet (nothing picked, loading, offline). Same look in both tones.' },
       { name: 'full', type: 'boolean', default: 'primary: true', description: 'Fill the parent width.' },
       { name: 'align', type: "'start' | 'center'", default: "start; center for a full link in a bottom sheet or Screen footer", description: 'Link only: label position inside a full-width link. Any secondary action under the main one is centred: bottom sheets, Screen footers, Payment card single link (2026-11-05).' },
     ],

@@ -7,7 +7,7 @@ import { useInSheet } from './sheetContext';
 
 type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'secondary' | 'link'; align?: 'start' | 'center'; tone?: 'default' | 'critical'; loading?: boolean; disabled?: boolean; full?: boolean; testID?: string };
 
-/** Button: Primary (filled, one per view), Secondary (outlined, brand border + label on surface; no component tokens yet, semantic tokens) or Link. Loading = Primary only (Default and Critical tone), spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
+/** Button: Primary (filled, one per view), Secondary (grey filled, no outline: color/fill default / active / disabled + content text, same fill as slot cells; no component tokens yet, semantic tokens) or Link. Loading = Primary only (Default and Critical tone), spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
 export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full = variant !== 'link', testID }: Props) {
   const th = useTheme();
   const crit = tone === 'critical';
@@ -30,14 +30,13 @@ export function Button({ label, onPress, variant = 'primary', align, tone = 'def
       <Pressable {...lab('Button', label, ['secondary', disabled && 'disabled', loading && 'loading'].filter(Boolean).join(' · '))} testID={testID} accessibilityRole="button" accessibilityState={{ busy: !!loading, disabled: !!disabled }} disabled={off} onPress={onPress}
         style={({ pressed }) => ({
           height: th.t('button/container/height'), borderRadius: th.t('button/container/radius'), paddingHorizontal: th.t('button/primary/padding-x'),
-          borderWidth: th.t('border-width/sm'), borderColor: th.t(disabled ? 'color/border/disabled' : 'color/border/brand/default') as string,
           alignSelf: full ? 'stretch' : 'flex-start', alignItems: 'center', justifyContent: 'center',
-          backgroundColor: th.t(disabled ? 'color/surface/disabled' : pressed ? 'color/surface/active' : 'color/surface/default') as string,
+          backgroundColor: th.t(disabled ? 'color/fill/disabled' : pressed ? 'color/fill/active' : 'color/fill/default') as string,
         })}>
         {({ pressed }) => (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('button/container/gap') }}>
-            {loading ? <ActivityIndicator color={th.t(disabled ? 'color/icon/content/disabled' : 'color/icon/content/brand/default') as string} /> : null}
-            <Txt role="label/lg" color={disabled ? 'color/text/content/disabled' : pressed ? 'color/text/content/link/active' : 'color/text/content/link/default'} numberOfLines={1}>{label}</Txt>
+            {loading ? <ActivityIndicator color={th.t(disabled ? 'color/icon/content/disabled' : 'color/icon/content/default') as string} /> : null}
+            <Txt role="label/lg" color={disabled ? 'color/text/content/disabled' : 'color/text/content/default'} numberOfLines={1}>{label}</Txt>
           </View>
         )}
       </Pressable>

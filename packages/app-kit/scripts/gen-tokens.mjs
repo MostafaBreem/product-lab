@@ -20,7 +20,12 @@ function walk(node, path, type) {
 }
 for (const tier of ['primitive', 'brand', 'semantic', 'component']) walk(src[tier], [tier], undefined);
 
-const MODES = { light_en: ['light', 'en'], light_ar: ['light', 'ar'], dark_en: ['dark', 'en'], dark_ar: ['dark', 'ar'] };
+// Brand = '2 · Brand' collection mode. First brand (tabby) = the $value default; keys keep the old names
+// (light_en …) so older readers work. Other brands get a prefix: vezeeta_light_en …
+const BRANDS = src.$extensions['design-flow'].collections.find((c) => c.name === '2 · Brand').modes;
+const MODES = {};
+for (const b of BRANDS) for (const [s, l] of [['light', 'en'], ['light', 'ar'], ['dark', 'en'], ['dark', 'ar']])
+  MODES[(b === BRANDS[0] ? '' : b + '_') + s + '_' + l] = [s, l, b];
 
 function pick(tok, modes) {
   for (const m of modes) if (tok.modes[m] !== undefined) return tok.modes[m];

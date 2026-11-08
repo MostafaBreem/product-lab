@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { TextStyle } from 'react-native';
 import { fontFamily } from './fonts';
-import { tokensFor, type Lang, type Scheme, type TokenKey, type TokenMap } from './tokens';
+import { tokensFor, type Brand, type Lang, type Scheme, type TokenKey, type TokenMap } from './tokens';
 
 export type TypeRole =
   | 'display/lg' | 'display/md'
@@ -13,6 +13,7 @@ export type TypeRole =
 export type Theme = {
   scheme: Scheme;
   lang: Lang;
+  brand: Brand;
   isRTL: boolean;
   tokens: TokenMap;
   /** Token value by Figma path, e.g. t('color/text/content/default'). */
@@ -23,8 +24,8 @@ export type Theme = {
 
 const Ctx = createContext<Theme | null>(null);
 
-export function makeTheme(scheme: Scheme, lang: Lang): Theme {
-  const tokens = tokensFor(scheme, lang);
+export function makeTheme(scheme: Scheme, lang: Lang, brand: Brand = 'tabby'): Theme {
+  const tokens = tokensFor(scheme, lang, brand);
   const any = tokens as unknown as Record<string, unknown>;
   const t = ((k: string) => {
     if (!(k in any)) throw new Error(`Unknown token ${k}`);
@@ -40,11 +41,11 @@ export function makeTheme(scheme: Scheme, lang: Lang): Theme {
       fontVariant: opts?.tabular ? ['tabular-nums'] : undefined,
     };
   };
-  return { scheme, lang, isRTL: lang === 'ar', tokens, t, type };
+  return { scheme, lang, brand, isRTL: lang === 'ar', tokens, t, type };
 }
 
-export function ThemeProvider({ scheme, lang, children }: { scheme: Scheme; lang: Lang; children: React.ReactNode }) {
-  const theme = useMemo(() => makeTheme(scheme, lang), [scheme, lang]);
+export function ThemeProvider({ scheme, lang, brand = 'tabby', children }: { scheme: Scheme; lang: Lang; brand?: Brand; children: React.ReactNode }) {
+  const theme = useMemo(() => makeTheme(scheme, lang, brand), [scheme, lang, brand]);
   return <Ctx.Provider value={theme}>{children}</Ctx.Provider>;
 }
 

@@ -20,12 +20,12 @@ export function day(d: Day, lang: Lang) {
   const [, m, dd] = d.split('-').map(Number);
   return lang === 'en' ? `${EN_WD[weekday(d)]} ${dd} ${EN_MO[m - 1]}` : `${AR_WD[weekday(d)]} ${digits(dd, lang)} ${AR_MO[m - 1]}`;
 }
-/** "7:00 PM" · "٧:٠٠ م" (LTR-isolated in AR). */
+/** "7:00 PM" · "٧:٠٠ م" (LTR-isolated in AR). No-break space before the AM/PM marker: never a lone "م" / "PM" on the next line. */
 export function time(t: Local, lang: Lang) {
   const [h, mi] = timeOf(t).split(':').map(Number);
   const h12 = h % 12 === 0 ? 12 : h % 12;
   const s = `${h12}:${String(mi).padStart(2, '0')}`;
-  return lang === 'en' ? `${s} ${h < 12 ? 'AM' : 'PM'}` : `${ltr(digits(s, lang), lang)} ${h < 12 ? 'ص' : 'م'}`;
+  return lang === 'en' ? `${s}${NBSP}${h < 12 ? 'AM' : 'PM'}` : `${ltr(digits(s, lang), lang)}${NBSP}${h < 12 ? 'ص' : 'م'}`;
 }
 /** "Mon 9 Nov, 7:00 PM" · "الإثنين ٩ نوفمبر، ٧:٠٠ م". */
 export const dayTime = (t: Local, lang: Lang) => `${day(dayOf(t), lang)}${lang === 'en' ? ', ' : '، '}${time(t, lang)}`;

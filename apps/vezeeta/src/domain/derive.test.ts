@@ -141,7 +141,7 @@ test('formats: EGP no-break space, AR digits, rating', () => {
   assert.equal(egp(250, 'en'), '250 EGP');
   assert.equal(egp(250, 'ar'), '٢٥٠ جنيه');
   assert.equal(rating(4.9, 'ar'), '٤٫٩');
-  assert.equal(dayTime('2026-11-09T19:00', 'en'), 'Mon 9 Nov, 7:00 PM');
+  assert.equal(dayTime('2026-11-09T19:00', 'en'), 'Mon 9 Nov, 7:00 PM');
   assert.equal(copy['a3.when.v'].en, 'Mon 9 Nov, 7:00 PM');
 });
 

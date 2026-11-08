@@ -16,6 +16,28 @@ export function IconKV({ icon, k, v }: { icon: IconName; k?: string; v: string }
   );
 }
 
+/** Key-value on one line, no icon (mock A1 card .kv: key secondary + value, gap 8). */
+export function KV({ k, v }: { k?: string; v: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/xs') }}>
+      {k ? <Txt role="body/sm" color="color/text/content/secondary/default">{k}</Txt> : null}
+      <Txt role="body/sm" style={{ flexShrink: 1 }}>{v}</Txt>
+    </View>
+  );
+}
+
+/** Card info line (mock B1 / B2b confirmed card): icon 20 + gap 12 + body, starts at the card content edge. */
+export function CardLine({ icon, text }: { icon: IconName; text: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: th.t('space/gap-x/sm') }}>
+      <Icon name={icon} size={th.t('size/icon/sm')} color="color/icon/content/default" />
+      <Txt role="body/sm" wrap style={{ flex: 1 }}>{text}</Txt>
+    </View>
+  );
+}
+
 /** Icon + wrapping line (A2 follow-up row, address row). */
 export function IconLine({ icon, text, color = 'color/icon/content/tertiary/default', textColor = 'color/text/content/secondary/default' }: { icon: IconName; text: string; color?: TokenKey; textColor?: TokenKey }) {
   const th = useTheme();

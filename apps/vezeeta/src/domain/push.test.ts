@@ -54,8 +54,8 @@ test('B2 keep: POST keep -> status kept, moved push goes stale, B2b toast text =
   assert.equal(b.status, 'kept');
   assert.equal(b.start, '2026-11-12T18:30');
   assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'b-karim' }, allBookings(), mon9), { to: 'stale' });
-  assert.equal(keptToast(b.start, 'en'), 'Visit kept: Thu 12 Nov, 6:30 PM');
-  assert.equal(keptToast(b.start, 'ar').replace(/[\u2066\u2069]/g, ''), 'تمام، ميعادك الخميس ١٢ نوفمبر الساعة ٦:٣٠ م');
+  assert.equal(keptToast(b.start, 'en'), 'Visit kept: Thu 12 Nov, 6:30 PM');
+  assert.equal(keptToast(b.start, 'ar').replace(/[\u2066\u2069]/g, ''), 'تمام، ميعادك الخميس ١٢ نوفمبر الساعة ٦:٣٠ م');
 });
 
 test('reminders: due items fire once (once flags); a new clinic event fires its status push once', () => {

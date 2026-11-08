@@ -131,7 +131,7 @@ export default function Confirm() {
       ) : null}
       {fail === 'followUpExpired' && fuEnded ? <Notice title={fmtStrings.fuExpired(day(fuEnded, lang), lang)} /> : null}
 
-      <Card>
+      <Card style={{ gap: th.t('space/gap-y/md') }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
           {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
           <Avatar initials={initials(d)} size={40} />

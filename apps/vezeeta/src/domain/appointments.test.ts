@@ -28,14 +28,14 @@ test('cancelled by patient stays in Upcoming until its date, then drops', () => 
 });
 
 test('flow B templates: moved Was line, cancelled body, B3 follow-up body, visit on', () => {
-  assert.equal(wasLine('2026-11-11T19:00', 'en'), 'Was Wed 11 Nov, 7:00 PM');
+  assert.equal(wasLine('2026-11-11T19:00', 'en'), 'Was Wed 11 Nov, 7:00 PM');
   assert.equal(cancelledBody(doctor('sherif')!, '2026-11-13T19:00', 'en'), "Dr Sherif Fathy can't see patients on Fri 13 Nov. Sorry about this. You pay at the clinic, so nothing was charged.");
   assert.equal(pastFuBody('2026-11-30', PRESETS.mon9, 'en'), 'Book by Mon 30 Nov. 21 days left.');
   assert.equal(visitOn('2026-10-12T19:00', 'en'), 'Visit on Mon 12 Oct');
 });
 
 test('A4 follow-up (fee 0): first sentence of a4.b only', () => {
-  assert.equal(bookedLine(doctor('nour')!, '2026-11-11T18:00', 0, 'en'), 'Dr Nour Hassan, Wed 11 Nov at 6:00 PM.');
-  assert.equal(bookedLine(doctor('nour')!, '2026-11-11T18:00', 0, 'ar'), 'د. نور حسن، الأربعاء ١١ نوفمبر الساعة ⁦٦:٠٠⁩ م.');
+  assert.equal(bookedLine(doctor('nour')!, '2026-11-11T18:00', 0, 'en'), 'Dr Nour Hassan, Wed 11 Nov at 6:00 PM.');
+  assert.equal(bookedLine(doctor('nour')!, '2026-11-11T18:00', 0, 'ar'), 'د. نور حسن، الأربعاء ١١ نوفمبر الساعة ⁦٦:٠٠⁩ م.');
   assert.match(bookedLine(doctor('nour')!, '2026-11-11T18:00', 250, 'en'), /Pay 250.EGP at the clinic\.$/);
 });

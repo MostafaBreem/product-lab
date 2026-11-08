@@ -13,7 +13,7 @@ import { fmtStrings, split, t } from '../../../domain/strings';
 import type { Booking, Prompt, Source } from '../../../domain/types';
 import { underThreeHours } from '../../../domain/derive';
 import { haptic } from '../../../ui/feedback';
-import { DoctorLine, EmptyBlock, FadeCollapse, FadeSwap, IconKV, MovedTimes, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
+import { DoctorLine, EmptyBlock, FadeCollapse, FadeSwap, CardLine, MovedTimes, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
 import { bookAgain, cacheAge, keptToast, placeLine, cancelledBody, cancelMovedBody, drName, feeLine, fuRow, initials, nextRow, pastFee, pastFuBody, pastFuTitle, pastRowSub, streetArea, visitOn, wasLine } from '../../../ui/text';
 import { useStore } from '../../../state';
 
@@ -215,14 +215,15 @@ function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => vo
   if (b.status === 'movedByClinic') {
     const [newK] = split('b.moved.keys', lang);
     return (
-      <Card>
+      <Card style={{ gap: th.t('space/gap-y/md') }}>
         <FadeSwap k={b.status}><Tag tone="warning" label={t('b.moved.tag', lang)} /></FadeSwap>
         {who}
         <View style={{ gap: th.t('space/gap-y/2xs') }}>
           <KeyValue k={newK} v={dayTime(b.start, lang)} />
-          {b.previousStart ? <Txt role="body/sm" color="color/text/content/secondary/default">{wasLine(b.previousStart, lang)}</Txt> : null}
+          {/* Struck old time keeps line-through in AR too (spec) */}
+          {b.previousStart ? <Txt role="body/sm" color="color/text/content/secondary/default" style={{ textDecorationLine: 'line-through' }}>{wasLine(b.previousStart, lang)}</Txt> : null}
         </View>
-        <Txt role="body/sm" wrap>{t('b.moved.b', lang)}</Txt>
+        <Txt role="body/sm" wrap color="color/text/content/secondary/default">{t('b.moved.b', lang)}</Txt>
         <Button label={t('b.moved.cta', lang)} onPress={onReview} testID={`moved-${b.id}`} />
         {cancelLink}
       </Card>
@@ -231,7 +232,7 @@ function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => vo
   if (b.status === 'cancelledByClinic') {
     const [again, other] = split('b.canc.cta', lang);
     return (
-      <Card>
+      <Card style={{ gap: th.t('space/gap-y/md') }}>
         <FadeSwap k={b.status}><Tag tone="critical" label={t('b.canc.tag', lang)} /></FadeSwap>
         <DoctorLine initials={initials(d)} name={drName(d, lang)} />
         <Txt role="body/sm" wrap>{cancelledBody(d, b.start, lang)}</Txt>
@@ -248,14 +249,14 @@ function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => vo
   const place = streetArea(d, lang);
   const full = b.status === 'confirmedForTomorrow';
   return (
-    <Card>
+    <Card style={{ gap: th.t('space/gap-y/md') }}>
       <FadeSwap k={b.status}>{tag}</FadeSwap>
       {who}
-      <View style={{ gap: th.t('space/gap-y/xs') }}>
-        <IconKV icon="calendar" v={dayTime(b.start, lang)} />
-        {full && place ? <IconKV icon="compass" v={place} /> : null}
+      <View style={{ gap: th.t('space/gap-y/sm') }}>
+        <CardLine icon="calendar" text={dayTime(b.start, lang)} />
+        {full && place ? <CardLine icon="compass" text={place} /> : null}
         {/* "300 EGP at the clinic" has no copy row (gap): a3.fee.v (nearest) */}
-        {full ? <IconKV icon="coins" v={feeLine(b.fee, lang)} /> : null}
+        {full ? <CardLine icon="coins" text={feeLine(b.fee, lang)} /> : null}
       </View>
       {full && addr ? <Button variant="link" full={false} label={t('b.dir', lang)} onPress={directions} testID={`dir-${b.id}`} /> : null}
       {cancelLink}
@@ -276,21 +277,21 @@ function PastView({ top, months, ps, onPrompt }: { top: Booking[]; months: { mon
         const p = ps.find((x) => x.visitId === v.id);
         const who = <DoctorLine initials={initials(d)} name={drName(d, lang)} sub={visitOn(v.start, lang)} />;
         if (p?.type === 'followUp') return (
-          <Card key={v.id}>
+          <Card key={v.id} style={{ gap: th.t('space/gap-y/md') }}>
             {who}
             <Notice tone="success" title={pastFuTitle(d, lang)} body={pastFuBody(p.until, settings.now, lang)} />
             <Button label={t('b3.fu.cta', lang)} onPress={() => onPrompt(p)} testID={`past-fu-${v.id}`} />
           </Card>
         );
         if (p?.type === 'nextVisit') return (
-          <Card key={v.id}>
+          <Card key={v.id} style={{ gap: th.t('space/gap-y/md') }}>
             {who}
             <Txt role="body/sm" color="color/text/content/secondary/default">{pastFee(d.fee, lang)}</Txt>
             <Button variant="secondary" label={t('b3.next', lang)} onPress={() => onPrompt(p)} testID={`past-next-${v.id}`} />
           </Card>
         );
         return (
-          <Card key={v.id}>
+          <Card key={v.id} style={{ gap: th.t('space/gap-y/md') }}>
             {who}
             <Button variant="link" full={false} label={bookAgain(lang)} onPress={() => again(v)} testID={`past-again-${v.id}`} />
           </Card>

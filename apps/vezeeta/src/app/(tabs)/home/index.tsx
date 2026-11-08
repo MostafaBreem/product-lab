@@ -10,7 +10,7 @@ import { api, now as serverNow } from '../../../domain/server';
 import { split, t } from '../../../domain/strings';
 import { dayOf } from '../../../domain/time';
 import type { Doctor, Local, Source } from '../../../domain/types';
-import { IconKV, SkeletonCard } from '../../../ui/patterns';
+import { KV, SkeletonCard } from '../../../ui/patterns';
 import { cacheAge, drName, initials, nextLine, placeLine, ratingLine, waitValue } from '../../../ui/text';
 import { useStore } from '../../../state';
 
@@ -115,7 +115,7 @@ export default function Results() {
         </Card>
       ) : (
         data!.rows.map(({ doctor: d, next }) => (
-          <Card key={d.id}>
+          <Card key={d.id} style={{ gap: th.t('space/gap-y/md') }}>
             <Pressable onPress={() => open(d, 'results_card')} accessibilityRole="button" testID={`card-${d.id}`} style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
               {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
               <Avatar initials={initials(d)} size={56} />
@@ -128,9 +128,10 @@ export default function Results() {
             {d.badges.includes('goodListener') ? <Tag label={t('a.badge', lang)} /> : null}
             {d.freeFollowUpDays ? <Tag tone="success" label={t('a.fu.tag', lang)} /> : null}
             <View style={{ gap: th.t('space/gap-y/xs') }}>
-              <IconKV icon="coins" k={feeK} v={egp(d.fee, lang)} />
-              {d.waitMin ? <IconKV icon="calendar" k={waitK} v={waitValue(d.waitMin, lang)} /> : null}
-              {placeLine(d, lang) ? <IconKV icon="compass" v={placeLine(d, lang)!} /> : null}
+              {/* No leading icons (mock A1): rows align with the tag and the Next line. */}
+              <KV k={feeK} v={egp(d.fee, lang)} />
+              {d.waitMin ? <KV k={waitK} v={waitValue(d.waitMin, lang)} /> : null}
+              {placeLine(d, lang) ? <KV v={placeLine(d, lang)!} /> : null}
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: th.t('space/gap-x/sm') }}>
               <Txt role="body/sm" color="color/text/content/secondary/default" style={{ flex: 1 }}>{next ? nextLine(next, serverNow(), lang) : ''}</Txt>

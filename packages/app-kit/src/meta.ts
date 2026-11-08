@@ -8,19 +8,19 @@ export type ComponentMeta = {
 
 export const components: ComponentMeta[] = [
   {
-    name: 'Button', slug: 'button', tokens: 'button', summary: 'One tap action. Primary = filled main action, Link = text-only secondary action.',
+    name: 'Button', slug: 'button', tokens: 'button', summary: 'One tap action. Primary = filled main action, Secondary = outlined action next to or under the main one, Link = text-only secondary action.',
     props: [
       { name: 'label', type: 'string', description: 'Says exactly what the tap does; repeats the amount when it pays.' },
       { name: 'onPress', type: '() => void', description: 'Tap handler.' },
-      { name: 'variant', type: "'primary' | 'link'", default: "'primary'", description: 'Primary = one per view, full width. Link = secondary.' },
+      { name: 'variant', type: "'primary' | 'secondary' | 'link'", default: "'primary'", description: 'Primary = one per view, full width. Secondary = outlined (brand border + brand label on surface), full width by default, any number per view. Link = text-only secondary.' },
       { name: 'tone', type: "'default' | 'critical'", default: "'default'", description: 'Critical for overdue or destructive actions.' },
-      { name: 'loading', type: 'boolean', default: 'false', description: 'Primary only, both tones (Default, Critical): spinner + label, no press, while the action runs.' },
-      { name: 'disabled', type: 'boolean', default: 'false', description: 'Primary only: grey fill, no press, label stays. Use when the action cannot run yet (nothing picked, loading, offline). Same look in both tones.' },
+      { name: 'loading', type: 'boolean', default: 'false', description: 'Primary (both tones) and Secondary: spinner + label, no press, while the action runs.' },
+      { name: 'disabled', type: 'boolean', default: 'false', description: 'Primary and Secondary: grey fill (Secondary: grey border too), no press, label stays. Use when the action cannot run yet (nothing picked, loading, offline). Same look in both tones.' },
       { name: 'full', type: 'boolean', default: 'primary: true', description: 'Fill the parent width.' },
       { name: 'align', type: "'start' | 'center'", default: "start; center for a full link in a bottom sheet or Screen footer", description: 'Link only: label position inside a full-width link. Any secondary action under the main one is centred: bottom sheets, Screen footers, Payment card single link (2026-11-05).' },
     ],
-    variants: ['Primary', 'Primary Critical', 'Link', 'Link Critical'], states: ['Default', 'Pressed', 'Loading', 'Disabled'],
-    example: `<Button label="Pay ⃁ 312.50" onPress={pay} />\n<Button variant="link" label="Choose what to pay" onPress={open} />`,
+    variants: ['Primary', 'Primary Critical', 'Secondary', 'Link', 'Link Critical'], states: ['Default', 'Pressed', 'Loading', 'Disabled'],
+    example: `<Button label="Pay ⃁ 312.50" onPress={pay} />\n<Button variant="secondary" label="Pick another time" onPress={pick} />\n<Button variant="link" label="Choose what to pay" onPress={open} />`,
     related: ['Chip', 'ListRow', 'PaymentCard'],
   },
   {

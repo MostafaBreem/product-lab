@@ -71,11 +71,13 @@ function Body({ lang, setLang, scheme, setScheme }: { lang: Lang; setLang: (l: L
           <Button label={ar(lang, `Pay ${m(31250)} now`, `ادفع ${m(31250)} الحين`)} tone="critical" onPress={() => {}} />
           <Button label={ar(lang, 'Paying…', 'جاري الدفع…')} loading={loading} onPress={() => { setLoading(true); setTimeout(() => setLoading(false), 1500); }} />
           <Button label={ar(lang, 'Cancelling…', 'جاري الإلغاء…')} tone="critical" loading={critLoading} onPress={() => { setCritLoading(true); setTimeout(() => setCritLoading(false), 1500); }} />
+          <Button variant="secondary" label={ar(lang, 'Choose what to pay', 'اختر دفعاتك')} onPress={() => {}} />
+          <Button variant="secondary" disabled label={ar(lang, 'Choose what to pay', 'اختر دفعاتك')} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Button variant="link" label={ar(lang, 'Choose what to pay', 'اختر دفعاتك')} />
             <Button variant="link" tone="critical" label={ar(lang, 'What happens next', 'وش يصير بعدين')} />
           </View>
-          <Note>Primary · Primary Critical · Loading (tap) · Critical Loading (tap) · Link · Link Critical</Note>
+          <Note>Primary · Primary Critical · Loading (tap) · Critical Loading (tap) · Secondary · Secondary Disabled · Link · Link Critical</Note>
         </Section>
 
         <Section title="Tag · Chip">

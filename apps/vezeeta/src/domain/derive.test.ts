@@ -183,3 +183,20 @@ test('status_* fire per clinic event, not newest-only; clock jump still collapse
   assert.ok(!r.skipped.some((x) => x.type.startsWith('status_')));
   assert.equal(r.due.filter((x) => x.type === 'next_visit_4w').length, 1);
 });
+
+test('Q3: A1 Next = A2 first free slot (nextSlot) at sun8 for Nour + Sherif; Q9 AR initials', async () => {
+  const { configure, api } = await import('./server');
+  const { PRESETS, doctor } = await import('./fixtures');
+  const { nextSlot } = await import('./derive');
+  const { nextLine, initials } = await import('../ui/text');
+  configure({ preset: 'sun8', now: PRESETS.sun8, latency: 'fast' });
+  for (const id of ['nour', 'sherif']) {
+    const a1 = nextSlot(await api.slots(id, '2026-11-08', 7), PRESETS.sun8)!;
+    const a2 = (await api.slots(id, '2026-11-08', 3)).find((s) => !s.taken)!;
+    assert.equal(a1.start, a2.start);
+    assert.equal(nextLine(a1.start, PRESETS.sun8, 'en').replace(/ /g, ' '), 'Next: Today 6:00 PM');
+  }
+  configure({ preset: 'mon9', now: PRESETS.mon9 });
+  assert.equal(initials(doctor('karim')!, 'ar'), 'ك ع');
+  assert.equal(initials(doctor('karim')!, 'en'), 'KA');
+});

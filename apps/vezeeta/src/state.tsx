@@ -10,8 +10,9 @@ import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, confi
 import { addMinutes } from './domain/time';
 import type { Booking, ClockPreset, Lang, Local } from './domain/types';
 
-export type Flags = { firedReminders: string[]; firstBookingDone: boolean; offersOptIn: boolean };
-const defaultFlags: Flags = { firedReminders: [], firstBookingDone: false, offersOptIn: false };
+/** passedEmitted: booking ids that already sent visit_passed (once per booking across preset reloads / reseeds; reset store clears). */
+export type Flags = { firedReminders: string[]; firstBookingDone: boolean; offersOptIn: boolean; passedEmitted: string[] };
+const defaultFlags: Flags = { firedReminders: [], firstBookingDone: false, offersOptIn: false, passedEmitted: [] };
 type Cache = { bookings: Booking[]; at: Local };
 
 type Store = {
@@ -24,7 +25,10 @@ type Store = {
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
 };
 const Ctx = createContext<Store | null>(null);
-const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings' };
+const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings', prefs: 'vz.prefs' };
+export const PREFS_KEY = K.prefs;
+/** Debug settings persisted across reloads (one-shot errors are not). */
+const persisted = (x: Settings) => ({ preset: x.preset, now: x.now, net: x.net, latency: x.latency });
 /** Fired reminders -> NotifyHost (inside the theme + toast tree). */
 const reminderSinks = new Set<(r: Reminder) => void>();
 export const onReminder = (f: (r: Reminder) => void) => { reminderSinks.add(f); return () => { reminderSinks.delete(f); }; };
@@ -49,6 +53,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   setClock(serverNow);
 
   const setFlags = useCallback((p: Partial<Flags>) => setFlagsState((f) => { const n = { ...f, ...p }; save(K.flags, n); return n; }), []);
+  /** visit_passed once per booking id (persisted in flags). */
+  const emitPassed = useCallback((bs: Booking[]) => {
+    const seen = new Set(flagsRef.current.passedEmitted);
+    const fresh = bs.filter((b) => !seen.has(b.id));
+    if (!fresh.length) return;
+    fresh.forEach((b) => { seen.add(b.id); ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId }); });
+    flagsRef.current = { ...flagsRef.current, passedEmitted: [...seen] };
+    setFlags({ passedEmitted: [...seen] });
+  }, [setFlags]);
 
   useEffect(() => onEvent((e) => setEvents((xs) => { const n = [e, ...xs].slice(0, 500); save(K.events, n); return n; })), []);
 
@@ -81,24 +94,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const after = allBookings();
     // visit_passed: one per crossed booking; preset jump reseeds, so seeded past visits emit (as at reset).
     const passed = preset ? visits(after, to) : crossed(before, prev, to);
-    passed.forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId }));
+    emitPassed(passed);
     setSettingsState((s) => ({ ...s, ...(preset ? { preset } : {}), now: to }));
-    save(K.settings, { ...settings, ...(preset ? { preset } : {}), now: to });
+    save(K.settings, persisted({ ...settings, ...(preset ? { preset } : {}), now: to }));
     setTimeout(() => { refresh(); runReminders(); }, 0);
-  }, [refresh, runReminders, settings]);
+  }, [refresh, runReminders, settings, emitPassed]);
 
   const setPreset = useCallback((p: ClockPreset) => moveClock(PRESETS[p], p), [moveClock]);
   const advanceDay = useCallback(() => moveClock(addMinutes(serverNow(), 24 * 60)), [moveClock]);
-  const setSettings = useCallback((p: Partial<Settings>) => { configure(p); setSettingsState((s) => ({ ...s, ...p })); }, []);
+  const setSettings = useCallback((p: Partial<Settings>) => { configure(p); setSettingsState((s) => { const n = { ...s, ...p }; save(K.settings, persisted(n)); return n; }); }, []);
 
   const resetStore = useCallback(() => {
     reset();
     flagsRef.current = defaultFlags;
     setSettingsState(defaultSettings); setFlagsState(defaultFlags); setEvents([]); setBookings(undefined); setLoading(true);
     Promise.all(Object.values(K).map((k) => AsyncStorage.removeItem(k))).catch(() => {});
-    visits(allBookings(), serverNow()).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId }));
+    emitPassed(visits(allBookings(), serverNow()));
     setTimeout(() => { refresh(); runReminders(); }, 0);
-  }, [refresh, runReminders]);
+  }, [refresh, runReminders, emitPassed]);
 
   useEffect(() => {
     (async () => {
@@ -106,14 +119,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (f) { const o = { ...defaultFlags, ...JSON.parse(f) }; flagsRef.current = o; setFlagsState(o); }
       if (e) setEvents(JSON.parse(e));
       if (s) { const o = { ...defaultSettings, ...JSON.parse(s) } as Settings; configure({ preset: o.preset }); configure({ now: o.now, net: o.net, latency: o.latency }); setSettingsState(o); }
-      else visits(allBookings(), serverNow()).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId })); // first launch = store reset
+      else emitPassed(visits(allBookings(), serverNow())); // first launch = store reset
       // Web screenshots: ?preset=mon9&lang=ar (AGENTS.md > Screenshot URLs). Wins over stored settings.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         const q = new URLSearchParams(window.location.search);
         const p = q.get('preset') as ClockPreset | null;
-        if (p && p in PRESETS) {
+        // Same preset as the stored settings = a reload: keep the stored clock (cache Notice time, offline reload).
+        if (p && p in PRESETS && !(s && (JSON.parse(s) as Settings).preset === p)) {
           configure({ preset: p, now: PRESETS[p] }); setSettingsState((x) => ({ ...x, preset: p, now: PRESETS[p] }));
-          visits(allBookings(), PRESETS[p]).forEach((b) => ev.visitPassed({ bookingId: b.id, doctorId: b.doctorId })); // preset jump reseeds
+          save(K.settings, persisted({ ...defaultSettings, ...(s ? (JSON.parse(s) as Settings) : {}), preset: p, now: PRESETS[p] }));
+          emitPassed(visits(allBookings(), PRESETS[p])); // preset jump reseeds (deduped per booking)
         }
         const l = q.get('lang');
         if (l === 'ar' || l === 'en') { setLangState(l); setCommon({ locale: l }); }

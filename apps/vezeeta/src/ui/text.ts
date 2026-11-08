@@ -26,7 +26,7 @@ export function nextLine(start: Local, now: Local, lang: Lang) {
   const sample = t('a.next', lang);
   const sampleDay = split('a2.days', lang)[0];
   const sampleTime = f.time('2026-11-08T21:30', lang);
-  return sample.replace(sampleDay, dayWord(dayOf(start), now, lang)).replace(sampleTime, f.time(start, lang));
+  return f.swap(f.swap(sample, sampleDay, dayWord(dayOf(start), now, lang)), sampleTime, f.time(start, lang));
 }
 /** a2.addr: sample "Heliopolis, Al Merghany St" swapped for the doctor's area + street. */
 export function addrLine(d: Doctor, lang: Lang) {
@@ -36,7 +36,12 @@ export function addrLine(d: Doctor, lang: Lang) {
   return t('a2.addr', lang).replace(sample, `${d.area[lang]}${sep}${d.street[lang]}`);
 }
 export const placeLine = (d: Doctor, lang: Lang) => (d.area && d.street ? `${d.area[lang]}${lang === 'en' ? ', ' : '، '}${d.street[lang]}` : undefined);
-export const initials = (d: Doctor) => d.name.en.split(' ').map((w) => w[0]).join('').slice(0, 2);
+/** Avatar initials: first letter of first + last name, from the name in the UI language (AR: "ك ع", space-separated so letters stay unjoined). */
+export const initials = (d: Doctor, lang: Lang = 'en') => {
+  const ws = d.name[lang].trim().split(/\s+/);
+  const ls = [ws[0], ws[ws.length - 1]].filter(Boolean).slice(0, ws.length > 1 ? 2 : 1).map((w) => w[0]);
+  return lang === 'ar' ? ls.join(' ') : ls.join('').toUpperCase();
+};
 export const drName = (d: Doctor, lang: Lang) => (lang === 'en' ? `Dr ${d.name.en}` : `د. ${d.name.ar}`);
 /** off.cache age: time today, else day + time. */
 export const cacheAge = (at: Local, now: Local, lang: Lang) => (dayOf(at) === dayOf(now) ? f.time(at, lang) : f.dayTime(at, lang));
@@ -46,7 +51,7 @@ const SAMPLE_FEE = /(250|٢٥٠)[\s ](EGP|جنيه)/;
 /** a3.fee.v: "250 EGP, pay at the clinic" with the doctor's fee. */
 export const feeLine = (fee: number, lang: Lang) => t('a3.fee.v', lang).replace(SAMPLE_FEE, f.egp(fee, lang));
 /** a3.cta: "Book for Mon 9 Nov, 7:00 PM" (sample = a3.when.v). */
-export const bookCta = (start: Local, lang: Lang) => t('a3.cta', lang).replace(t('a3.when.v', lang), f.dayTime(start, lang));
+export const bookCta = (start: Local, lang: Lang) => f.swap(t('a3.cta', lang), t('a3.when.v', lang), f.dayTime(start, lang));
 /** a3.points: 1 point per EGP (copy note: inferred). */
 export const pointsLine = (fee: number, lang: Lang) => t('a3.points', lang).replace(f.plural(250, 'points', lang), f.plural(fee, 'points', lang));
 /** a4.b: "Dr Nour Hassan, Mon 9 Nov at 7:00 PM. Pay 250 EGP at the clinic." */

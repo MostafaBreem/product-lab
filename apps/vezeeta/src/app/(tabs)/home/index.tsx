@@ -118,7 +118,7 @@ export default function Results() {
           <Card key={d.id} style={{ gap: th.t('space/gap-y/md') }}>
             <Pressable onPress={() => open(d, 'results_card')} accessibilityRole="button" testID={`card-${d.id}`} style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
               {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
-              <Avatar initials={initials(d)} size={56} />
+              <Avatar initials={initials(d, lang)} size={56} />
               <View style={{ flex: 1 }}>
                 <Txt role="label/lg">{drName(d, lang)}</Txt>
                 <Txt role="body/sm" color="color/text/content/secondary/default">{d.title[lang]}</Txt>

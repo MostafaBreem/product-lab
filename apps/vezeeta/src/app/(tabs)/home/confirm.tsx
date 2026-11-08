@@ -134,7 +134,7 @@ export default function Confirm() {
       <Card style={{ gap: th.t('space/gap-y/md') }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
           {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
-          <Avatar initials={initials(d)} size={40} />
+          <Avatar initials={initials(d, lang)} size={40} />
           <View style={{ flex: 1 }}>
             <Txt role="label/lg">{drName(d, lang)}</Txt>
             <Txt role="body/sm" color="color/text/content/secondary/default">{d.title[lang]}</Txt>
@@ -150,7 +150,7 @@ export default function Confirm() {
 
       {resched ? null : <View style={{ gap: th.t('space/gap-y/md') }}>
         <TextField label={t('a3.name', lang)} value={name} onChangeText={setName} error={errors.name ? t('a3.err.name', lang) : undefined} testID="a3-name" />
-        <TextField label={t('a3.phone', lang)} prefix="+20" value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" error={errors.phone ? t('a3.err.phone', lang) : undefined} testID="a3-phone" />
+        <TextField label={t('a3.phone', lang)} prefix="+20" value={phone} onChangeText={(v) => setPhone(v.replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x0660)))} keyboardType="phone-pad" inputMode="tel" error={errors.phone ? t('a3.err.phone', lang) : undefined} testID="a3-phone" />
         <TextField label={t('a3.email', lang)} value={email} onChangeText={setEmail} keyboardType="email-address" inputMode="email" error={errors.email ? t('a3.err.email', lang) : undefined} testID="a3-email" />
       </View>}
 

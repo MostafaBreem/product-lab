@@ -34,18 +34,18 @@ export function pushText(r: PushData, bs: Booking[], lang: Lang, until?: string)
   const b = bs.find((x) => x.id === r.bookingId);
   const docId = r.doctorId ?? b?.doctorId;
   const sd = SAMPLE_DR[id];
-  if (sd && docId) s = s.replace(sd[lang], drName(docId, lang));
+  if (sd && docId) s = f.swap(s, sd[lang], drName(docId, lang));
   const sample = SAMPLE_AT[id];
   const when = r.type.startsWith('followup_') ? (until ? `${until}T00:00` : undefined) : b?.start;
   if (sample && when) {
-    if (r.type === 'status_moved' && lang === 'en') s = s.replace(f.dayTime(sample, lang), f.dayTime(when, lang));
+    if (r.type === 'status_moved' && lang === 'en') s = f.swap(s, f.dayTime(sample, lang), f.dayTime(when, lang));
     else {
-      s = s.replace(f.day(dayOf(sample), lang), f.day(dayOf(when), lang));
-      if (r.type === 'status_confirmed' || r.type === 'status_moved') s = s.replace(f.time(sample, lang), f.time(when, lang));
+      s = f.swap(s, f.day(dayOf(sample), lang), f.day(dayOf(when), lang));
+      if (r.type === 'status_confirmed' || r.type === 'status_moved') s = f.swap(s, f.time(sample, lang), f.time(when, lang));
     }
   }
   // next_visit_10w has no copy row: b5.5 with "4 weeks" swapped for 10 (gap logged).
-  if (r.type === 'next_visit_10w') s = s.replace(f.plural(4, 'weeks', lang), f.plural(10, 'weeks', lang));
+  if (r.type === 'next_visit_10w') s = f.swap(s, f.plural(4, 'weeks', lang), f.plural(10, 'weeks', lang));
   const [title, body] = s.split('\u0000');
   return { title, body };
 }

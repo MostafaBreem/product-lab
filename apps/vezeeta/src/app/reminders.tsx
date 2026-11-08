@@ -9,7 +9,8 @@ import { api } from '../domain/server';
 import { split, t } from '../domain/strings';
 import type { ReminderPrefs } from '../domain/types';
 import { notificationStatus } from '../ui/feedback';
-import { useStore } from '../state';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PREFS_KEY, useStore } from '../state';
 
 // One switch = a reminder category; events fire per type in it (spec has no category type: gap).
 const TYPES: Record<'followUp' | 'nextVisit', ReminderType[]> = { followUp: ['followup_open', 'followup_ending'], nextVisit: ['next_visit_4w', 'next_visit_10w'] };
@@ -22,8 +23,16 @@ export default function Reminders() {
   const [prefs, setPrefs] = useState<ReminderPrefs>();
   const [failed, setFailed] = useState(false);
   const [denied, setDenied] = useState(false);
-  const load = useCallback(() => { setFailed(false); api.prefs().then(setPrefs).catch(() => setFailed(true)); }, []);
-  useEffect(load, []);
+  // Offline: show the last saved prefs (switches disabled under the offline Notice), not the load error.
+  const keep = (p: ReminderPrefs) => { setPrefs(p); AsyncStorage.setItem(PREFS_KEY, JSON.stringify(p)).catch(() => {}); };
+  const load = useCallback(() => {
+    setFailed(false);
+    api.prefs().then(keep).catch(async (e) => {
+      const c = (e as { code?: string }).code === 'network' ? await AsyncStorage.getItem(PREFS_KEY).catch(() => null) : null;
+      if (c) setPrefs(JSON.parse(c) as ReminderPrefs); else if ((e as { code?: string }).code === 'network') setPrefs({ followUp: true, nextVisit: true, statusChanges: true }); else setFailed(true);
+    });
+  }, []);
+  useEffect(load, [settings.net]);
   useFocusEffect(useCallback(() => { setCommon({ screen: 'R1' }); notificationStatus().then((s) => setDenied(s === 'denied')); }, []));
 
   const toggle = async (k: 'followUp' | 'nextVisit', v: boolean) => {
@@ -32,7 +41,7 @@ export default function Reminders() {
     setPrefs({ ...prefs, [k]: v });
     try {
       const saved = await api.savePrefs({ ...prefs, [k]: v });
-      setPrefs(saved);
+      keep(saved);
       TYPES[k].forEach((type) => (v ? ev.reminderOptIn({ type }) : ev.reminderOptOut({ type })));
     } catch {
       setPrefs(prev); // PUT fail: switch reverts

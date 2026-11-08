@@ -33,14 +33,14 @@ test('push / deep link to unknown, resolved or past booking -> stale (B1 + Toast
 });
 
 test('push text matches mock B5 / B5b (EN)', () => {
-  assert.deepEqual(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'en'), { title: 'Dr Hana Youssef confirmed your visit', body: 'Tomorrow, Tue 10 Nov at 7:00 PM. Tap for directions.' });
-  assert.deepEqual(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'en'), { title: 'Your visit was moved', body: 'Now Thu 12 Nov, 6:30 PM. Tap to keep it or pick another time.' });
+  assert.deepEqual(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'en'), { title: 'Dr Hana Youssef confirmed your visit', body: 'Tomorrow, Tue 10 Nov at 7:00\u00a0PM. Tap for directions.' });
+  assert.deepEqual(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'en'), { title: 'Your visit was moved', body: 'Now Thu 12 Nov, 6:30\u00a0PM. Tap to keep it or pick another time.' });
   assert.deepEqual(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, 'en'), { title: 'Dr Sherif Fathy cancelled Fri 13 Nov', body: 'Sorry about this. Tap to book another time.' });
   assert.deepEqual(pushText({ type: 'followup_ending', doctorId: 'nour' }, bs, 'en', '2026-11-30'), { title: 'Free follow-up ends in 3 days', body: 'Book it with Dr Nour Hassan by Mon 30 Nov.' });
-  assert.equal(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'ar').body.replace(/[\u2066\u2069]/g, ''), 'بقى الخميس ١٢ نوفمبر الساعة ٦:٣٠ م. دوس وخلّيه أو اختار ميعاد تاني.');
+  assert.equal(pushText({ type: 'status_moved', bookingId: 'b-karim' }, bs, 'ar').body.replace(/[\u2066\u2069]/g, ''), 'بقى الخميس ١٢ نوفمبر الساعة ٦:٣٠\u00a0م. دوس وخلّيه أو اختار ميعاد تاني.');
   // Designer AR fix 2026-11-09 (gender-neutral b5.1 / b5.3): sample values still swap.
   const bidi = (x: { title: string; body: string }) => ({ title: x.title.replace(/[\u2066\u2069]/g, ''), body: x.body.replace(/[\u2066\u2069]/g, '') });
-  assert.deepEqual(bidi(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'ar')), { title: 'ميعادك مع د. هنا يوسف اتأكّد', body: 'بكرة الثلاثاء ١٠ نوفمبر الساعة ٧:٠٠ م. دوس وشوف الطريق.' });
+  assert.deepEqual(bidi(pushText({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, 'ar')), { title: 'ميعادك مع د. هنا يوسف اتأكّد', body: 'بكرة الثلاثاء ١٠ نوفمبر الساعة ٧:٠٠\u00a0م. دوس وشوف الطريق.' });
   assert.deepEqual(bidi(pushText({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, 'ar')), { title: 'ميعادك مع د. شريف فتحي يوم الجمعة ١٣ نوفمبر اتلغى', body: 'آسفين على كده. دوس واحجز ميعاد تاني.' });
   // Swap: Sherif's cancel text on Karim's booking (Thu 12 Nov) -> Karim + Thu 12 Nov.
   const swapped = bs.map((b) => (b.id === 'b-sherif' ? { ...b, doctorId: 'karim', start: '2026-11-12T18:30' } : b));
@@ -75,4 +75,34 @@ test('B2c late rule: under 3 hours before the visit', () => {
   assert.ok(underThreeHours('2026-11-09T12:59', '2026-11-09T10:00'));
   assert.ok(!underThreeHours('2026-11-09T13:00', '2026-11-09T10:00'));
   assert.ok(!underThreeHours('2026-11-09T09:00', '2026-11-09T10:00'));
+});
+
+test('Q2: clinic-event push text uses THAT booking (not the copy sample), every template, EN + AR', () => {
+  const plain = (x: string) => x.replace(/[⁦⁩]/g, '').replace(/ /g, ' ');
+  // Hana moved by the clinic to Wed 11 Nov 6:30 PM (debug move = next day, 30 min earlier).
+  const moved = bs.map((b) => (b.id === 'b-hana' ? { ...b, previousStart: b.start, start: '2026-11-11T18:30', status: 'movedByClinic' as const } : b));
+  const m = pushText({ type: 'status_moved', bookingId: 'b-hana' }, moved, 'en');
+  assert.equal(plain(m.body), 'Now Wed 11 Nov, 6:30 PM. Tap to keep it or pick another time.');
+  assert.equal(plain(pushText({ type: 'status_moved', bookingId: 'b-hana' }, moved, 'ar').body), 'بقى الأربعاء ١١ نوفمبر الساعة ٦:٣٠ م. دوس وخلّيه أو اختار ميعاد تاني.');
+  // Confirmed on Karim (Thu 12 Nov 6:30 PM): his name, day and time.
+  const c = pushText({ type: 'status_confirmed', bookingId: 'b-karim' }, bs, 'en');
+  assert.equal(c.title, 'Dr Karim Adel confirmed your visit');
+  assert.equal(plain(c.body), 'Tomorrow, Thu 12 Nov at 6:30 PM. Tap for directions.');
+  assert.equal(plain(pushText({ type: 'status_confirmed', bookingId: 'b-karim' }, bs, 'ar').body), 'بكرة الخميس ١٢ نوفمبر الساعة ٦:٣٠ م. دوس وشوف الطريق.');
+  // Cancelled on Hana: her name + day.
+  assert.equal(pushText({ type: 'status_cancelled', bookingId: 'b-hana' }, bs, 'en').title, 'Dr Hana Youssef cancelled Tue 10 Nov');
+  assert.equal(pushText({ type: 'status_cancelled', bookingId: 'b-hana' }, bs, 'ar').title, 'ميعادك مع د. هنا يوسف يوم الثلاثاء ١٠ نوفمبر اتلغى');
+  // Follow-up open / ending on Hana until Fri 20 Nov; next visit 4w / 10w on Karim.
+  for (const type of ['followup_open', 'followup_ending'] as const) {
+    assert.equal(pushText({ type, doctorId: 'hana' }, bs, 'en', '2026-11-20').body, 'Book it with Dr Hana Youssef by Fri 20 Nov.');
+    assert.equal(pushText({ type, doctorId: 'hana' }, bs, 'ar', '2026-11-20').body, 'احجزها مع د. هنا يوسف لحد الجمعة ٢٠ نوفمبر.');
+  }
+  assert.equal(pushText({ type: 'next_visit_4w', doctorId: 'karim' }, bs, 'en').title, 'Next visit with Dr Karim Adel?');
+  assert.equal(pushText({ type: 'next_visit_10w', doctorId: 'karim' }, bs, 'en').body, "It's been 10 weeks since your last visit. Tap to pick a time.");
+  assert.equal(pushText({ type: 'next_visit_10w', doctorId: 'karim' }, bs, 'ar').body, 'عدّى ١٠ أسابيع على آخر زيارة. دوس واختار ميعاد.');
+  // No sample value leaks into any template for a non-sample booking.
+  for (const lang of ['en', 'ar'] as const) for (const type of ['status_confirmed', 'status_moved', 'status_cancelled'] as const) {
+    const x = pushText({ type, bookingId: 'b-hana' }, moved, lang); const all = plain(`${x.title} ${x.body}`);
+    for (const leak of ['Thu 12 Nov', 'Fri 13 Nov', 'Karim', 'Sherif']) assert.ok(!all.includes(leak), `${type} ${lang}: ${leak}`);
+  }
 });

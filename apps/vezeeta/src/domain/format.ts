@@ -63,3 +63,11 @@ export function plural(n: number, unit: Unit, lang: Lang) {
   const forms = (lang === 'en' ? EN : AR)[unit];
   return (forms[cat] ?? forms.other).replace('#', lang === 'en' ? n.toLocaleString('en-US') : digits(n, lang));
 }
+
+/** Swap a copy-doc sample value for real data. The copy doc writes plain spaces and no bidi isolates; the formatters add NBSP / LRI-PDI: match both forms. */
+export function swap(s: string, sample: string, real: string): string {
+  const plain = sample.split(NBSP).join(' ').split(LRI).join('').split(PDI).join('');
+  if (s.includes(sample)) return s.replace(sample, real);
+  if (s.includes(plain)) return s.replace(plain, real);
+  return s;
+}

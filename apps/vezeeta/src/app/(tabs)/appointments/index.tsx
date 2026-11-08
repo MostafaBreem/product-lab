@@ -171,7 +171,7 @@ export default function Appointments() {
           <>
             <MovedTimes newK={split('b.moved.keys', lang)[0]} newV={dayTime(moved.start, lang)} wasK={split('b.moved.keys', lang)[1]} wasV={moved.previousStart ? dayTime(moved.previousStart, lang) : ''} />
             {/* Kit ListRow has no Avatar leading: DoctorLine pattern (gap) */}
-            <DoctorLine initials={initials(movedDoc)} name={drName(movedDoc, lang)} sub={placeLine(movedDoc, lang)} />
+            <DoctorLine initials={initials(movedDoc, lang)} name={drName(movedDoc, lang)} sub={placeLine(movedDoc, lang)} />
             <Txt role="body/md" wrap color="color/text/content/secondary/default">{t('b2.note', lang)}</Txt>
           </>
         ) : null}
@@ -204,7 +204,7 @@ function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => vo
   const d = doctor(b.doctorId);
   if (!d) return null;
   const cancelLink = CANCELLABLE.has(b.status) ? <Button variant="link" full={false} label={t('b.cancel.link', lang)} onPress={onCancel} testID={`cancel-${b.id}`} /> : null;
-  const who = <DoctorLine initials={initials(d)} name={drName(d, lang)} sub={d.title[lang]} />;
+  const who = <DoctorLine initials={initials(d, lang)} name={drName(d, lang)} sub={d.title[lang]} />;
   const addr = d.fullAddress?.en ?? streetArea(d, 'en');
   const directions = () => {
     if (!addr) return;
@@ -234,7 +234,7 @@ function BookingCard({ b, onCancel, onReview }: { b: Booking; onCancel: () => vo
     return (
       <Card style={{ gap: th.t('space/gap-y/md') }}>
         <FadeSwap k={b.status}><Tag tone="critical" label={t('b.canc.tag', lang)} /></FadeSwap>
-        <DoctorLine initials={initials(d)} name={drName(d, lang)} />
+        <DoctorLine initials={initials(d, lang)} name={drName(d, lang)} />
         <Txt role="body/sm" wrap>{cancelledBody(d, b.start, lang)}</Txt>
         <View>
           <Button label={again} onPress={() => toDoctor(d.id, 'cancelled_card', 'normal', { rebookOf: b.id })} testID={`rebook-${b.id}`} />
@@ -275,7 +275,7 @@ function PastView({ top, months, ps, onPrompt }: { top: Booking[]; months: { mon
         const d = doctor(v.doctorId);
         if (!d) return null;
         const p = ps.find((x) => x.visitId === v.id);
-        const who = <DoctorLine initials={initials(d)} name={drName(d, lang)} sub={visitOn(v.start, lang)} />;
+        const who = <DoctorLine initials={initials(d, lang)} name={drName(d, lang)} sub={visitOn(v.start, lang)} />;
         if (p?.type === 'followUp') return (
           <Card key={v.id} style={{ gap: th.t('space/gap-y/md') }}>
             {who}
@@ -304,7 +304,7 @@ function PastView({ top, months, ps, onPrompt }: { top: Booking[]; months: { mon
             {m.items.map((v, i) => {
               const d = doctor(v.doctorId);
               if (!d) return null;
-              return <PastRow key={v.id} initials={initials(d)} title={drName(d, lang)} sub={pastRowSub(v.reason?.[lang], v.start, lang)} action={bookAgain(lang)} onAction={() => again(v)} divider={i < m.items.length - 1} testID={`past-row-${v.id}`} />;
+              return <PastRow key={v.id} initials={initials(d, lang)} title={drName(d, lang)} sub={pastRowSub(v.reason?.[lang], v.start, lang)} action={bookAgain(lang)} onAction={() => again(v)} divider={i < m.items.length - 1} testID={`past-row-${v.id}`} />;
             })}
           </ListGroup>
         </View>

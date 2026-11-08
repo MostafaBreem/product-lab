@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Avatar, Button, NavigationBar, Notice, Screen, SegmentedControl, Tag, Txt, KeyValue, useTheme } from '@lab/app-kit';
 import { setCommon } from '../../../../domain/analytics';
-import { followUpSlots, openFollowUp } from '../../../../domain/derive';
+import { followUpSlots, nextSlot, openFollowUp } from '../../../../domain/derive';
 import { doctor } from '../../../../domain/fixtures';
 import { egp, time } from '../../../../domain/format';
 import { api } from '../../../../domain/server';
@@ -47,7 +47,8 @@ export default function Profile() {
   // Days shown: 3 from `from`; follow-up mode caps at until (build-spec-rules.md > Follow-up rule).
   const days = [0, 1, 2].map((i) => addDays(from, i)).filter((x) => !until || x <= until);
   const free = (x: string) => (slots ?? []).some((s) => dayOf(s.start) === x && !s.taken);
-  useEffect(() => { if (slots) setDay(days.find(free) ?? days[0]); }, [slots]);
+  // Default day = day of the first free slot (same nextSlot as A1 "Next:"), else the first day.
+  useEffect(() => { if (slots) { const n = nextSlot(slots, now); setDay(n && days.includes(dayOf(n.start)) ? dayOf(n.start) : days.find(free) ?? days[0]); } }, [slots]);
   const daySlots = (slots ?? []).filter((s) => dayOf(s.start) === day);
   const none = !!slots && !days.some(free);
 
@@ -67,7 +68,7 @@ export default function Profile() {
     <Screen top={<NavigationBar title={drName(d, lang)} leading="back" onLeading={() => router.back()} />}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/md') }}>
         {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}
-        <Avatar initials={initials(d)} size={72} />
+        <Avatar initials={initials(d, lang)} size={72} />
         <View style={{ flex: 1 }}>
           <Txt role="heading/md" accessibilityRole="header">{drName(d, lang)}</Txt>
           <Txt role="body/sm" color="color/text/content/secondary/default">{d.title[lang]}</Txt>

@@ -88,7 +88,7 @@ export function FrameInsets({ scheme, lang, onScheme, onLang, children }: { sche
 }
 
 /** Parent page: background, banner above the phone, phone body with the app iframe inside. */
-export function FramePage({ notice, panel }: { notice: (lang: Lang) => React.ReactNode; panel?: FramePanel }) {
+export function FramePage({ notice, panel, path }: { notice: (lang: Lang) => React.ReactNode; panel?: FramePanel; path?: string }) {
   const [state, setState] = useState<{ scheme: Scheme; lang: Lang }>({
     scheme: query?.get('scheme') === 'dark' ? 'dark' : 'light',
     lang: query?.get('lang') === 'ar' ? 'ar' : 'en',
@@ -106,12 +106,12 @@ export function FramePage({ notice, panel }: { notice: (lang: Lang) => React.Rea
   }, []);
   return (
     <ThemeProvider scheme={state.scheme} lang={state.lang}>
-      <Page banner={notice(state.lang)} lang={state.lang} scheme={state.scheme} panel={panel} app={app} />
+      <Page banner={notice(state.lang)} lang={state.lang} scheme={state.scheme} panel={panel} app={app} path={path} />
     </ThemeProvider>
   );
 }
 
-function Page({ banner, lang, scheme, panel, app }: { banner: React.ReactNode; lang: Lang; scheme: Scheme; panel?: FramePanel; app: unknown }) {
+function Page({ banner, lang, scheme, panel, app, path }: { banner: React.ReactNode; lang: Lang; scheme: Scheme; panel?: FramePanel; app: unknown; path?: string }) {
   const th = useTheme();
   const frame = useRef<HTMLIFrameElement | null>(null);
   const send = (m: Omit<SetMsg, 'type'>) => frame.current?.contentWindow?.postMessage({ type: 'lab-set', ...m } satisfies SetMsg, window.location.origin);
@@ -124,7 +124,7 @@ function Page({ banner, lang, scheme, panel, app }: { banner: React.ReactNode; l
   const bodyW = DEVICE.w + DEVICE.bezel * 2;
   const bodyH = DEVICE.h + DEVICE.bezel * 2;
   const scale = Math.min(1, (height - pad * 2 - gap - bannerH) / bodyH);
-  const src = frameSrc();
+  const src = frameSrc(path);
   return (
     <View style={{ flex: 1, minHeight: height, alignItems: 'center', justifyContent: 'center', paddingVertical: pad, gap, backgroundColor: th.t('color/bg/secondary/default') as string }}>
       <View onLayout={(e) => setBannerH(e.nativeEvent.layout.height)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: th.t('space/gap-x/sm'), direction: th.isRTL ? 'rtl' : 'ltr' }}>
@@ -170,9 +170,9 @@ function StatusBar() {
   );
 }
 
-/** Same path and query inside the iframe, plus frame=1. */
-function frameSrc(): string {
+/** Same query inside the iframe, plus frame=1. Path = the page's own path, or `path` (static host without SPA fallback: '/index.html'). */
+function frameSrc(path?: string): string {
   const q = new URLSearchParams(window.location.search);
   q.set('frame', '1');
-  return `${window.location.pathname}?${q.toString()}${window.location.hash}`;
+  return `${path ?? window.location.pathname}?${q.toString()}${window.location.hash}`;
 }

@@ -37,6 +37,9 @@ const emitReminder = (r: Reminder) => reminderSinks.forEach((f) => f(r));
 export const firePush = emitReminder;
 const save = (k: string, v: unknown) => AsyncStorage.setItem(k, JSON.stringify(v)).catch(() => {});
 
+// Query at app start: the / -> /home redirect drops it before the store hydrates (frame iframe, deep links).
+const START_QUERY = Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.search : '';
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const sys = useColorScheme();
   const [lang, setLangState] = useState<Lang>('en');
@@ -128,7 +131,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       hydrated.current = true;
       // Web screenshots: ?preset=mon9&lang=ar (AGENTS.md > Screenshot URLs). Wins over stored settings.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        const q = new URLSearchParams(window.location.search);
+        const q = new URLSearchParams(START_QUERY);
         const p = q.get('preset') as ClockPreset | null;
         // Same preset as the stored settings = a reload: keep the stored clock (cache Notice time, offline reload).
         if (p && p in PRESETS && !(s && (JSON.parse(s) as Settings).preset === p)) {
@@ -138,6 +141,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         const l = q.get('lang');
         if (l === 'ar' || l === 'en') { setLangState(l); setCommon({ locale: l }); }
+        const sc = q.get('scheme');
+        if (sc === 'dark' || sc === 'light') setSchemePref(sc);
       }
       await refresh(); runReminders();
     })();

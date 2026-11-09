@@ -55,7 +55,10 @@ function useScreenLink() {
   const { settings, lang, scheme } = useStore();
   return (href = isWeb ? window.location.href : '') => {
     const u = new URL(href);
-    return `${u.origin}${u.pathname}?${new URLSearchParams({ preset: settings.preset, lang, scheme })}`;
+    // Keep the screen's own params (doctor, time, mode) so outcome screens open from the link too (user 2026-11-09: copied A4 link opened 'Not in this demo').
+    const q = new URLSearchParams(u.search); q.delete('frame');
+    q.set('preset', settings.preset); q.set('lang', lang); q.set('scheme', scheme);
+    return `${u.origin}${u.pathname}?${q}`;
   };
 }
 

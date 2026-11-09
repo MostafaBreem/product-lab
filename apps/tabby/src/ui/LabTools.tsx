@@ -5,9 +5,9 @@
 import * as Clipboard from 'expo-clipboard';
 import { router, usePathname } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, ScrollView, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottomSheet, Button, inFrame, ListGroup, ListRow, SegmentedControl, Txt, useFrameBridge, useTheme, useToast, type FramePanel } from '@lab/app-kit';
+import { BottomSheet, Button, inFrame, LabGroup as Group, LabPanel, ListGroup, ListRow, SegmentedControl, Txt, useFrameBridge, useTheme, useToast, type FramePanel } from '@lab/app-kit';
 import type { PayResult, Settings } from '../domain/server';
 import type { Scenario } from '../domain/types';
 import { useStore } from '../state';
@@ -53,11 +53,6 @@ function ToolsBody({ v, on, onCopy, copied }: { v: Tools; on: (c: Cmd) => void; 
   );
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
-  const th = useTheme();
-  return <View style={{ gap: th.t('space/gap-y/xs') }}><Txt role="label/md" color="color/text/content/secondary/default">{title}</Txt>{children}</View>;
-}
-
 /** App side: run a tools command (both surfaces). Reset flow = close sheets, fresh data, first screen of the current tab. */
 function useRunCmd() {
   const st = useStore();
@@ -94,17 +89,15 @@ export function LabBridge() {
 export const LabFramePanel: FramePanel = ({ data, send }) => <FramePanelView v={data as Tools | undefined} send={send} />;
 
 function FramePanelView({ v, send }: { v?: Tools; send: (c: unknown) => void }) {
-  const th = useTheme();
   const [copied, setCopied] = useState(false);
   if (!v) return null;
   const copy = async () => {
     try { await navigator.clipboard.writeText(v.link); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard refused: nothing to show */ }
   };
   return (
-    <ScrollView style={{ borderRadius: th.t('radius/lg'), backgroundColor: th.t('color/bg/default') as string }} contentContainerStyle={{ padding: th.t('space/padding/md'), gap: th.t('space/gap-y/md') }}>
-      <Txt role="heading/sm">Lab tools</Txt>
+    <LabPanel>
       <ToolsBody v={v} on={send} onCopy={copy} copied={copied} />
-    </ScrollView>
+    </LabPanel>
   );
 }
 

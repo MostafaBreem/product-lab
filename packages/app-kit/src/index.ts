@@ -31,4 +31,6 @@ export { Avatar } from './components/Avatar';
 export { TabBar, type TabItem } from './components/TabBar';
 export { Gallery } from './gallery';
 export { FramePage, FrameInsets, useFramePage, inFrame, useFrameBridge, type FramePanel } from './web/phone-frame';
+export { LabPanel, LabGroup, CommentMode } from './web/lab-tools';
+export { BodyPortal } from './web/portal';
 export { components as componentMeta, type ComponentMeta } from './meta';

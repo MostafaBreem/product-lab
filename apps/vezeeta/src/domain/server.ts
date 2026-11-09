@@ -11,6 +11,8 @@ export type Settings = {
   nextBookingSlotTaken: boolean;
   /** Not in the debug list: lets the server error state be demoed (one shot). */
   nextServerError: boolean;
+  /** Lab tools "Booking result: Error": next POST /bookings fails with a server error (one shot). */
+  nextBookingError?: boolean;
 };
 export const defaultSettings: Settings = { preset: DEFAULT_PRESET, now: PRESETS[DEFAULT_PRESET], net: 'online', latency: 'normal', nextBookingSlotTaken: false, nextServerError: false };
 
@@ -91,6 +93,7 @@ export const api = {
     const prior = state.byKey.get(r.idempotencyKey);
     if (prior) return clone(prior);
     if (settings.nextBookingSlotTaken) { settings.nextBookingSlotTaken = false; throw taken(r.doctorId, r.start); }
+    if (settings.nextBookingError) { settings.nextBookingError = false; changed(); throw new MockError('server', true); }
     if (!slotFree(r.doctorId, r.start)) throw taken(r.doctorId, r.start);
     const doc = doctor(r.doctorId)!;
     let fee = doc.fee;

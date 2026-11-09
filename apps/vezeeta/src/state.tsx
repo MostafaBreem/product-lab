@@ -23,6 +23,8 @@ type Store = {
   events: Logged[]; resetStore: () => void; version: number;
   /** Debug clinic event on a chosen booking: updates the card + fires the status push. */
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
+  /** Lab tools Comment mode (web). */
+  inspect: boolean; setInspect: (v: boolean) => void;
 };
 const Ctx = createContext<Store | null>(null);
 const K = { flags: 'vz.flags', cache: 'vz.cache', events: 'vz.events', settings: 'vz.settings', prefs: 'vz.prefs', server: 'vz.server' };
@@ -52,6 +54,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Logged[]>([]);
   const [version, setVersion] = useState(0);
+  const [inspect, setInspect] = useState(false);
   const flagsRef = useRef(flags); flagsRef.current = flags;
   setClock(serverNow);
 
@@ -163,8 +166,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => { setLangState(l); setCommon({ locale: l }); }, []);
   useEffect(() => { setCommon({ locale: lang }); }, []);
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent }),
-    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent]);
+  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent, inspect, setInspect }),
+    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent, inspect]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export function useStore() { const v = useContext(Ctx); if (!v) throw new Error('no store'); return v; }

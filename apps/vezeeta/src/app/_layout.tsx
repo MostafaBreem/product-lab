@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontAssets, FrameInsets, FramePage, inFrame, ThemeProvider, ToastHost, Txt, useFramePage, useTheme } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
+import { LabBridge, LabFramePanel } from '../ui/LabTools';
 import { NotifyHost } from '../ui/notify';
 
 const FONTS = fontAssets();
@@ -20,7 +21,7 @@ export default function Root() {
   const framePage = useFramePage(CASE_STUDY);
   if (!loaded) return <View style={{ flex: 1 }} />;
   // Wide browser, public case study: phone frame page; the app runs in its iframe (app-kit web/phone-frame).
-  if (framePage) return <FramePage notice={(lang) => <CaseStudyNotice lang={lang} />} path={FRAME_SRC} />;
+  if (framePage) return <FramePage notice={(lang) => <CaseStudyNotice lang={lang} />} panel={LabFramePanel} path={FRAME_SRC} />;
   return (
     <SafeAreaProvider>
       <StoreProvider>
@@ -44,6 +45,7 @@ function Themed() {
           <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
         </Stack>
         <NotifyHost />
+        {inFrame ? <LabBridge /> : null}
       </ToastHost>
       </FrameInsets>
     </ThemeProvider>

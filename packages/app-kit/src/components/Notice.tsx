@@ -4,6 +4,7 @@ import { useTheme } from '../theme';
 import { lab } from '../inspect';
 import { Icon, type IconName } from './Icon';
 import { Txt } from './Txt';
+import { InActions } from './sheetContext';
 import type { TokenKey } from '../tokens';
 
 type Tone = 'critical' | 'neutral' | 'brand' | 'success';
@@ -39,7 +40,8 @@ export function Notice({ tone = 'neutral', icon, showIcon = true, title, body, c
       <View style={{ flex: 1, gap: th.t('notice/text/gap') }}>
         <Txt role="label/lg" color={c.title}>{title}</Txt>
         {body ? <Txt role="body/sm" color={c.body} wrap>{body}</Txt> : null}
-        {children}
+        {/* A Notice is content even inside an action bar: its link stays start-aligned. */}
+        <InActions.Provider value={false}>{children}</InActions.Provider>
       </View>
     </View>
   );

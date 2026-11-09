@@ -3,7 +3,7 @@ import { Animated, Modal, Pressable, ScrollView, View, useWindowDimensions } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NavigationBar } from './NavigationBar';
-import { InSheet } from './sheetContext';
+import { InActions, InSheet } from './sheetContext';
 
 type Props = {
   visible: boolean; onClose: () => void; title?: string; leading?: 'back' | 'close' | 'none'; onLeading?: () => void;
@@ -31,7 +31,7 @@ export function BottomSheet({ visible, onClose, title, leading = 'close', onLead
           <ScrollView bounces={false} contentContainerStyle={{ padding: th.t('bottom-sheet/content/padding'), gap: th.t('bottom-sheet/content/gap') }}>
             <InSheet.Provider value>{children}</InSheet.Provider>
           </ScrollView>
-          {footer ? <View style={{ paddingHorizontal: th.t('bottom-sheet/content/padding') }}><InSheet.Provider value>{footer}</InSheet.Provider></View> : null}
+          {footer ? <View style={{ paddingHorizontal: th.t('bottom-sheet/content/padding') }}><InSheet.Provider value><InActions.Provider value>{footer}</InActions.Provider></InSheet.Provider></View> : null}
         </Animated.View>
       </View>
     </Modal>

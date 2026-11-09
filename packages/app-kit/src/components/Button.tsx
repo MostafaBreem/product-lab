@@ -3,17 +3,21 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTheme } from '../theme';
 import { lab } from '../inspect';
 import { Txt } from './Txt';
-import { useInSheet } from './sheetContext';
+import { useInActions, useInSheet } from './sheetContext';
 
 type Props = { label: string; onPress?: () => void; variant?: 'primary' | 'secondary' | 'link'; align?: 'start' | 'center'; tone?: 'default' | 'critical'; loading?: boolean; disabled?: boolean; full?: boolean; testID?: string };
 
 /** Button: Primary (filled, one per view), Secondary (grey filled, no outline: color/fill default / active / disabled + content text, same fill as slot cells; no component tokens yet, semantic tokens) or Link. Loading = Primary only (Default and Critical tone), spinner + label, no press. Disabled = Primary only, grey fill, no press (both tones look the same). 48 tall. */
-export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full = variant !== 'link', testID }: Props) {
+export function Button({ label, onPress, variant = 'primary', align, tone = 'default', loading, disabled, full: fullProp, testID }: Props) {
   const th = useTheme();
   const crit = tone === 'critical';
   // Full-width link in an action area (bottom sheet, Screen footer) = secondary action under the main one: centred unless align is given (user 2026-11-05).
+  // Any link in an action area (BottomSheet footer, Screen footer) = secondary action under the main one: centred by default,
+  // full width unless full or align is given (decisions/system.md 2026-11-05). Links in content stay start-aligned.
   const inSheet = useInSheet();
-  const textAlign = align ?? (inSheet && full ? 'center' : 'start');
+  const inActions = useInActions();
+  const full = fullProp ?? (variant !== 'link' || (inActions && align === undefined));
+  const textAlign = align ?? ((inActions || (inSheet && full)) ? 'center' : 'start');
   if (variant === 'link') {
     return (
       <Pressable {...lab('Button', label, crit ? 'link · critical' : 'link')} testID={testID} accessibilityRole="button" onPress={onPress} hitSlop={{ top: 0, bottom: 0, left: th.t('space/padding-x/xs'), right: th.t('space/padding-x/xs') }}

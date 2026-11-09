@@ -102,7 +102,7 @@ export default function Confirm() {
       if (code === 'slotTaken') { ev.bookingResult({ result: 'slot_taken' }); haptic.warning(); setFail('slotTaken'); }
       else if (code === 'followUpExpired') { ev.bookingResult({ result: 'error' }); setFail('followUpExpired'); }
       else if (code === 'network' && (e as { sent?: boolean }).sent === false) { toast({ tone: 'neutral', text: t('off.book', lang) }); }
-      else { ev.bookingResult({ result: 'error' }); setFail('error'); }
+      else { ev.bookingResult({ result: 'error' }); haptic.warning(); setFail('error'); }
     } finally { setBusy(false); }
   }
 
@@ -110,27 +110,30 @@ export default function Confirm() {
   const bookRegular = () => { setMode('normal'); key.current = newKey(); submit('normal'); };
   const backToTimes = () => { st.refresh(); router.back(); }; // A2 reloads: taken slot comes back struck
 
+  // Errors sit in the action bar directly above the main button (Designer call 2026-11-09, user: "Above the Book button"),
+  // not at the top of the scroll: the user tapped Book at the bottom of the form, so the answer appears where they look.
+  // Critical Notice = role alert + assertive live region (kit), so screen readers announce it.
   const footer = taken ? (
-    <Button label={t('a3e.cta', lang)} onPress={backToTimes} testID="a3e-choose" />
+    <View style={{ gap: th.t('space/gap-y/sm') }}>
+      <Notice tone="critical" title={t('a3e.t', lang)} body={t('a3e.b', lang)} />
+      <Button label={t('a3e.cta', lang)} onPress={backToTimes} testID="a3e-choose" />
+    </View>
   ) : (
     <View style={{ gap: th.t('space/gap-y/xs') }}>
       <Caption text={consent.text} link={consent.link} onLink={stub} />
+      {fail === 'error' ? <View style={{ paddingTop: th.t('space/gap-y/xs') }}><Notice tone="critical" title={errT} body={errB} /></View> : null}
+      {fail === 'followUpExpired' && fuEnded ? <View style={{ paddingTop: th.t('space/gap-y/xs') }}><Notice title={fmtStrings.fuExpired(day(fuEnded, lang), lang)} /></View> : null}
       {fail === 'followUpExpired'
         ? <Button label={fmtStrings.fuExpiredCta(digits(d.fee, lang), lang)} onPress={bookRegular} loading={busy} testID="a3-book-regular" />
-        : <Button label={busy ? t('btn.booking', lang) : cta} onPress={() => submit()} loading={busy} testID="a3-book" />}
+        : fail === 'error'
+          // Try again keeps the same idempotencyKey (key.current), so a retry never books twice.
+          ? <Button label={busy ? t('btn.booking', lang) : t('err.retry', lang)} onPress={() => submit()} loading={busy} testID="a3-retry" />
+          : <Button label={busy ? t('btn.booking', lang) : cta} onPress={() => submit()} loading={busy} testID="a3-book" />}
     </View>
   );
 
   return (
     <Screen top={<NavigationBar title={title} leading="back" onLeading={() => router.back()} />} footer={footer}>
-      {taken ? <Notice tone="critical" title={t('a3e.t', lang)} body={t('a3e.b', lang)} /> : null}
-      {fail === 'error' ? (
-        <Notice tone="critical" title={errT} body={errB}>
-          <Button variant="link" label={t('err.retry', lang)} onPress={() => submit()} testID="a3-retry" />
-        </Notice>
-      ) : null}
-      {fail === 'followUpExpired' && fuEnded ? <Notice title={fmtStrings.fuExpired(day(fuEnded, lang), lang)} /> : null}
-
       <Card style={{ gap: th.t('space/gap-y/md') }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/sm') }}>
           {/* raw-ok: Avatar size is the kit enum 40 | 56 | 72, not a value */}

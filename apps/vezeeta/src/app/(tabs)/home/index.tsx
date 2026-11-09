@@ -11,7 +11,7 @@ import { split, t } from '../../../domain/strings';
 import { dayOf } from '../../../domain/time';
 import type { Doctor, Local, Source } from '../../../domain/types';
 import { KV, SkeletonCard } from '../../../ui/patterns';
-import { cacheAge, drName, initials, nextLine, placeLine, ratingLine, waitValue } from '../../../ui/text';
+import { cacheAge, countGen, drName, initials, nextLine, placeLine, ratingLine, waitValue } from '../../../ui/text';
 import { useStore } from '../../../state';
 
 type Filter = 'general' | 'none';
@@ -95,7 +95,7 @@ export default function Results() {
       {loaded ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.t('space/gap-x/xs') }}>
           <Txt role="body/sm" color="color/text/content/secondary/default" numberOfLines={1} style={{ flex: 1 }}>
-            {filter === 'general' ? t('a.count.gen', lang) : plural(data!.count, 'dentists', lang)}
+            {filter === 'general' ? countGen(data!.count, lang) : plural(data!.count, 'dentists', lang)}
           </Txt>
           <Chip label={sortL} onPress={stub} />
           <Chip label={filterL} onPress={stub} />

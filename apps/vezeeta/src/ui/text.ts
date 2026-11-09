@@ -35,6 +35,8 @@ export function addrLine(d: Doctor, lang: Lang) {
   const sample = lang === 'en' ? `Heliopolis${sep}Al Merghany St` : `مصر الجديدة${sep}شارع الميرغني`;
   return t('a2.addr', lang).replace(sample, `${d.area[lang]}${sep}${d.street[lang]}`);
 }
+/** a.count.gen: "38 general dentists" with the result count (sample 38). AR few-form (3-10) not in copy: same word (gap). */
+export const countGen = (n: number, lang: Lang) => t('a.count.gen', lang).replace(/38|٣٨/, f.digits(n, lang));
 export const placeLine = (d: Doctor, lang: Lang) => (d.area && d.street ? `${d.area[lang]}${lang === 'en' ? ', ' : '، '}${d.street[lang]}` : undefined);
 /** Avatar initials: first letter of first + last name, from the name in the UI language (AR: "ك ع", space-separated so letters stay unjoined). */
 export const initials = (d: Doctor, lang: Lang = 'en') => {

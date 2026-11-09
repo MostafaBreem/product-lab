@@ -9,7 +9,8 @@ import { ev, promptShownOnce, setCommon } from '../../../domain/analytics';
 import { past, prompts, upcoming } from '../../../domain/derive';
 import { doctor } from '../../../domain/fixtures';
 import { dayTime, monthName } from '../../../domain/format';
-import { api } from '../../../domain/server';
+import { api, clinicEvents } from '../../../domain/server';
+import { sheetQueue } from '../../../domain/sheets';
 import { fmtStrings, split, t } from '../../../domain/strings';
 import type { Booking, Prompt, Source } from '../../../domain/types';
 import { underThreeHours } from '../../../domain/derive';
@@ -58,9 +59,25 @@ export default function Appointments() {
   }, [params.moved, params.cancelled, params.focus]);
   // Live sheet: closed (x, action, or B2 -> B2c done) = clear it so the next queued event opens. Declared before the open effect.
   const liveShown = useRef<string | undefined>(undefined);
+  // Shown = id set AND booking still in that state (Lab tools Move then Cancel on one booking hides B2 while movedId stays set).
+  const b2Shown = !!movedId && !!bookings?.some((b) => b.id === movedId && b.status === 'movedByClinic');
+  const b7Shown = !!cancelledId && !!bookings?.some((b) => b.id === cancelledId && b.status === 'cancelledByClinic');
   useEffect(() => {
-    if (st.live && liveShown.current === st.live.key && !movedId && !cancelledId && !cancelId) { liveShown.current = undefined; st.setLive(undefined); }
-  }, [movedId, cancelledId, cancelId]);
+    if (st.live && liveShown.current === st.live.key && !b2Shown && !b7Shown && !cancelId) {
+      liveShown.current = undefined;
+      // Hold what is still queued (task 11b): the next sheet waits until B1 is focused again with no sheet open.
+      st.setLiveHold(st.bookings ? sheetQueue(clinicEvents(), st.bookings, st.flags.seenSheets, now).map((x) => x.key) : []);
+      st.setLive(undefined);
+    }
+  }, [b2Shown, b7Shown, cancelId]);
+  // Release the hold when B1 is focused with no sheet open; the short wait lets an action's navigation (A2 / Home) blur B1 first.
+  const [focused, setFocused] = useState(false);
+  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
+  useEffect(() => {
+    if (!focused || !st.liveHold.length || st.live || b2Shown || b7Shown || cancelId) return;
+    const id = setTimeout(() => st.setLiveHold([]), 400);
+    return () => clearTimeout(id);
+  }, [focused, st.liveHold, st.live, b2Shown, b7Shown, cancelId]);
   useEffect(() => {
     if (!st.live || liveShown.current === st.live.key) return;
     liveShown.current = st.live.key;
@@ -183,7 +200,7 @@ export default function Appointments() {
         <PastView top={pastList.top} months={pastList.months} ps={ps} onPrompt={(p) => tapPrompt(p, 'past')} />
       )}
 
-      <BottomSheet visible={!!moved && !!movedDoc} onClose={() => { if (movedId) act(movedId, 'close'); setMovedId(undefined); }} title={t('b2.t', lang)} dismissable={!keepBusy} footer={
+      <BottomSheet visible={!!moved && !!movedDoc} onClose={() => { if (movedId) act(movedId, 'close'); setMovedId(undefined); }} title={t('b2.t', lang)} closeLabel={t('close', lang)} dismissable={!keepBusy} footer={
         <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Button label={split('b2.acts', lang)[0]} loading={keepBusy} onPress={keep} testID="b2-keep" />
           <Button variant="secondary" label={split('b2.acts', lang)[1]} disabled={keepBusy} onPress={pickAnother} testID="b2-pick" />
@@ -205,7 +222,7 @@ export default function Appointments() {
         ) : null}
       </BottomSheet>
 
-      <BottomSheet visible={!!cancelled && !!cancelledDoc} onClose={() => closeB7('close')} title={t('b7.t', lang)} footer={
+      <BottomSheet visible={!!cancelled && !!cancelledDoc} onClose={() => closeB7('close')} title={t('b7.t', lang)} closeLabel={t('close', lang)} footer={
         <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Button label={split('b.canc.cta', lang)[0]} onPress={() => { const b = cancelled!; closeB7('book_again'); toDoctor(b.doctorId, 'cancelled_card', 'normal', { rebookOf: b.id }); }} testID="b7-rebook" />
           <Button variant="link" label={split('b.canc.cta', lang)[1]} onPress={() => { closeB7('find_other'); router.navigate('/home'); }} testID="b7-other" />
@@ -213,13 +230,13 @@ export default function Appointments() {
       }>
         {cancelled && cancelledDoc ? (
           <>
-            <CancelledTimes name={drName(cancelledDoc, lang)} when={dayTime(cancelled.start, lang)} />
+            <CancelledTimes initials={initials(cancelledDoc, lang)} name={drName(cancelledDoc, lang)} sub={placeLine(cancelledDoc, lang)} when={dayTime(cancelled.start, lang)} />
             <Txt role="body/md" wrap color="color/text/content/secondary/default">{cancelledBody(cancelledDoc, cancelled.start, lang)}</Txt>
           </>
         ) : null}
       </BottomSheet>
 
-      <BottomSheet visible={!!target} onClose={() => setCancelId(undefined)} title={t('b2c.t', lang)} footer={
+      <BottomSheet visible={!!target} onClose={() => setCancelId(undefined)} title={t('b2c.t', lang)} closeLabel={t('close', lang)} footer={
         <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Button tone="critical" label={busy ? t('btn.cancelling', lang) : split('b2c.acts', lang)[0]} loading={busy} onPress={confirmCancel} testID="b2c-cancel" />
           <Button variant="secondary" label={split('b2c.acts', lang)[1]} disabled={busy} onPress={() => setCancelId(undefined)} testID="b2c-keep" />

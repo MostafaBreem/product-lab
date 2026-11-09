@@ -10,7 +10,7 @@ import { ev } from '../domain/analytics';
 import { followUpUntil } from '../domain/derive';
 import { pushTarget, pushText, type PushData, type PushTarget } from '../domain/push';
 import { allBookings, clinicEvents, now as serverNow } from '../domain/server';
-import { sheetQueue } from '../domain/sheets';
+import { nextLive, sheetQueue } from '../domain/sheets';
 import { t } from '../domain/strings';
 import type { Lang } from '../domain/types';
 import { liveKeys, onReminder, useStore } from '../state';
@@ -106,16 +106,16 @@ export function NotifyHost() {
  * clock change) switches to Appointments and opens B2 (moved) or B7 (cancelled) there, one after the other (moved first), once per event.
  */
 export function LiveSheetHost() {
-  const { bookings, flags, setFlags, settings, live, setLive } = useStore();
+  const { bookings, flags, setFlags, settings, live, setLive, liveHold } = useStore();
   useEffect(() => {
     if (!bookings || live) return;
-    const e = sheetQueue(clinicEvents(), bookings, flags.seenSheets, settings.now)[0];
+    const e = nextLive(sheetQueue(clinicEvents(), bookings, flags.seenSheets, settings.now), liveHold);
     if (!e) return;
     liveKeys.add(e.key);
     setFlags({ seenSheets: [...flags.seenSheets, e.key] });
     setLive(e);
     if (router.canDismiss()) router.dismissAll();
     router.navigate('/appointments');
-  }, [bookings, live, flags.seenSheets, settings.now]);
+  }, [bookings, live, flags.seenSheets, settings.now, liveHold]);
   return null;
 }

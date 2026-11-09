@@ -9,11 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OVERRIDES = {
-  // Designer 2026-11-09: gender-neutral AR (C9); doc update pending.
-  'b5.1': { ar: 'ميعادك مع د. هنا يوسف اتأكّد / بكرة الثلاثاء ١٠ نوفمبر الساعة ٧:٠٠ م. دوس وشوف الطريق.' },
-  'b5.3': { ar: 'ميعادك مع د. شريف فتحي يوم الجمعة ١٣ نوفمبر اتلغى / آسفين على كده. دوس واحجز ميعاد تاني.' },
-};
+const OVERRIDES = {};
 
 const [docPath, ...flags] = process.argv.slice(2);
 if (!docPath) { console.error('usage: node scripts/sync-strings.mjs <copy-doc.md> [--write]'); process.exit(2); }

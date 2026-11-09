@@ -27,6 +27,8 @@ type Store = {
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
   /** Live clinic-change sheet on B1 (task 11): set by LiveSheetHost, cleared by B1 when the sheet closes. */
   live?: LiveSheet; setLive: (l?: LiveSheet) => void;
+  /** Queued sheet keys held after a live sheet closed (task 11b): released by B1 when focused with no sheet open. */
+  liveHold: string[]; setLiveHold: (k: string[]) => void;
   /** Lab tools Comment mode (web). */
   inspect: boolean; setInspect: (v: boolean) => void;
 };
@@ -62,6 +64,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [version, setVersion] = useState(0);
   const [inspect, setInspect] = useState(false);
   const [live, setLive] = useState<LiveSheet>();
+  const [liveHold, setLiveHold] = useState<string[]>([]);
   const flagsRef = useRef(flags); flagsRef.current = flags;
   setClock(serverNow);
 
@@ -123,7 +126,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const resetStore = useCallback(() => {
     reset();
     flagsRef.current = defaultFlags;
-    setLive(undefined); liveKeys.clear();
+    setLive(undefined); setLiveHold([]); liveKeys.clear();
     setSettingsState(defaultSettings); setFlagsState(defaultFlags); setEvents([]); setBookings(undefined); setLoading(true);
     Promise.all(Object.values(K).map((k) => AsyncStorage.removeItem(k))).catch(() => {});
     emitPassed(visits(allBookings(), serverNow()));
@@ -176,8 +179,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => { setLangState(l); setCommon({ locale: l }); }, []);
   useEffect(() => { setCommon({ locale: lang }); }, []);
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent, live, setLive, inspect, setInspect }),
-    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent, live, inspect]);
+  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent, live, setLive, liveHold, setLiveHold, inspect, setInspect }),
+    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent, live, liveHold, inspect]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export function useStore() { const v = useContext(Ctx); if (!v) throw new Error('no store'); return v; }

@@ -59,12 +59,14 @@ export const copy = {
   "b.moved.b": { en: "The clinic changed the time. Keep it or pick another.", ar: "العيادة غيّرت الميعاد. تقدر تخلّيه أو تختار ميعاد تاني." },
   "b.moved.cta": { en: "Review new time", ar: "شوف الميعاد الجديد" },
   "b.canc.tag": { en: "Cancelled by the clinic", ar: "العيادة لغت الميعاد" },
-  "b.canc.b": { en: "Dr Sherif Fathy can't see patients on Fri 13 Nov. Sorry about this. You pay at the clinic, so nothing was charged.", ar: "د. شريف فتحي مش هيقدر يكشف يوم الجمعة ١٣ نوفمبر. آسفين على كده. الدفع في العيادة، فمفيش أي مبلغ اتخصم." },
+  "b.canc.b": { en: "Dr Sherif Fathy can't see patients on Fri 13 Nov. Sorry about this. You pay at the clinic, so nothing was charged.", ar: "مفيش كشف مع د. شريف فتحي يوم الجمعة ١٣ نوفمبر. آسفين على كده. الدفع في العيادة، فمفيش أي مبلغ اتخصم." },
   "b.canc.cta": { en: "Book another time · Find another dentist", ar: "احجز ميعاد تاني · دوّر على دكتور تاني" },
   "b.dir": { en: "Get directions", ar: "شوف الطريق" },
   "b2.t": { en: "Your visit was moved", ar: "ميعادك اتغيّر" },
-  // B7 live cancelled sheet (task 11, Designer 2026-11-09): copy critic pending.
-  "b7.t": { en: "Your visit was cancelled", ar: "ميعادك اتلغى" },
+  // B7 live cancelled sheet (task 11, Designer 2026-11-09).
+  "b7.t": { en: "The clinic cancelled your visit", ar: "العيادة لغت ميعادك" },
+  // Sheet x a11y label (copy critic 2026-11-09).
+  "close": { en: "Close", ar: "اقفل" },
   "b2.note": { en: "If the new time doesn't work, you can cancel for free.", ar: "لو الميعاد الجديد مش مناسب، تقدر تلغي مجانًا." },
   "b2.acts": { en: "Keep new time · Pick another time · Cancel visit", ar: "خلّي الميعاد الجديد · اختار ميعاد تاني · الغي الميعاد" },
   "b2b.toast": { en: "Visit kept: Thu 12 Nov, 6:30 PM", ar: "تمام، ميعادك الخميس ١٢ نوفمبر الساعة ٦:٣٠ م" },

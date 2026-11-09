@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBookings, PRESETS } from './fixtures';
-import { seenKeys, sheetKey, sheetQueue } from './sheets';
+import { nextLive, seenKeys, sheetKey, sheetQueue } from './sheets';
 import type { ClinicEvent } from './reminders';
 
 const mon9 = PRESETS.mon9;
@@ -31,4 +31,12 @@ test('screenshot URL baseline: seeded events count as seen', () => {
   const es = [ev('b-hana', 'confirmed'), ev('b-karim', 'moved'), ev('b-sherif', 'cancelled')];
   assert.equal(sheetQueue(es, bs, seenKeys(es), mon9).length, 0);
   assert.equal(sheetKey(es[1]), `status_moved:b-karim:${mon9}`); // = reminder key (banner match)
+});
+
+test('queue hold (11b): held keys wait, a later event still opens', () => {
+  const q = sheetQueue([ev('b-karim', 'moved'), ev('b-sherif', 'cancelled')], bs, [], mon9);
+  assert.equal(nextLive(q, [])?.type, 'moved');
+  assert.equal(nextLive(q.slice(1), [q[1].key]), undefined); // B2 acted on, B7 held until back on B1
+  assert.equal(nextLive(q, [q[0].key])?.type, 'cancelled'); // not held = opens
+  assert.equal(nextLive(q.slice(1), [])?.type, 'cancelled'); // hold released
 });

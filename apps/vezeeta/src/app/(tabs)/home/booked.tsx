@@ -61,7 +61,7 @@ export default function Booked() {
       </Card>
       <Txt role="body/sm" wrap color="color/text/content/secondary/default">{t('a4.next', lang)}</Txt>
 
-      <BottomSheet visible={ask} onClose={() => setAsk(false)} title={askT} footer={
+      <BottomSheet visible={ask} onClose={() => setAsk(false)} title={askT} closeLabel={t('close', lang)} footer={
         <View>
           <Button label={askCta} onPress={turnOn} testID="notif-on" />
           <Button variant="link" label={askNo} onPress={() => setAsk(false)} testID="notif-later" />

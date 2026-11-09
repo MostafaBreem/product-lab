@@ -26,3 +26,9 @@ export function sheetQueue(events: ClinicEvent[], bs: Booking[], seen: string[],
 
 /** Keys for events already in the data (screenshot URL with ?preset=): the seeded state counts as seen, no sheet. */
 export const seenKeys = (events: ClinicEvent[]) => events.filter((e) => e.type !== 'confirmed').map(sheetKey);
+
+/**
+ * Queue hold (task 11b): when a live sheet closes, the events still queued are held; the next one opens only once the user is back
+ * on Appointments with no sheet open (B1 clears the hold). Events that arrive later (not held) open as usual. First not-held wins.
+ */
+export const nextLive = (queue: LiveSheet[], held: string[]) => queue.find((x) => !held.includes(x.key));

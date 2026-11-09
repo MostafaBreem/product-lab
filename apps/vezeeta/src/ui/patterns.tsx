@@ -296,12 +296,12 @@ export function MovedTimes({ newK, newV, wasK, wasV }: { newK: string; newV: str
   );
 }
 
-/** B7 cancelled sheet (task 11): inset like MovedTimes, doctor + struck cancelled time (no new label; struck in AR too). */
-export function CancelledTimes({ name, when }: { name: string; when: string }) {
+/** B7 cancelled sheet (task 11b): inset like MovedTimes, DoctorLine (Avatar + name + area, as B2) + struck cancelled date/time below (no label; struck in AR too). */
+export function CancelledTimes({ initials, name, sub, when }: { initials: string; name: string; sub?: string; when: string }) {
   const th = useTheme();
   return (
-    <View style={{ gap: th.t('key-value/container/gap'), paddingHorizontal: th.t('space/padding-x/md'), paddingVertical: th.t('space/padding-y/sm'), borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string }}>
-      <Txt role="label/lg">{name}</Txt>
+    <View style={{ gap: th.t('space/gap-y/xs'), paddingHorizontal: th.t('space/padding-x/md'), paddingVertical: th.t('space/padding-y/sm'), borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string }}>
+      <DoctorLine initials={initials} name={name} sub={sub} />
       <Txt role="body/sm" color="color/text/content/secondary/default" style={{ textDecorationLine: 'line-through' }}>{when}</Txt>
     </View>
   );

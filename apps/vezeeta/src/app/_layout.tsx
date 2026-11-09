@@ -12,7 +12,8 @@ const FONTS = fontAssets();
 // Public case study web build (templates/case-study-page.md). Hosted as a static site at an origin root.
 const CASE_STUDY = process.env.EXPO_PUBLIC_CASE_STUDY === '1';
 // Iframe path on the frame page; static host without SPA fallback = the real file (index.html).
-const FRAME_SRC = process.env.EXPO_PUBLIC_FRAME_SRC || '/index.html';
+// Iframe path: '/index.html' (static host without SPA fallback, default) or 'self' = the page's own path (Pages, 404 loader keeps deep links).
+const FRAME_SRC = process.env.EXPO_PUBLIC_FRAME_SRC === 'self' ? undefined : process.env.EXPO_PUBLIC_FRAME_SRC || '/index.html';
 
 export default function Root() {
   const [loaded] = useFonts(FONTS);

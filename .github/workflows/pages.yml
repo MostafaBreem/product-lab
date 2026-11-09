@@ -1,9 +1,11 @@
 name: Docs site + case study (GitHub Pages)
 # https://mostafabreem.github.io/product-lab/      Storybook docs: foundations, components, rules, agent files
 # https://mostafabreem.github.io/product-lab/app/  Tabby case study (web build, fixed "unofficial case study" banner)
+# https://mostafabreem.github.io/product-lab/lab/vezeeta/  Vezeeta case study (phone frame page, EN / AR)
+# Root 404.html = loader (.github/pages/404.html): deep links load the app that owns the path.
 on:
   push:
-    branches: [main, case/tabby]
+    branches: [main, case/tabby, case/vezeeta]
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,10 +39,18 @@ jobs:
         working-directory: apps/tabby
         env:
           EXPO_PUBLIC_CASE_STUDY: '1'
+      - name: Vezeeta case study app (web)
+        run: npx expo export --platform web
+        working-directory: apps/vezeeta
+        env:
+          EXPO_PUBLIC_CASE_STUDY: '1'
+          EXPO_BASE_URL: /product-lab/lab/vezeeta
+          EXPO_PUBLIC_FRAME_SRC: self
       - name: Assemble site
         run: |
           mkdir site && cp -r apps/docs/dist/. site/ && cp -r apps/tabby/dist site/app
-          cp apps/tabby/dist/index.html site/404.html && touch site/.nojekyll
+          mkdir -p site/lab && cp -r apps/vezeeta/dist site/lab/vezeeta
+          cp .github/pages/404.html site/404.html && touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

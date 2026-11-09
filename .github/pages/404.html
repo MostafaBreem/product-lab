@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Loading…</title>
+<script>
+// GitHub Pages has no SPA fallback: every unknown path lands here. Load the app that owns the path and write it in place,
+// so the router reads the original URL (Vezeeta under /lab/vezeeta, everything else = Tabby at /app).
+(function () {
+  var p = location.pathname;
+  var app = p.indexOf('/product-lab/lab/vezeeta') === 0 ? '/product-lab/lab/vezeeta/index.html' : '/product-lab/app/index.html';
+  var x = new XMLHttpRequest();
+  x.open('GET', app, false);
+  x.send();
+  if (x.status === 200) { document.open(); document.write(x.responseText); document.close(); }
+  else document.write('Not found');
+})();
+</script></head><body></body></html>

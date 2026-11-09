@@ -50,7 +50,7 @@ function Themed() {
 }
 
 // Designer copy; AR line pending copy critic (build-log).
-const NOTICE = { en: 'Unofficial case study · not affiliated with Vezeeta · sample data', ar: 'دراسة حالة غير رسمية · مش تابعة لـ Vezeeta · بيانات تجريبية' };
+const NOTICE = { en: 'Unofficial case study · not affiliated with Vezeeta · sample data', ar: 'دراسة حالة غير رسمية · مش تابعة لفيزيتا · بيانات تجريبية' };
 
 /** Framed page: the same notice as a pill above the phone. */
 function CaseStudyNotice({ lang }: { lang: 'en' | 'ar' }) {

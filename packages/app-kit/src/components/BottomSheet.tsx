@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { NavigationBar } from './NavigationBar';
@@ -19,9 +19,17 @@ export function BottomSheet({ visible, onClose, title, leading = 'close', onLead
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const y = useRef(new Animated.Value(height)).current;
+  // Reduce Motion: no slide, the Modal fade only (product/motion.md fallback).
+  const [reduce, setReduce] = useState(false);
   useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduce).catch(() => {});
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
+    return () => sub?.remove();
+  }, []);
+  useEffect(() => {
+    if (reduce) { y.setValue(visible ? 0 : height); return; }
     Animated.timing(y, { toValue: visible ? 0 : height, duration: 300, useNativeDriver: true }).start();
-  }, [visible]);
+  }, [visible, reduce]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => { if (dismissable) onClose(); }}>
       <View style={{ flex: 1, justifyContent: 'flex-end', direction: th.isRTL ? 'rtl' : 'ltr' }}>

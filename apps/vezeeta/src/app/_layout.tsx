@@ -7,7 +7,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { fontAssets, FrameInsets, FramePage, inFrame, ThemeProvider, ToastHost, Txt, useFramePage, useTheme } from '@lab/app-kit';
 import { StoreProvider, useStore } from '../state';
 import { LabBridge, LabFramePanel } from '../ui/LabTools';
-import { NotifyHost } from '../ui/notify';
+import { LiveSheetHost, NotifyHost } from '../ui/notify';
 
 const FONTS = fontAssets();
 // Public case study web build (templates/case-study-page.md). Hosted as a static site at an origin root.
@@ -45,6 +45,7 @@ function Themed() {
           <Stack.Screen name="debug" options={{ presentation: 'modal' }} />
         </Stack>
         <NotifyHost />
+        <LiveSheetHost />
         {inFrame ? <LabBridge /> : null}
       </ToastHost>
       </FrameInsets>

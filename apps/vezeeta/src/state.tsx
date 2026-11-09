@@ -6,13 +6,15 @@ import { ev, onEvent, setClock, setCommon, type Logged } from './domain/analytic
 import { crossed, visits } from './domain/derive';
 import { PRESETS } from './domain/fixtures';
 import { fireDue, type Reminder } from './domain/reminders';
+import { seenKeys, type LiveSheet } from './domain/sheets';
 import { allBookings, api, clinicEvent as serverClinicEvent, clinicEvents, configure, defaultSettings, now as serverNow, onServerChange, reset, restore, type ServerSnapshot, type Settings } from './domain/server';
 import { addMinutes } from './domain/time';
 import type { Booking, ClockPreset, Lang, Local } from './domain/types';
 
-/** passedEmitted: booking ids that already sent visit_passed (once per booking across preset reloads / reseeds; reset store clears). */
-export type Flags = { firedReminders: string[]; firstBookingDone: boolean; offersOptIn: boolean; passedEmitted: string[] };
-const defaultFlags: Flags = { firedReminders: [], firstBookingDone: false, offersOptIn: false, passedEmitted: [] };
+/** passedEmitted: booking ids that already sent visit_passed (once per booking across preset reloads / reseeds; reset store clears).
+ * seenSheets: clinic event keys whose live sheet (B2 / B7) was shown (task 11: once per event; reset store clears). */
+export type Flags = { firedReminders: string[]; firstBookingDone: boolean; offersOptIn: boolean; passedEmitted: string[]; seenSheets: string[] };
+const defaultFlags: Flags = { firedReminders: [], firstBookingDone: false, offersOptIn: false, passedEmitted: [], seenSheets: [] };
 type Cache = { bookings: Booking[]; at: Local };
 
 type Store = {
@@ -23,6 +25,8 @@ type Store = {
   events: Logged[]; resetStore: () => void; version: number;
   /** Debug clinic event on a chosen booking: updates the card + fires the status push. */
   clinicEvent: (bookingId: string, type: 'confirmed' | 'moved' | 'cancelled') => void;
+  /** Live clinic-change sheet on B1 (task 11): set by LiveSheetHost, cleared by B1 when the sheet closes. */
+  live?: LiveSheet; setLive: (l?: LiveSheet) => void;
   /** Lab tools Comment mode (web). */
   inspect: boolean; setInspect: (v: boolean) => void;
 };
@@ -37,6 +41,8 @@ export const onReminder = (f: (r: Reminder) => void) => { reminderSinks.add(f); 
 const emitReminder = (r: Reminder) => reminderSinks.forEach((f) => f(r));
 /** Debug: deliver a push now without the once flags (web banner / iOS local push). */
 export const firePush = emitReminder;
+/** Sheet keys opened live this session: their in-app banner is skipped (no double feedback). */
+export const liveKeys = new Set<string>();
 const save = (k: string, v: unknown) => AsyncStorage.setItem(k, JSON.stringify(v)).catch(() => {});
 
 // Query at app start: the / -> /home redirect drops it before the store hydrates (frame iframe, deep links).
@@ -55,6 +61,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [events, setEvents] = useState<Logged[]>([]);
   const [version, setVersion] = useState(0);
   const [inspect, setInspect] = useState(false);
+  const [live, setLive] = useState<LiveSheet>();
   const flagsRef = useRef(flags); flagsRef.current = flags;
   setClock(serverNow);
 
@@ -116,6 +123,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const resetStore = useCallback(() => {
     reset();
     flagsRef.current = defaultFlags;
+    setLive(undefined); liveKeys.clear();
     setSettingsState(defaultSettings); setFlagsState(defaultFlags); setEvents([]); setBookings(undefined); setLoading(true);
     Promise.all(Object.values(K).map((k) => AsyncStorage.removeItem(k))).catch(() => {});
     emitPassed(visits(allBookings(), serverNow()));
@@ -142,6 +150,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           save(K.settings, persisted({ ...defaultSettings, ...(s ? (JSON.parse(s) as Settings) : {}), preset: p, now: PRESETS[p] }));
           emitPassed(visits(allBookings(), PRESETS[p])); // preset jump reseeds (deduped per booking)
         }
+        // Screenshot URL: clinic events already in the seeded data count as seen (no live sheet; ?moved= / ?cancelled= open one).
+        if (p) { const o = { ...flagsRef.current, seenSheets: [...new Set([...flagsRef.current.seenSheets, ...seenKeys(clinicEvents())])] }; flagsRef.current = o; setFlagsState(o); save(K.flags, o); }
         const l = q.get('lang');
         if (l === 'ar' || l === 'en') { setLangState(l); setCommon({ locale: l }); }
         const sc = q.get('scheme');
@@ -166,8 +176,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => { setLangState(l); setCommon({ locale: l }); }, []);
   useEffect(() => { setCommon({ locale: lang }); }, []);
   const scheme = schemePref === 'system' ? (sys === 'dark' ? 'dark' : 'light') : schemePref;
-  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent, inspect, setInspect }),
-    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent, inspect]);
+  const value = useMemo<Store>(() => ({ lang, setLang, scheme, setSchemePref, settings, setSettings, setPreset, advanceDay, flags, setFlags, bookings, cachedAt, loadError, loading, refresh, events, resetStore, version, clinicEvent, live, setLive, inspect, setInspect }),
+    [lang, scheme, settings, flags, bookings, cachedAt, loadError, loading, events, version, setPreset, advanceDay, clinicEvent, live, inspect]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export function useStore() { const v = useContext(Ctx); if (!v) throw new Error('no store'); return v; }

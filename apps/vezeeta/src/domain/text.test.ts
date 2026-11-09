@@ -27,7 +27,7 @@ test('text.ts templates: no copy sample value leaks for a non-sample doctor / bo
     const out: Record<string, string> = {
       'a.next': nextLine(start, now, lang), 'a.wait': waitValue(zeina.waitMin!, lang), 'a2.addr': addrLine(zeina, lang)!, 'a.count.gen': countGen(7, lang),
       'a3.cta': bookCta(start, lang), 'a3.fee.v': feeLine(zeina.fee, lang), 'a3.points': pointsLine(zeina.fee, lang), 'a4.b': bookedLine(zeina, start, zeina.fee, lang),
-      'b.fu.row': `${fr.title} ${fr.sub}`, 'b1.next.row': `${nr.title} ${nr.sub}`, 'b.canc.b': cancelledBody(zeina, start, lang), 'b2c.b': cancelMovedBody(zeina, start, lang),
+      'b.fu.row': `${fr.title} ${fr.sub}`, 'b1.next.row': `${nr.title} ${nr.sub}`, 'b.canc.b': cancelledBody(zeina, start, lang), 'b7 body (b.canc.b)': cancelledBody(zeina, prev, lang), 'b2c.b': cancelMovedBody(zeina, start, lang),
       'b3.visit': visitOn(start, lang), 'b3.fu.t': pastFuTitle(zeina, lang), 'b3.fu.b': pastFuBody('2026-12-04', now, lang), 'b3.fee': pastFee(zeina.fee, lang), 'b2b.toast': keptToast(prev, lang),
     };
     for (const [id, s] of Object.entries(out)) {

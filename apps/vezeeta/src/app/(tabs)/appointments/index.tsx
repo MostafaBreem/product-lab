@@ -1,4 +1,5 @@
-// B1 Upcoming / B3 Past (one screen, SegmentedControl) + B6 empty + B2 moved sheet (param moved) / B2b kept + B2c cancel confirm sheet.
+// B1 Upcoming / B3 Past (one screen, SegmentedControl) + B6 empty + B2 moved sheet (param moved) / B2b kept + B2c cancel confirm sheet
+// + B7 cancelled sheet (param cancelled). Live clinic events open B2 / B7 here (task 11; ui/notify.tsx LiveSheetHost).
 // Mock appointments-en-v3 B1 / B2c / B3 / B6; build-spec-screens.md > Flow B; build-spec-rules.md > Patient cancel, Round 2 fixes.
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +14,7 @@ import { fmtStrings, split, t } from '../../../domain/strings';
 import type { Booking, Prompt, Source } from '../../../domain/types';
 import { underThreeHours } from '../../../domain/derive';
 import { haptic } from '../../../ui/feedback';
-import { DoctorLine, EmptyBlock, FadeCollapse, FadeSwap, CardLine, MovedTimes, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
+import { CancelledTimes, DoctorLine, EmptyBlock, FadeCollapse, FadeSwap, CardLine, MovedTimes, PastRow, PromptRow, SkeletonCard, SkeletonRow } from '../../../ui/patterns';
 import { bookAgain, cacheAge, keptToast, placeLine, cancelledBody, cancelMovedBody, drName, feeLine, fuRow, initials, nextRow, pastFee, pastFuBody, pastFuTitle, pastRowSub, streetArea, visitOn, wasLine } from '../../../ui/text';
 import { useStore } from '../../../state';
 
@@ -37,14 +38,34 @@ export default function Appointments() {
   const [busy, setBusy] = useState(false);
   const [cancelErr, setCancelErr] = useState(false);
   // B2 moved sheet: opened from the card, a push tap or a deep link (param moved).
-  const params = useLocalSearchParams<{ moved?: string; focus?: string }>();
+  const params = useLocalSearchParams<{ moved?: string; cancelled?: string; focus?: string }>();
   const [movedId, setMovedId] = useState<string>();
+  const [cancelledId, setCancelledId] = useState<string>();
   const [keepBusy, setKeepBusy] = useState(false);
   const [keepErr, setKeepErr] = useState(false);
+  // Sheet opened by an event (live, push tap, link): sheet_shown + haptic warning; its actions log sheet_action. Card tap = no event.
+  const byEvent = useRef<string | undefined>(undefined);
+  const openSheet = (type: 'moved' | 'cancelled', id: string) => {
+    setSeg('upcoming'); byEvent.current = id;
+    if (type === 'moved') { setKeepErr(false); setMovedId(id); } else setCancelledId(id);
+    ev.sheetShown({ bookingId: id, type }); haptic.warning();
+  };
+  const act = (id: string, action: Parameters<typeof ev.sheetAction>[0]['action']) => { if (byEvent.current === id) { byEvent.current = undefined; ev.sheetAction({ bookingId: id, action }); } };
   useEffect(() => {
-    if (params.moved) { setSeg('upcoming'); setKeepErr(false); setMovedId(params.moved); router.setParams({ moved: undefined }); }
+    if (params.moved) { openSheet('moved', params.moved); router.setParams({ moved: undefined }); }
+    else if (params.cancelled) { openSheet('cancelled', params.cancelled); router.setParams({ cancelled: undefined }); }
     else if (params.focus) { setSeg('upcoming'); router.setParams({ focus: undefined }); }
-  }, [params.moved, params.focus]);
+  }, [params.moved, params.cancelled, params.focus]);
+  // Live sheet: closed (x, action, or B2 -> B2c done) = clear it so the next queued event opens. Declared before the open effect.
+  const liveShown = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (st.live && liveShown.current === st.live.key && !movedId && !cancelledId && !cancelId) { liveShown.current = undefined; st.setLive(undefined); }
+  }, [movedId, cancelledId, cancelId]);
+  useEffect(() => {
+    if (!st.live || liveShown.current === st.live.key) return;
+    liveShown.current = st.live.key;
+    openSheet(st.live.type, st.live.bookingId);
+  }, [st.live?.key]);
   useFocusEffect(useCallback(() => { setCommon({ screen: seg === 'upcoming' ? 'B1' : 'B3' }); if (!loading) st.refresh(); }, [seg]));
 
   const ps = useMemo(() => (bookings ? prompts(bookings, now) : []), [bookings, now]);
@@ -87,6 +108,7 @@ export default function Appointments() {
     try {
       const b = await api.keep(moved.id);
       ev.movedResolved({ bookingId: b.id, resolution: 'keep' });
+      act(b.id, 'keep');
       setMovedId(undefined);
       await st.refresh();
       haptic.light();
@@ -98,10 +120,16 @@ export default function Appointments() {
   const pickAnother = () => {
     if (!moved) return;
     ev.movedResolved({ bookingId: moved.id, resolution: 'pick' });
+    act(moved.id, 'pick');
     setMovedId(undefined);
     toDoctor(moved.doctorId, 'moved_pick', 'reschedule', { bookingId: moved.id });
   };
-  const cancelFromMoved = () => { if (!moved) return; const id = moved.id; setMovedId(undefined); setCancelErr(false); setCancelId(id); };
+  const cancelFromMoved = () => { if (!moved) return; const id = moved.id; act(id, 'cancel'); setMovedId(undefined); setCancelErr(false); setCancelId(id); };
+
+  // B7 cancelled sheet (task 11): Book another time = A2 same doctor (cancelled_card); Find another dentist = Home A1.
+  const cancelled = bookings?.find((b) => b.id === cancelledId && b.status === 'cancelledByClinic');
+  const cancelledDoc = cancelled ? doctor(cancelled.doctorId) : undefined;
+  const closeB7 = (action: 'book_again' | 'find_other' | 'close') => { if (cancelledId) act(cancelledId, action); setCancelledId(undefined); };
 
   const target = bookings?.find((b) => b.id === cancelId);
   async function confirmCancel() {
@@ -155,7 +183,7 @@ export default function Appointments() {
         <PastView top={pastList.top} months={pastList.months} ps={ps} onPrompt={(p) => tapPrompt(p, 'past')} />
       )}
 
-      <BottomSheet visible={!!moved && !!movedDoc} onClose={() => setMovedId(undefined)} title={t('b2.t', lang)} dismissable={!keepBusy} footer={
+      <BottomSheet visible={!!moved && !!movedDoc} onClose={() => { if (movedId) act(movedId, 'close'); setMovedId(undefined); }} title={t('b2.t', lang)} dismissable={!keepBusy} footer={
         <View style={{ gap: th.t('space/gap-y/xs') }}>
           <Button label={split('b2.acts', lang)[0]} loading={keepBusy} onPress={keep} testID="b2-keep" />
           <Button variant="secondary" label={split('b2.acts', lang)[1]} disabled={keepBusy} onPress={pickAnother} testID="b2-pick" />
@@ -173,6 +201,20 @@ export default function Appointments() {
             {/* Kit ListRow has no Avatar leading: DoctorLine pattern (gap) */}
             <DoctorLine initials={initials(movedDoc, lang)} name={drName(movedDoc, lang)} sub={placeLine(movedDoc, lang)} />
             <Txt role="body/md" wrap color="color/text/content/secondary/default">{t('b2.note', lang)}</Txt>
+          </>
+        ) : null}
+      </BottomSheet>
+
+      <BottomSheet visible={!!cancelled && !!cancelledDoc} onClose={() => closeB7('close')} title={t('b7.t', lang)} footer={
+        <View style={{ gap: th.t('space/gap-y/xs') }}>
+          <Button label={split('b.canc.cta', lang)[0]} onPress={() => { const b = cancelled!; closeB7('book_again'); toDoctor(b.doctorId, 'cancelled_card', 'normal', { rebookOf: b.id }); }} testID="b7-rebook" />
+          <Button variant="link" label={split('b.canc.cta', lang)[1]} onPress={() => { closeB7('find_other'); router.navigate('/home'); }} testID="b7-other" />
+        </View>
+      }>
+        {cancelled && cancelledDoc ? (
+          <>
+            <CancelledTimes name={drName(cancelledDoc, lang)} when={dayTime(cancelled.start, lang)} />
+            <Txt role="body/md" wrap color="color/text/content/secondary/default">{cancelledBody(cancelledDoc, cancelled.start, lang)}</Txt>
           </>
         ) : null}
       </BottomSheet>

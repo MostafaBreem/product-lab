@@ -12,6 +12,7 @@ export type PushData = { type: ReminderType; bookingId?: string; doctorId?: stri
 export type PushTarget =
   | { to: 'b1'; bookingId: string }
   | { to: 'b2'; bookingId: string }
+  | { to: 'b7'; bookingId: string }
   | { to: 'a2'; doctorId: string; mode: 'followUp' | 'normal'; source: Source }
   | { to: 'stale' };
 
@@ -56,7 +57,7 @@ export function pushTarget(r: PushData, bs: Booking[], now: Local): PushTarget {
     const b = bs.find((x) => x.id === r.bookingId);
     if (!b || b.start < now) return { to: 'stale' };
     if (r.type === 'status_moved') return b.status === 'movedByClinic' ? { to: 'b2', bookingId: b.id } : { to: 'stale' };
-    if (r.type === 'status_cancelled') return b.status === 'cancelledByClinic' ? { to: 'b1', bookingId: b.id } : { to: 'stale' };
+    if (r.type === 'status_cancelled') return b.status === 'cancelledByClinic' ? { to: 'b7', bookingId: b.id } : { to: 'stale' };
     return isCancelled(b) ? { to: 'stale' } : { to: 'b1', bookingId: b.id };
   }
   const doctorId = r.doctorId ?? bs.find((x) => x.id === r.bookingId)?.doctorId;

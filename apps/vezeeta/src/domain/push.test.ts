@@ -12,10 +12,10 @@ const mon9 = PRESETS.mon9;
 const bs = buildBookings('mon9');
 const prefs = { followUp: true, nextVisit: true, statusChanges: true as const };
 
-test('push tap routing at Mon 9 Nov: confirmed -> B1 card, moved -> B2, cancelled -> B1 card, follow-up / next visit -> A2 matching mode', () => {
+test('push tap routing at Mon 9 Nov: confirmed -> B1 card, moved -> B2, cancelled -> B7 sheet over B1 (task 11), follow-up / next visit -> A2 matching mode', () => {
   assert.deepEqual(pushTarget({ type: 'status_confirmed', bookingId: 'b-hana' }, bs, mon9), { to: 'b1', bookingId: 'b-hana' });
   assert.deepEqual(pushTarget({ type: 'status_moved', bookingId: 'b-karim' }, bs, mon9), { to: 'b2', bookingId: 'b-karim' });
-  assert.deepEqual(pushTarget({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, mon9), { to: 'b1', bookingId: 'b-sherif' });
+  assert.deepEqual(pushTarget({ type: 'status_cancelled', bookingId: 'b-sherif' }, bs, mon9), { to: 'b7', bookingId: 'b-sherif' });
   assert.deepEqual(pushTarget({ type: 'followup_open', bookingId: 'b-nour-oct', doctorId: 'nour' }, bs, mon9), { to: 'a2', doctorId: 'nour', mode: 'followUp', source: 'push_followup' });
   assert.deepEqual(pushTarget({ type: 'next_visit_4w', bookingId: 'b-laila-oct', doctorId: 'laila' }, bs, mon9), { to: 'a2', doctorId: 'laila', mode: 'normal', source: 'push_next_visit' });
 });

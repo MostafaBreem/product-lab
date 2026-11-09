@@ -295,3 +295,14 @@ export function MovedTimes({ newK, newV, wasK, wasV }: { newK: string; newV: str
     </View>
   );
 }
+
+/** B7 cancelled sheet (task 11): inset like MovedTimes, doctor + struck cancelled time (no new label; struck in AR too). */
+export function CancelledTimes({ name, when }: { name: string; when: string }) {
+  const th = useTheme();
+  return (
+    <View style={{ gap: th.t('key-value/container/gap'), paddingHorizontal: th.t('space/padding-x/md'), paddingVertical: th.t('space/padding-y/sm'), borderRadius: th.t('radius/md'), backgroundColor: th.t('color/surface/secondary/default') as string }}>
+      <Txt role="label/lg">{name}</Txt>
+      <Txt role="body/sm" color="color/text/content/secondary/default" style={{ textDecorationLine: 'line-through' }}>{when}</Txt>
+    </View>
+  );
+}

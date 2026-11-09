@@ -9,10 +9,11 @@ import { Txt, useTheme, useToast } from '@lab/app-kit';
 import { ev } from '../domain/analytics';
 import { followUpUntil } from '../domain/derive';
 import { pushTarget, pushText, type PushData, type PushTarget } from '../domain/push';
-import { allBookings, now as serverNow } from '../domain/server';
+import { allBookings, clinicEvents, now as serverNow } from '../domain/server';
+import { sheetQueue } from '../domain/sheets';
 import { t } from '../domain/strings';
 import type { Lang } from '../domain/types';
-import { onReminder, useStore } from '../state';
+import { liveKeys, onReminder, useStore } from '../state';
 import { notificationStatus } from './feedback';
 
 const native = Platform.OS !== 'web';
@@ -24,6 +25,7 @@ if (native) {
 /** Navigate to a push / deep-link target. Stale = B1 + Toast link.changed. */
 export function goTarget(target: PushTarget, toast: ReturnType<typeof useToast>, lang: Lang) {
   if (target.to === 'b2') router.navigate({ pathname: '/appointments', params: { moved: target.bookingId } });
+  else if (target.to === 'b7') router.navigate({ pathname: '/appointments', params: { cancelled: target.bookingId } });
   else if (target.to === 'b1') router.navigate({ pathname: '/appointments', params: { focus: target.bookingId } });
   else if (target.to === 'a2') router.navigate({ pathname: '/home/doctor/[id]', params: { id: target.doctorId, source: target.source, mode: target.mode } });
   else { router.navigate('/appointments'); toast({ tone: 'neutral', text: t('link.changed', lang) }); }
@@ -44,8 +46,9 @@ type Banner = PushData & { title: string; body: string; n: number };
 export function NotifyHost() {
   const th = useTheme();
   const insets = useSafeAreaInsets();
-  const { lang } = useStore();
+  const { lang, flags } = useStore();
   const open = useOpenPush();
+  const seenRef = useRef(flags.seenSheets); seenRef.current = flags.seenSheets;
   const [banner, setBanner] = useState<Banner>();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seq = useRef(0);
@@ -60,6 +63,9 @@ export function NotifyHost() {
 
   useEffect(() => onReminder(async (r) => {
     const bs = allBookings();
+    // Task 11: a move / cancel with a live sheet (open or queued) gets no banner or foreground push (no double feedback).
+    if ((r.type === 'status_moved' || r.type === 'status_cancelled')
+      && (liveKeys.has(r.key) || sheetQueue(clinicEvents(), bs, seenRef.current, serverNow()).some((x) => x.key === r.key))) return;
     const visit = bs.find((x) => x.id === r.bookingId);
     const until = r.type.startsWith('followup_') && visit ? followUpUntil(visit) : undefined;
     const data: PushData = { type: r.type, bookingId: r.bookingId, doctorId: r.doctorId };
@@ -93,4 +99,23 @@ export function NotifyHost() {
       </Pressable>
     </View>
   );
+}
+
+/**
+ * Live clinic-change sheets (task 11, CEO 2026-11-09): an unseen MOVE / CANCEL (Lab tools / debug Clinic update, or found on app open /
+ * clock change) switches to Appointments and opens B2 (moved) or B7 (cancelled) there, one after the other (moved first), once per event.
+ */
+export function LiveSheetHost() {
+  const { bookings, flags, setFlags, settings, live, setLive } = useStore();
+  useEffect(() => {
+    if (!bookings || live) return;
+    const e = sheetQueue(clinicEvents(), bookings, flags.seenSheets, settings.now)[0];
+    if (!e) return;
+    liveKeys.add(e.key);
+    setFlags({ seenSheets: [...flags.seenSheets, e.key] });
+    setLive(e);
+    if (router.canDismiss()) router.dismissAll();
+    router.navigate('/appointments');
+  }, [bookings, live, flags.seenSheets, settings.now]);
+  return null;
 }

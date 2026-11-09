@@ -38,6 +38,9 @@ export const ev = {
   osPermissionResult: (p: { result: 'granted' | 'denied' | 'web' }) => track('os_permission_result', p),
   promptShown: (p: { type: PromptType; doctorId: string; place: 'upcoming' | 'past' }) => track('prompt_shown', p),
   promptTapped: (p: { type: PromptType; place: 'upcoming' | 'past' }) => track('prompt_tapped', p),
+  /** Live clinic-change sheet (task 11): opened by an event (live, push tap, link), not by the card button. */
+  sheetShown: (p: { bookingId: string; type: 'moved' | 'cancelled' }) => track('sheet_shown', p),
+  sheetAction: (p: { bookingId: string; action: 'keep' | 'pick' | 'cancel' | 'book_again' | 'find_other' | 'close' }) => track('sheet_action', p),
   reminderSent: (p: { type: ReminderType }) => track('reminder_sent', p),
   reminderOpened: (p: { type: ReminderType }) => track('reminder_opened', p),
   reminderOptOut: (p: { type: ReminderType }) => track('reminder_opt_out', p),

@@ -63,6 +63,8 @@ export const copy = {
   "b.canc.cta": { en: "Book another time · Find another dentist", ar: "احجز ميعاد تاني · دوّر على دكتور تاني" },
   "b.dir": { en: "Get directions", ar: "شوف الطريق" },
   "b2.t": { en: "Your visit was moved", ar: "ميعادك اتغيّر" },
+  // B7 live cancelled sheet (task 11, Designer 2026-11-09): copy critic pending.
+  "b7.t": { en: "Your visit was cancelled", ar: "ميعادك اتلغى" },
   "b2.note": { en: "If the new time doesn't work, you can cancel for free.", ar: "لو الميعاد الجديد مش مناسب، تقدر تلغي مجانًا." },
   "b2.acts": { en: "Keep new time · Pick another time · Cancel visit", ar: "خلّي الميعاد الجديد · اختار ميعاد تاني · الغي الميعاد" },
   "b2b.toast": { en: "Visit kept: Thu 12 Nov, 6:30 PM", ar: "تمام، ميعادك الخميس ١٢ نوفمبر الساعة ٦:٣٠ م" },
